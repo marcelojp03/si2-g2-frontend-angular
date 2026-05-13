@@ -124,9 +124,13 @@ import { StyleClassModule } from 'primeng/styleclass';
 
                         <p-floatlabel variant="on">
                             <p-password id="password" [(ngModel)]="password" [toggleMask]="true"
-                                        [fluid]="true" [feedback]="false" (keyup.enter)="onLogin()" />
+                                         [fluid]="true" [feedback]="false" (keyup.enter)="onLogin()" />
                             <label for="password">Contraseña</label>
                         </p-floatlabel>
+
+                        <div class="flex justify-end -mt-2">
+                            <a routerLink="/auth/forgot-password" class="text-sm text-primary no-underline hover:underline">¿Olvidaste tu contraseña?</a>
+                        </div>
 
                         <p-button label="Ingresar" icon="pi pi-sign-in" styleClass="w-full mt-1"
                                   [loading]="loading" (onClick)="onLogin()" />

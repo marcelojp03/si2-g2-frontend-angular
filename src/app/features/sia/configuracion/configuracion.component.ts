@@ -15,27 +15,12 @@ import { ProgressSpinnerModule } from 'primeng/progressspinner';
 import { ConfirmDialogModule } from 'primeng/confirmdialog';
 import { InstitucionService } from '@/core/services/institucion.service';
 import { StorageService } from '@/core/services/storage.service';
-import { AuthService } from '@/core/services/auth.service';
 import { FileUploadComponent } from '@/shared/components/file-upload/file-upload.component';
 import {
     ConfiguracionInstitucionRequest,
-    ConfiguracionInstitucionResponse
+    ConfiguracionParametroResponse,
+    InstitucionResponse
 } from '@/core/models/sia.models';
-
-/** Configuraciones predefinidas con etiquetas amigables */
-const CONFIGS_CONOCIDAS: Record<string, { label: string; descripcion: string; esBooleano: boolean }> = {
-    NOMBRE_CORTO:         { label: 'Nombre corto',               descripcion: 'Nombre abreviado de la institución', esBooleano: false },
-    DESCRIPCION:          { label: 'Descripción',                 descripcion: 'Descripción breve de la institución',esBooleano: false },
-    TELEFONO_CONTACTO:    { label: 'Teléfono de contacto',        descripcion: 'Número de teléfono principal',       esBooleano: false },
-    CORREO_CONTACTO:      { label: 'Correo de contacto',          descripcion: 'Correo electrónico institucional',   esBooleano: false },
-    SITIO_WEB:            { label: 'Sitio web',                   descripcion: 'URL del sitio web',                  esBooleano: false },
-    COLOR_PRIMARIO:       { label: 'Color primario',              descripcion: 'Código hexadecimal (#RRGGBB)',        esBooleano: false },
-    MATRICULA_HABILITADA: { label: 'Matrícula habilitada',        descripcion: 'Permite inscripciones actualmente',  esBooleano: true  },
-    MAX_ALUMNOS_AULA:     { label: 'Máximo de alumnos por aula',  descripcion: 'Capacidad máxima por paralelo',      esBooleano: false },
-    ESCALA_CALIFICACION:  { label: 'Escala de calificación',      descripcion: 'Nota máxima (ej: 100)',              esBooleano: false },
-    NOTA_MINIMA_APROBACION:    { label: 'Nota mínima de aprobación',   descripcion: 'Puntaje mínimo para aprobar',       esBooleano: false },
-    NOTA_MINIMA_RECUPERACION:  { label: 'Nota mínima de recuperación', descripcion: 'Puntaje mínimo para recuperación',  esBooleano: false },
-};
 
 @Component({
     selector: 'app-configuracion',
@@ -49,11 +34,11 @@ const CONFIGS_CONOCIDAS: Record<string, { label: string; descripcion: string; es
 export class ConfiguracionComponent implements OnInit {
     private institucionService  = inject(InstitucionService);
     private storageService      = inject(StorageService);
-    private authService         = inject(AuthService);
     private messageService      = inject(MessageService);
     private confirmationService = inject(ConfirmationService);
 
-    configuraciones = signal<ConfiguracionInstitucionResponse[]>([]);
+    configuraciones = signal<ConfiguracionParametroResponse[]>([]);
+    institucionActual = signal<InstitucionResponse | null>(null);
     loading   = true;
     uploading = false;
     dialogVisible = false;
@@ -65,31 +50,41 @@ export class ConfiguracionComponent implements OnInit {
     logoLoading = false;
 
     // Usados solo en el dialog
-    claveSeleccionada = '';
+    configSeleccionada: ConfiguracionParametroResponse | null = null;
     valorTexto    = '';
     valorBooleano = false;
     descripcion   = '';
 
-    get configActual() { return CONFIGS_CONOCIDAS[this.claveSeleccionada]; }
-    get esBooleano()  { return this.configActual?.esBooleano ?? false; }
-    get labelClave()  { return this.configActual?.label ?? this.claveSeleccionada; }
-
-    opcionesNuevas = Object.entries(CONFIGS_CONOCIDAS)
-        .map(([clave, meta]) => ({ clave, label: meta.label }));
-
-    private get idInstitucion(): string {
-        return this.authService.getCurrentUser()?.idInstitucion ?? '';
-    }
+    get esBooleano()  { return this.configSeleccionada?.tipoValor === 'BOOLEANO'; }
+    get esNumero()    { return this.configSeleccionada?.tipoValor === 'NUMERO'; }
+    get usaSelector() { return !!this.configSeleccionada?.valoresPermitidos?.length; }
+    get labelClave()  { return this.configSeleccionada?.nombre ?? ''; }
+    get modulos()     { return [...new Set(this.configuraciones().map(c => c.modulo))]; }
 
     ngOnInit(): void {
-        this.load();
-        this.loadLogo();
+        this.loadInstitucionActual();
+    }
+
+    loadInstitucionActual(): void {
+        this.loading = true;
+        this.institucionService.obtenerActual().subscribe({
+            next: r => {
+                if (r.codigo === 200 && r.data) {
+                    this.institucionActual.set(r.data);
+                    this.load();
+                    this.loadLogo();
+                    return;
+                }
+                this.loading = false;
+            },
+            error: () => { this.loading = false; this.error('No se pudo cargar la institución actual'); }
+        });
     }
 
     load(): void {
-        if (!this.idInstitucion) { this.loading = false; return; }
+        if (!this.institucionActual()) { this.loading = false; return; }
         this.loading = true;
-        this.institucionService.listarConfiguraciones(this.idInstitucion).subscribe({
+        this.institucionService.listarCatalogoConfiguracionesActuales().subscribe({
             next: r => {
                 this.loading = false;
                 if (r.codigo === 200) this.configuraciones.set(r.data ?? []);
@@ -99,8 +94,9 @@ export class ConfiguracionComponent implements OnInit {
     }
 
     loadLogo(): void {
-        if (!this.idInstitucion) return;
-        this.storageService.getPrincipal('INSTITUCION', 'institucion', this.idInstitucion, 'LOGO').subscribe({
+        const institucion = this.institucionActual();
+        if (!institucion) return;
+        this.storageService.getPrincipal('INSTITUCION', 'institucion', institucion.id, 'LOGO').subscribe({
             next: r => {
                 if (r.codigo === 200 && r.data?.url) {
                     this.logoUrl.set(r.data.url);
@@ -112,12 +108,13 @@ export class ConfiguracionComponent implements OnInit {
     }
 
     onLogoSeleccionado(file: File): void {
-        if (!this.idInstitucion) return;
+        const institucion = this.institucionActual();
+        if (!institucion) return;
         this.uploading = true;
         this.storageService.upload(file, {
             modulo: 'INSTITUCION',
             entidad: 'institucion',
-            idEntidad: this.idInstitucion,
+            idEntidad: institucion.id,
             tipoReferencia: 'LOGO',
             esPrincipal: true
         }).subscribe({
@@ -146,17 +143,8 @@ export class ConfiguracionComponent implements OnInit {
         });
     }
 
-    nueva(): void {
-        this.claveSeleccionada = Object.keys(CONFIGS_CONOCIDAS)[0];
-        this.valorTexto    = '';
-        this.valorBooleano = false;
-        this.descripcion   = CONFIGS_CONOCIDAS[this.claveSeleccionada]?.descripcion ?? '';
-        this.editMode = false;
-        this.dialogVisible = true;
-    }
-
-    editar(c: ConfiguracionInstitucionResponse): void {
-        this.claveSeleccionada = c.clave;
+    editar(c: ConfiguracionParametroResponse): void {
+        this.configSeleccionada = c;
         if (this.esBooleano) {
             this.valorBooleano = c.valor.toLowerCase() === 'true';
             this.valorTexto    = '';
@@ -164,39 +152,29 @@ export class ConfiguracionComponent implements OnInit {
             this.valorTexto    = c.valor;
             this.valorBooleano = false;
         }
-        this.descripcion = c.descripcion ?? this.configActual?.descripcion ?? '';
+        this.descripcion = c.descripcion ?? '';
         this.editMode = true;
         this.dialogVisible = true;
     }
 
-    seleccionarOpcion(clave: string): void {
-        this.claveSeleccionada = clave;
-        this.valorTexto    = '';
-        this.valorBooleano = false;
-        this.descripcion   = CONFIGS_CONOCIDAS[clave]?.descripcion ?? '';
-    }
-
     guardar(): void {
         const valor = this.esBooleano ? String(this.valorBooleano) : this.valorTexto.trim();
-        if (!this.claveSeleccionada || !valor) {
+        if (!this.configSeleccionada || !valor) {
             this.messageService.add({ severity: 'warn', summary: 'Atención', detail: 'Completa todos los campos requeridos', life: 3000 });
             return;
         }
 
-        let tipoValor = 'TEXTO';
-        if (this.esBooleano) tipoValor = 'BOOLEANO';
-        else if (/^\d+(\.\d+)?$/.test(valor)) tipoValor = 'NUMERO';
-
         const request: ConfiguracionInstitucionRequest = {
-            clave: this.claveSeleccionada,
+            clave: this.configSeleccionada.clave,
             valor,
-            tipoValor,
+            tipoValor: this.configSeleccionada.tipoValor,
             descripcion: this.descripcion
         };
 
-        this.institucionService.actualizarConfiguracion(this.idInstitucion, request).subscribe({
+        this.institucionService.actualizarConfiguracionActual(request).subscribe({
             next: () => {
                 this.dialogVisible = false;
+                this.configSeleccionada = null;
                 this.messageService.add({ severity: 'success', summary: 'Guardado', detail: `"${this.labelClave}" guardado correctamente`, life: 3000 });
                 this.load();
             },
@@ -204,27 +182,31 @@ export class ConfiguracionComponent implements OnInit {
         });
     }
 
-    eliminar(c: ConfiguracionInstitucionResponse): void {
+    restaurarDefault(c: ConfiguracionParametroResponse): void {
         this.confirmationService.confirm({
-            message: `¿Eliminar la configuración "${this.etiqueta(c.clave)}"? Esta acción no se puede deshacer.`,
-            header: 'Confirmar eliminación',
+            message: `¿Restablecer la configuración "${c.nombre}" a su valor por defecto?`,
+            header: 'Restablecer configuración',
             icon: 'pi pi-exclamation-triangle',
-            acceptButtonProps: { label: 'Eliminar', severity: 'danger', icon: 'pi pi-trash' },
+            acceptButtonProps: { label: 'Restablecer', severity: 'warn', icon: 'pi pi-refresh' },
             rejectButtonProps: { label: 'Cancelar', severity: 'secondary', outlined: true },
             accept: () => {
-                this.institucionService.eliminarConfiguracion(this.idInstitucion, c.clave).subscribe({
+                this.institucionService.eliminarConfiguracionActual(c.clave).subscribe({
                     next: () => {
-                        this.messageService.add({ severity: 'success', summary: 'Eliminado', detail: `"${this.etiqueta(c.clave)}" eliminado`, life: 3000 });
-                        this.configuraciones.update(list => list.filter(x => x.clave !== c.clave));
+                        this.messageService.add({ severity: 'success', summary: 'Restablecido', detail: `"${c.nombre}" volvió a su valor por defecto`, life: 3000 });
+                        this.load();
                     },
-                    error: (e) => this.error(e.error?.mensaje ?? 'No se pudo eliminar la configuración')
+                    error: (e) => this.error(e.error?.mensaje ?? 'No se pudo restablecer la configuración')
                 });
             }
         });
     }
 
-    etiqueta(clave: string): string {
-        return CONFIGS_CONOCIDAS[clave]?.label ?? clave;
+    configuracionesPorModulo(modulo: string): ConfiguracionParametroResponse[] {
+        return this.configuraciones().filter(c => c.modulo === modulo);
+    }
+
+    abrirEdicionDesdeTarjeta(config: ConfiguracionParametroResponse): void {
+        this.editar(config);
     }
 
     private error(msg: string): void {

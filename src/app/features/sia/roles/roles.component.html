@@ -1,0 +1,88 @@
+<p-toast />
+<p-confirmDialog />
+
+<div class="card">
+    <div class="flex items-center justify-between mb-6">
+        <div>
+            <h3 class="text-xl font-semibold m-0">Roles y permisos</h3>
+            <p class="text-surface-400 text-sm mt-1 mb-0">Crea grupos institucionales y asígnales privilegios por módulo.</p>
+        </div>
+        <p-button label="Nuevo rol" icon="pi pi-plus" [disabled]="isSuperAdmin" (onClick)="nuevo()" />
+    </div>
+
+    <p-table [value]="roles()" [loading]="loading" dataKey="id" [paginator]="true" [rows]="10" styleClass="p-datatable-striped">
+        <ng-template #header>
+            <tr>
+                <th>Nombre</th>
+                <th>Tipo</th>
+                <th>Permisos</th>
+                <th class="w-32">Acciones</th>
+            </tr>
+        </ng-template>
+
+        <ng-template #body let-rol>
+            <tr>
+                <td>
+                    <div class="font-medium">{{ rol.nombre }}</div>
+                    <div class="text-sm text-surface-500">{{ rol.descripcion || 'Sin descripción' }}</div>
+                </td>
+                <td>
+                    <p-tag [value]="rol.esGlobal ? 'Global' : 'Institucional'" [severity]="rol.esGlobal ? 'info' : 'success'" />
+                </td>
+                <td>
+                    <div class="flex flex-wrap gap-1">
+                        @for (permiso of rol.permisos; track permiso.id) {
+                            <p-tag [value]="permiso.codigo" severity="secondary" styleClass="text-xs" />
+                        }
+                    </div>
+                </td>
+                <td>
+                    <div class="flex gap-1">
+                        <p-button icon="pi pi-pencil" [rounded]="true" [text]="true" severity="secondary" [disabled]="!rol.editable" (onClick)="editar(rol)" />
+                        <p-button icon="pi pi-trash" [rounded]="true" [text]="true" severity="danger" [disabled]="!rol.editable" (onClick)="confirmarEliminar(rol)" />
+                    </div>
+                </td>
+            </tr>
+        </ng-template>
+    </p-table>
+</div>
+
+<p-dialog [(visible)]="dialogVisible" [header]="editId ? 'Editar rol' : 'Nuevo rol'" [modal]="true" [style]="{ width: '720px' }" [draggable]="false">
+    <div class="flex flex-col gap-4 pt-2">
+        <div class="grid grid-cols-2 gap-4">
+            <div class="flex flex-col gap-1">
+                <label class="font-medium text-sm">Nombre <span class="text-red-500">*</span></label>
+                <input pInputText [(ngModel)]="form.nombre" placeholder="Ej: Coordinador Académico" />
+            </div>
+            <div class="flex flex-col gap-1">
+                <label class="font-medium text-sm">Descripción</label>
+                <input pInputText [(ngModel)]="form.descripcion" placeholder="Descripción del grupo" />
+            </div>
+        </div>
+
+        <div class="flex flex-col gap-3">
+            <label class="font-medium text-sm">Permisos <span class="text-red-500">*</span></label>
+            @for (group of groupedPermissions(); track group.modulo) {
+                <div class="border border-surface-200 dark:border-surface-700 rounded-lg p-3">
+                    <div class="font-semibold mb-2">{{ group.modulo }}</div>
+                    <div class="grid grid-cols-2 gap-2">
+                        @for (permiso of group.permisos; track permiso.id) {
+                            <div class="flex items-start gap-2">
+                                <p-checkbox [binary]="true" [ngModel]="hasPermiso(permiso.id)" (ngModelChange)="togglePermiso(permiso.id, $event)" [inputId]="permiso.id" />
+                                <label [for]="permiso.id" class="text-sm">
+                                    <div class="font-medium">{{ permiso.nombre }}</div>
+                                    <div class="text-surface-500">{{ permiso.descripcion }}</div>
+                                </label>
+                            </div>
+                        }
+                    </div>
+                </div>
+            }
+        </div>
+    </div>
+
+    <ng-template #footer>
+        <p-button label="Cancelar" icon="pi pi-times" [text]="true" severity="secondary" (onClick)="dialogVisible = false" />
+        <p-button [label]="editId ? 'Guardar cambios' : 'Crear rol'" icon="pi pi-check" (onClick)="guardar()" />
+    </ng-template>
+</p-dialog>

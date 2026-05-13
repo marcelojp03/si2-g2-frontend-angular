@@ -1,4 +1,6 @@
 import { Routes } from '@angular/router';
+import { permissionGuard } from '@/core/guards/permission.guard';
+import { permissionOrRoleGuard } from '@/core/guards/permission-or-role.guard';
 
 export default [
     { path: '', loadComponent: () => import('./dashboard/sia-dashboard.component').then(m => m.SiaDashboardComponent) },
@@ -13,6 +15,8 @@ export default [
     { path: 'tutores', loadComponent: () => import('./tutores/tutores.component').then(m => m.TutoresComponent) },
     { path: 'inscripciones', loadComponent: () => import('./inscripciones/inscripciones.component').then(m => m.InscripcionesComponent) },
     { path: 'asignaciones', loadComponent: () => import('./asignaciones/asignaciones.component').then(m => m.AsignacionesComponent) },
+    { path: 'roles', canActivate: [permissionGuard('ROLES_READ', 'ROLES_WRITE')], loadComponent: () => import('./roles/roles.component').then(m => m.RolesComponent) },
+    { path: 'auditoria', canActivate: [permissionOrRoleGuard(['AUDITORIA_READ'], ['SUPER_ADMIN'])], loadComponent: () => import('./auditoria/auditoria.component').then(m => m.AuditoriaComponent) },
     { path: 'configuracion', loadComponent: () => import('./configuracion/configuracion.component').then(m => m.ConfiguracionComponent) },
     { path: 'perfil', loadChildren: () => import('../perfil/perfil.routes') },
 ] as Routes;

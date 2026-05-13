@@ -1,0 +1,42 @@
+<p-toast />
+
+<div class="card">
+    <div class="flex items-center justify-between mb-4">
+        <div>
+            <h3 class="text-xl font-semibold m-0">Auditoría</h3>
+            <p class="text-surface-400 text-sm mt-1 mb-0">Bitácora consultable de operaciones críticas.</p>
+        </div>
+        <p-button label="Actualizar" icon="pi pi-refresh" (onClick)="load()" />
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-3 mb-4">
+        <input pInputText [(ngModel)]="modulo" placeholder="Filtrar por módulo" />
+        <input pInputText [(ngModel)]="tipoOperacion" placeholder="Filtrar por operación" />
+        <p-select [options]="[{label:'Todos', value: null}, {label:'Exitoso', value: true}, {label:'Fallido', value: false}]" [(ngModel)]="exito" optionLabel="label" optionValue="value" placeholder="Estado" appendTo="body" />
+    </div>
+
+    <p-table [value]="registros()" [loading]="loading" [paginator]="true" [rows]="10" styleClass="p-datatable-striped">
+        <ng-template #header>
+            <tr>
+                <th>Fecha</th>
+                <th>Módulo</th>
+                <th>Función</th>
+                <th>Operación</th>
+                <th>IP</th>
+                <th>Estado</th>
+                <th>Hash</th>
+            </tr>
+        </ng-template>
+        <ng-template #body let-r>
+            <tr>
+                <td>{{ r.fechaEvento | date:'yyyy-MM-dd HH:mm:ss' }}</td>
+                <td>{{ r.nombreModulo }}</td>
+                <td class="text-sm">{{ r.nombreFuncion || '-' }}</td>
+                <td>{{ r.tipoOperacion }}</td>
+                <td>{{ r.direccionIp || '-' }}</td>
+                <td><p-tag [value]="r.exito ? 'OK' : 'ERROR'" [severity]="severity(r.exito)" /></td>
+                <td class="text-xs">{{ r.hashIntegridad || '-' }}</td>
+            </tr>
+        </ng-template>
+    </p-table>
+</div>

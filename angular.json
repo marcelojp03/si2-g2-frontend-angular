@@ -67,6 +67,12 @@
                             "optimization": false,
                             "extractLicenses": false,
                             "sourceMap": true
+                        },
+                        "docker": {
+                            "optimization": false,
+                            "extractLicenses": false,
+                            "sourceMap": true,
+                            "outputHashing": "all"
                         }
                     },
                     "defaultConfiguration": "production"

@@ -19,17 +19,11 @@ import { PasswordModule } from 'primeng/password';
 import { UsuarioService } from '@/core/services/usuario.service';
 import { InstitucionService } from '@/core/services/institucion.service';
 import { AuthService } from '@/core/services/auth.service';
+import { RoleService } from '@/core/services/role.service';
 import {
     UsuarioResponse, CrearUsuarioRequest, ActualizarUsuarioRequest,
-    AsignarRolRequest, InstitucionResponse
+    AsignarRolRequest, InstitucionResponse, RolResponse
 } from '@/core/models/sia.models';
-
-const ROLES_DISPONIBLES = [
-    { label: 'Admin Institucion', value: 'ADMIN_INSTITUCION' },
-    { label: 'Director', value: 'DIRECTOR' },
-    { label: 'Secretario', value: 'SECRETARIO' },
-    { label: 'Docente', value: 'DOCENTE' },
-];
 
 @Component({
     selector: 'app-admin-usuarios',
@@ -44,6 +38,7 @@ export class AdminUsuariosComponent implements OnInit {
     private usuarioService = inject(UsuarioService);
     private institucionService = inject(InstitucionService);
     private authService = inject(AuthService);
+    private roleService = inject(RoleService);
     private messageService = inject(MessageService);
     private confirmationService = inject(ConfirmationService);
 
@@ -53,13 +48,12 @@ export class AdminUsuariosComponent implements OnInit {
 
     usuarios = signal<UsuarioResponse[]>([]);
     instituciones = signal<InstitucionResponse[]>([]);
+    rolesDisponibles = signal<RolResponse[]>([]);
     loading = true;
-
-    readonly roles = ROLES_DISPONIBLES;
 
     dialogVisible = false;
     selectedId = '';
-    form: CrearUsuarioRequest = { correo: '', contrasena: '', nombres: '', apellidos: '', idInstitucion: '', codigoRol: '' };
+    form: CrearUsuarioRequest = { correo: '', contrasena: '', nombres: '', apellidos: '', idInstitucion: undefined, idRol: undefined, codigoRol: undefined };
 
     rolesVisible = false;
     usuarioRoles: UsuarioResponse | null = null;
@@ -79,24 +73,26 @@ export class AdminUsuariosComponent implements OnInit {
         const instituciones$ = this.isSuperAdmin
             ? this.institucionService.listar().pipe(map(r => r.data ?? []))
             : user?.idInstitucion
-                ? this.institucionService.obtener(user.idInstitucion).pipe(map(r => r.data ? [r.data] : []))
+                ? this.institucionService.obtenerActual().pipe(map(r => r.data ? [r.data] : []))
                 : of([]);
 
         forkJoin({
             usuarios: this.usuarioService.listar(),
-            instituciones: instituciones$
+            instituciones: instituciones$,
+            roles: this.roleService.listarRolesAsignables()
         }).subscribe({
-            next: ({ usuarios, instituciones }) => {
+            next: ({ usuarios, instituciones, roles }) => {
                 this.loading = false;
                 if (usuarios.codigo === 200) this.usuarios.set(usuarios.data ?? []);
                 this.instituciones.set(instituciones);
+                if (roles.codigo === 200) this.rolesDisponibles.set(roles.data ?? []);
             },
             error: () => { this.loading = false; this.error('No se pudo cargar la informacion'); }
         });
     }
 
     nuevo(): void {
-        this.form = { correo: '', contrasena: '', nombres: '', apellidos: '', idInstitucion: '', codigoRol: '' };
+        this.form = { correo: '', contrasena: '', nombres: '', apellidos: '', idInstitucion: undefined, idRol: undefined, codigoRol: undefined };
         this.dialogVisible = true;
     }
 
@@ -109,7 +105,13 @@ export class AdminUsuariosComponent implements OnInit {
             this.messageService.add({ severity: 'warn', summary: 'Atencion', detail: 'La contrasena es requerida', life: 3000 });
             return;
         }
-        this.usuarioService.crear(this.form).subscribe({
+        const body: CrearUsuarioRequest = {
+            ...this.form,
+            idInstitucion: this.form.idInstitucion || undefined,
+            idRol: this.form.idRol || undefined,
+            codigoRol: undefined
+        };
+        this.usuarioService.crear(body).subscribe({
             next: () => {
                 this.dialogVisible = false;
                 this.messageService.add({ severity: 'success', summary: 'Exito', detail: 'Usuario creado correctamente', life: 3000 });
@@ -163,7 +165,7 @@ export class AdminUsuariosComponent implements OnInit {
             this.messageService.add({ severity: 'warn', summary: 'Atencion', detail: 'Seleccione un rol', life: 3000 });
             return;
         }
-        const body: AsignarRolRequest = { codigoRol: this.rolSeleccionado };
+        const body: AsignarRolRequest = { idRol: this.rolSeleccionado, codigoRol: undefined };
         this.usuarioService.asignarRol(this.usuarioRoles.id, body).subscribe({
             next: () => {
                 this.rolesVisible = false;
@@ -175,7 +177,10 @@ export class AdminUsuariosComponent implements OnInit {
     }
 
     get rolesOptions() {
-        return this.roles.map(r => ({ label: r.label, value: r.value }));
+        return this.rolesDisponibles().map(r => ({
+            label: r.esGlobal ? `${r.nombre} (base)` : `${r.nombre} (institucional)`,
+            value: r.id
+        }));
     }
 
     get institucionesOptions() {

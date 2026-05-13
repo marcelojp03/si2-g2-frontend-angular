@@ -33,6 +33,21 @@ export interface ConfiguracionInstitucionResponse {
     descripcion?: string;
 }
 
+export interface ConfiguracionParametroResponse {
+    clave: string;
+    nombre: string;
+    modulo: string;
+    descripcion: string;
+    obligatorio: boolean;
+    tipoValor: string;
+    valor: string;
+    valorPorDefecto: string;
+    usaValorPorDefecto: boolean;
+    minimo?: number;
+    maximo?: number;
+    valoresPermitidos: string[];
+}
+
 // ─── Curso-Materia ────────────────────────────────────────────────────────────
 export interface CursoMateriaRequest {
     idMateria: string;
@@ -95,11 +110,61 @@ export interface CrearUsuarioRequest {
     nombres: string;
     apellidos: string;
     idInstitucion?: string;
+    idRol?: string;
     codigoRol?: string;
 }
 
 export interface AsignarRolRequest {
-    codigoRol: string;
+    idRol?: string;
+    codigoRol?: string;
+}
+
+export interface PermisoResponse {
+    id: string;
+    codigo: string;
+    nombre: string;
+    modulo: string;
+    accion: string;
+    descripcion?: string;
+}
+
+export interface RolRequest {
+    nombre: string;
+    descripcion?: string;
+    idsPermiso: string[];
+}
+
+export interface RolResponse {
+    id: string;
+    codigo: string;
+    nombre: string;
+    descripcion?: string;
+    idInstitucion?: string;
+    esGlobal: boolean;
+    editable: boolean;
+    permisos: PermisoResponse[];
+}
+
+export interface BitacoraAuditoriaResponse {
+    id: string;
+    idInstitucion?: string;
+    idUsuario?: string;
+    fechaEvento: string;
+    direccionIp?: string;
+    plataformaCliente?: string;
+    agenteUsuario?: string;
+    metodoHttp?: string;
+    rutaRecurso?: string;
+    nombreModulo: string;
+    nombreFuncion?: string;
+    nombreEntidad?: string;
+    idEntidad?: string;
+    tipoOperacion: string;
+    datosAntes?: string;
+    datosDespues?: string;
+    exito: boolean;
+    mensaje?: string;
+    hashIntegridad?: string;
 }
 
 // ─── Gestión Académica ───────────────────────────────────────────────────────

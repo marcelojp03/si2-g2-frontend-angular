@@ -20,7 +20,7 @@ docker build --build-arg BUILD_CONFIGURATION=development -t si2-g2-frontend:loca
 ## Ejecutar contenedor
 
 ```bash
-docker run --rm -p 4200:80 si2-g2-frontend
+docker run --rm --name si2-g2-frontend -p 4200:80 si2-g2-frontend
 ```
 
 La aplicacion quedara disponible en:
@@ -30,3 +30,17 @@ http://localhost:4200
 ```
 
 Si usas la imagen local, asegurate de que el backend este expuesto en `http://localhost:2026`.
+
+## Ver logs
+
+Si ejecutaste el contenedor con `docker run`:
+
+```bash
+docker logs -f si2-g2-frontend
+```
+
+Si levantaste el proyecto desde la raiz con Docker Compose:
+
+```bash
+docker compose logs -f frontend
+```

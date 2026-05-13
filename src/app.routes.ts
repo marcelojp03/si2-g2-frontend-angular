@@ -3,6 +3,7 @@ import { Notfound } from './app/pages/notfound/notfound';
 import { AppLayout } from '@/layout/component/app.layout';
 import { authGuard } from './app/core/guards/auth.guard';
 import { superadminGuard } from './app/core/guards/superadmin.guard';
+import { permissionGuard } from './app/core/guards/permission.guard';
 
 export const appRoutes: Routes = [
     {
@@ -10,6 +11,7 @@ export const appRoutes: Routes = [
         component: AppLayout,
         canActivate: [superadminGuard],
         children: [
+            { path: 'roles', loadComponent: () => import('./app/features/sia/roles/roles.component').then(m => m.RolesComponent) },
             { path: '', loadChildren: () => import('./app/features/admin/admin.routes') },
         ]
     },
@@ -18,6 +20,7 @@ export const appRoutes: Routes = [
         component: AppLayout,
         canActivate: [authGuard],
         children: [
+            { path: 'roles', canActivate: [permissionGuard('ROLES_READ', 'ROLES_WRITE')], loadComponent: () => import('./app/features/sia/roles/roles.component').then(m => m.RolesComponent) },
             { path: '', loadChildren: () => import('./app/features/sia/sia.routes') },
         ]
     },

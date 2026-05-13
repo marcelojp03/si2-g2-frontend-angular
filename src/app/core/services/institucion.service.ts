@@ -5,7 +5,7 @@ import { environment } from '../../../environments/environment';
 import { ApiResponse } from '../models/api-response.model';
 import {
     InstitucionRequest, InstitucionResponse,
-    ConfiguracionInstitucionRequest, ConfiguracionInstitucionResponse
+    ConfiguracionInstitucionRequest, ConfiguracionInstitucionResponse, ConfiguracionParametroResponse
 } from '../models/sia.models';
 
 @Injectable({ providedIn: 'root' })
@@ -19,6 +19,10 @@ export class InstitucionService {
 
     obtener(id: string): Observable<ApiResponse<InstitucionResponse>> {
         return this.http.get<ApiResponse<InstitucionResponse>>(`${this.base}/instituciones/${id}`);
+    }
+
+    obtenerActual(): Observable<ApiResponse<InstitucionResponse>> {
+        return this.http.get<ApiResponse<InstitucionResponse>>(`${this.base}/instituciones/actual`);
     }
 
     crear(body: InstitucionRequest): Observable<ApiResponse<InstitucionResponse>> {
@@ -37,11 +41,27 @@ export class InstitucionService {
         return this.http.get<ApiResponse<ConfiguracionInstitucionResponse[]>>(`${this.base}/instituciones/${id}/configuraciones`);
     }
 
+    listarConfiguracionesActuales(): Observable<ApiResponse<ConfiguracionInstitucionResponse[]>> {
+        return this.http.get<ApiResponse<ConfiguracionInstitucionResponse[]>>(`${this.base}/instituciones/actual/configuraciones`);
+    }
+
+    listarCatalogoConfiguracionesActuales(): Observable<ApiResponse<ConfiguracionParametroResponse[]>> {
+        return this.http.get<ApiResponse<ConfiguracionParametroResponse[]>>(`${this.base}/instituciones/actual/configuraciones/catalogo`);
+    }
+
     actualizarConfiguracion(id: string, body: ConfiguracionInstitucionRequest): Observable<ApiResponse<ConfiguracionInstitucionResponse>> {
         return this.http.put<ApiResponse<ConfiguracionInstitucionResponse>>(`${this.base}/instituciones/${id}/configuraciones`, body);
     }
 
+    actualizarConfiguracionActual(body: ConfiguracionInstitucionRequest): Observable<ApiResponse<ConfiguracionInstitucionResponse>> {
+        return this.http.put<ApiResponse<ConfiguracionInstitucionResponse>>(`${this.base}/instituciones/actual/configuraciones`, body);
+    }
+
     eliminarConfiguracion(id: string, clave: string): Observable<ApiResponse<void>> {
         return this.http.delete<ApiResponse<void>>(`${this.base}/instituciones/${id}/configuraciones/${clave}`);
+    }
+
+    eliminarConfiguracionActual(clave: string): Observable<ApiResponse<void>> {
+        return this.http.delete<ApiResponse<void>>(`${this.base}/instituciones/actual/configuraciones/${clave}`);
     }
 }

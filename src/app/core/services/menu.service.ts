@@ -19,7 +19,7 @@ export class MenuService {
             return this.menuSuperAdmin();
         }
 
-        return this.menuInstitucion(user.roles);
+        return this.menuInstitucion(user.roles ?? [], user.permisos ?? []);
     });
 
     private menuSuperAdmin(): MenuItem[] {
@@ -30,20 +30,25 @@ export class MenuService {
                     { label: 'Inicio', icon: 'pi pi-fw pi-home', routerLink: ['/admin'] },
                     { label: 'Instituciones', icon: 'pi pi-fw pi-building', routerLink: ['/admin/instituciones'] },
                     { label: 'Usuarios', icon: 'pi pi-fw pi-users', routerLink: ['/admin/usuarios'] },
+                    { label: 'Roles y permisos', icon: 'pi pi-fw pi-shield', routerLink: ['/admin/roles'] },
+                    { label: 'Auditoría', icon: 'pi pi-fw pi-history', routerLink: ['/admin/auditoria'] },
                 ]
             }
         ];
     }
 
-    private menuInstitucion(roles: string[]): MenuItem[] {
-        const isAdmin = roles.includes('ADMIN_INSTITUCION');
-        const isDirector = roles.includes('DIRECTOR');
-        const isSecretario = roles.includes('SECRETARIO');
-        const isDocente = roles.includes('DOCENTE');
+    private menuInstitucion(roles: string[], permisos: string[]): MenuItem[] {
+        const has = (permiso: string) => permisos.includes(permiso);
+        const hasRole = (role: string) => roles.includes(role);
 
-        const canGestionAcademica = isAdmin || isDirector || isSecretario;
-        const canPersonas = isAdmin || isDirector || isSecretario;
-        const canOperacion = isAdmin || isDirector || isSecretario;
+        const canUsuarios = has('USUARIOS_READ') || has('USUARIOS_WRITE');
+        const canConfiguracion = has('CONFIGURACION_READ') || has('CONFIGURACION_WRITE');
+        const canRoles = has('ROLES_READ') || has('ROLES_WRITE');
+        const canAuditoria = has('AUDITORIA_READ') || hasRole('ADMIN_INSTITUCION') || hasRole('DIRECTOR');
+        const canGestionAcademica = has('GESTION_READ') || has('GESTION_WRITE');
+        const canPersonas = has('PERSONAS_READ') || has('PERSONAS_WRITE');
+        const canOperacion = has('OPERACION_READ') || has('OPERACION_WRITE');
+        const canMiArea = has('MI_AREA_READ');
 
         const menu: MenuItem[] = [
             {
@@ -54,14 +59,16 @@ export class MenuService {
             }
         ];
 
-        if (isAdmin) {
+        if (canUsuarios || canConfiguracion || canRoles || canAuditoria) {
             menu.push({ separator: true });
+            const items: MenuItem[] = [];
+            if (canUsuarios) items.push({ label: 'Usuarios', icon: 'pi pi-fw pi-users', routerLink: ['/usuarios'] });
+            if (canRoles) items.push({ label: 'Roles y permisos', icon: 'pi pi-fw pi-shield', routerLink: ['/roles'] });
+            if (canConfiguracion) items.push({ label: 'Configuración Institución', icon: 'pi pi-fw pi-cog', routerLink: ['/configuracion'] });
+            if (canAuditoria) items.push({ label: 'Auditoría', icon: 'pi pi-fw pi-history', routerLink: ['/auditoria'] });
             menu.push({
                 label: 'Configuración',
-                items: [
-                    { label: 'Usuarios', icon: 'pi pi-fw pi-users', routerLink: ['/usuarios'] },
-                    { label: 'Configuración Institución', icon: 'pi pi-fw pi-cog', routerLink: ['/configuracion'] },
-                ]
+                items
             });
         }
 
@@ -102,7 +109,7 @@ export class MenuService {
             });
         }
 
-        if (isDocente) {
+        if (canMiArea) {
             menu.push({ separator: true });
             menu.push({
                 label: 'Mi área',

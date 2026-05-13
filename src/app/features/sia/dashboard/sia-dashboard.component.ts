@@ -36,6 +36,6 @@ export class SiaDashboardComponent {
         { label: 'Materias', desc: 'Asignaturas del plan de estudios', icon: 'pi-list', route: '/materias', bg: '#06b6d4' },
         { label: 'Docentes', desc: 'Personal docente de la institución', icon: 'pi-id-card', route: '/docentes', bg: '#10b981' },
         { label: 'Estudiantes', desc: 'Alumnos matriculados', icon: 'pi-user-plus', route: '/estudiantes', bg: '#f59e0b' },
-        { label: 'Usuarios', desc: 'Gestión de accesos del sistema', icon: 'pi-users', route: '/usuarios', bg: '#ef4444' },
+        { label: 'Usuarasdfios', desc: 'Gestión de accesos del sistema', icon: 'pi-users', route: '/usuarios', bg: '#ef4444' },
     ];
 }
