@@ -31,6 +31,18 @@ http://localhost:4200
 
 Si usas la imagen local, asegurate de que el backend este expuesto en `http://localhost:2026`.
 
+## Desarrollo con recarga en caliente (Docker Compose)
+
+Desde la raiz del proyecto, con el perfil `dev` (puerto **4300**):
+
+```bash
+docker compose --profile dev up -d backend frontend-dev
+```
+
+Abre `http://localhost:4300`. El codigo se monta como volumen y `ng serve` usa `poll` para detectar cambios en Windows + Docker.
+
+El contenedor `frontend` en el puerto **4200** es Nginx con build estatico: ahi **no** hay recarga en vivo.
+
 ## Ver logs
 
 Si ejecutaste el contenedor con `docker run`:

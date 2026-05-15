@@ -89,6 +89,14 @@
                         },
                         "development": {
                             "buildTarget": "si2-sia:build:development"
+                        },
+                        "docker": {
+                            "buildTarget": "si2-sia:build:development",
+                            "host": "0.0.0.0",
+                            "port": 4200,
+                            "open": false,
+                            "poll": 2000,
+                            "liveReload": true
                         }
                     },
                     "defaultConfiguration": "development"
