@@ -1,32 +1,89 @@
-<div class="grid grid-cols-12 gap-8">
-    <div class="col-span-12 flex items-center justify-between">
-        <h5 class="m-0 text-xl font-semibold">Panel Super Admin</h5>
-        <p-button icon="pi pi-refresh" [rounded]="true" [text]="true" (onClick)="cargar()" pTooltip="Actualizar" />
+<div class="grid grid-cols-12 gap-6">
+    <div class="col-span-12 flex items-center justify-between gap-3">
+        <div>
+            <h2 class="text-2xl font-semibold m-0 text-surface-900 dark:text-surface-0">Panel global</h2>
+            <p class="text-surface-500 text-sm mt-1 mb-0">Salud operativa de la plataforma multi-institucion.</p>
+        </div>
+        <p-button icon="pi pi-refresh" [rounded]="true" [text]="true" (onClick)="cargar()" />
     </div>
 
-    <div class="col-span-12 lg:col-span-4">
-        <p-card>
-            <div class="flex items-center justify-between">
-                <div>
-                    <span class="block text-surface-500 font-medium mb-3">Instituciones registradas</span>
-                    <div class="text-surface-900 dark:text-surface-0 font-bold text-4xl">{{ totalInstituciones() }}</div>
-                </div>
-                <div class="flex items-center justify-center bg-blue-100 dark:bg-blue-900/30 rounded-full" style="width: 2.5rem; height: 2.5rem">
-                    <i class="pi pi-building text-blue-500 text-xl"></i>
-                </div>
+    @if (loading()) {
+        @for (_ of [1,2,3,4,5]; track $index) {
+            <div class="col-span-12 md:col-span-6 xl:col-span-3">
+                <p-skeleton height="8rem" borderRadius="12px"></p-skeleton>
             </div>
-            <div class="mt-4">
-                <p-button label="Ver instituciones" icon="pi pi-arrow-right" size="small" [text]="true" (onClick)="router.navigate(['/admin/instituciones'])" />
+        }
+        <div class="col-span-12 xl:col-span-8">
+            <p-skeleton height="22rem" borderRadius="12px"></p-skeleton>
+        </div>
+        <div class="col-span-12 xl:col-span-4">
+            <p-skeleton height="22rem" borderRadius="12px"></p-skeleton>
+        </div>
+    } @else if (error()) {
+        <div class="col-span-12 rounded-lg border border-rose-200 bg-rose-50 text-rose-700 p-4">
+            <div class="font-medium">No pudimos cargar el dashboard global.</div>
+            <div class="text-sm mt-1">{{ error() }}</div>
+        </div>
+    } @else if (dashboard(); as data) {
+        @for (kpi of data.kpisGlobales; track kpi.codigo) {
+            <div class="col-span-12 md:col-span-6 xl:col-span-4 2xl:col-span-2">
+                <app-dashboard-kpi-card [kpi]="kpi" />
             </div>
-        </p-card>
-    </div>
+        }
 
-    <div class="col-span-12">
-        <p-card header="Accesos rápidos">
-            <div class="flex flex-wrap gap-3">
-                <p-button label="Nueva institución" icon="pi pi-plus" (onClick)="router.navigate(['/admin/instituciones'])" />
-                <p-button label="Usuarios" icon="pi pi-users" severity="secondary" (onClick)="router.navigate(['/admin/usuarios'])" />
+        <div class="col-span-12 xl:col-span-8">
+            <div class="grid grid-cols-1 xl:grid-cols-2 gap-6 h-full">
+                <app-dashboard-chart-panel [chart]="data.institucionesPorTipo" />
+                <app-dashboard-chart-panel [chart]="data.institucionesPorEstado" />
             </div>
-        </p-card>
-    </div>
+        </div>
+        <div class="col-span-12 xl:col-span-4">
+            <app-dashboard-alert-list
+                [alerts]="data.alertasGlobales"
+                title="Alertas globales"
+                subtitle="Instituciones que requieren seguimiento"
+            />
+        </div>
+
+        <div class="col-span-12 xl:col-span-7">
+            <app-dashboard-chart-panel [chart]="data.altasPorMes" />
+        </div>
+        <div class="col-span-12 xl:col-span-5">
+            <app-dashboard-quick-actions
+                [actions]="data.accesosRapidos"
+                title="Accesos rapidos"
+                subtitle="Operaciones frecuentes de plataforma"
+            />
+        </div>
+
+        <div class="col-span-12 rounded-lg border border-surface-200 bg-white dark:bg-surface-900 overflow-hidden">
+            <div class="px-4 py-3 border-b border-surface-200">
+                <h3 class="text-base font-semibold m-0 text-surface-900 dark:text-surface-0">Instituciones recientes</h3>
+                <p class="text-xs text-surface-500 mt-1 mb-0">Ultimos colegios registrados en la plataforma.</p>
+            </div>
+            <p-table [value]="data.institucionesRecientes" responsiveLayout="scroll">
+                <ng-template pTemplate="header">
+                    <tr>
+                        <th>Institucion</th>
+                        <th>Tipo</th>
+                        <th>Estado</th>
+                        <th>Ubicacion</th>
+                        <th>Usuarios activos</th>
+                    </tr>
+                </ng-template>
+                <ng-template pTemplate="body" let-item>
+                    <tr>
+                        <td>
+                            <div class="font-medium text-sm">{{ item.nombre }}</div>
+                            <div class="text-xs text-surface-500">{{ item.codigo }}</div>
+                        </td>
+                        <td>{{ item.tipoInstitucion }}</td>
+                        <td>{{ item.estado }}</td>
+                        <td>{{ item.direccion || 'Sin direccion' }}</td>
+                        <td>{{ item.usuariosActivos }}</td>
+                    </tr>
+                </ng-template>
+            </p-table>
+        </div>
+    }
 </div>
