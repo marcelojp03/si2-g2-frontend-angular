@@ -80,6 +80,7 @@ export class MenuService {
                     { label: 'Gestiones', icon: 'pi pi-fw pi-calendar', routerLink: ['/gestiones'] },
                     { label: 'Cursos', icon: 'pi pi-fw pi-book', routerLink: ['/cursos'] },
                     { label: 'Paralelos', icon: 'pi pi-fw pi-table', routerLink: ['/paralelos'] },
+                    { label: 'Aulas', icon: 'pi pi-fw pi-building', routerLink: ['/aulas'] },
                     { label: 'Materias', icon: 'pi pi-fw pi-list', routerLink: ['/materias'] },
                     { label: 'Asig. Materias a Cursos', icon: 'pi pi-fw pi-link', routerLink: ['/materias-curso'] },
                 ]

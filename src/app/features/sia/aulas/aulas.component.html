@@ -1,0 +1,208 @@
+<p-toast />
+<p-confirmDialog />
+
+<div class="card">
+    <div class="mb-6 flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+        <div>
+            <h3 class="m-0 text-xl font-semibold text-surface-900 dark:text-surface-0">Aulas</h3>
+            <p class="mb-0 mt-1 text-sm text-surface-400">Espacios fisicos disponibles para planificacion academica</p>
+        </div>
+        @if (canWrite) {
+            <p-button label="Nueva Aula" icon="pi pi-plus" (onClick)="nuevo()" />
+        }
+    </div>
+
+    <section class="mb-5 overflow-hidden rounded-xl border border-surface-200 bg-surface-0 shadow-sm dark:border-surface-700 dark:bg-surface-900">
+        <div class="flex flex-col gap-4 border-b border-surface-200 px-4 py-4 lg:flex-row lg:items-start lg:justify-between dark:border-surface-700">
+            <div>
+                <div class="flex items-center gap-2">
+                    <h4 class="m-0 text-sm font-semibold uppercase tracking-wide text-surface-900 dark:text-surface-0">Filtros</h4>
+                    @if (filtrosActivosCount() > 0) {
+                        <span class="rounded-full bg-primary-50 px-2 py-0.5 text-xs font-medium text-primary-700 dark:bg-primary-900/30 dark:text-primary-200">
+                            {{ filtrosActivosCount() }} activo{{ filtrosActivosCount() === 1 ? '' : 's' }}
+                        </span>
+                    }
+                </div>
+                <p class="mb-0 mt-1 text-sm text-surface-500">Refina la busqueda por capacidad, estado y recursos del espacio.</p>
+            </div>
+
+            <div class="flex flex-wrap gap-2 lg:justify-end">
+                <p-button label="Aplicar" icon="pi pi-filter" size="small" (onClick)="load()" />
+                <p-button label="Limpiar" icon="pi pi-times" size="small" severity="secondary" [outlined]="true" (onClick)="limpiarFiltros()" />
+            </div>
+        </div>
+
+        <div class="px-4 py-4">
+            <div class="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-12">
+                <div class="flex flex-col gap-1 xl:col-span-4">
+                    <label class="text-xs font-semibold uppercase tracking-wide text-surface-500">Buscar</label>
+                    <p-iconfield>
+                        <p-inputicon class="pi pi-search" />
+                        <input pInputText class="w-full" [(ngModel)]="filtros.q" placeholder="Codigo, nombre o ubicacion" (keyup.enter)="load()" />
+                    </p-iconfield>
+                </div>
+
+                <div class="flex flex-col gap-1 xl:col-span-2">
+                    <label class="text-xs font-semibold uppercase tracking-wide text-surface-500">Estado</label>
+                    <p-select class="w-full" [options]="estadoOptions" [(ngModel)]="filtros.estado" appendTo="body" />
+                </div>
+
+                <div class="flex flex-col gap-1 xl:col-span-2">
+                    <label class="text-xs font-semibold uppercase tracking-wide text-surface-500">Capacidad min.</label>
+                    <p-inputnumber class="w-full" inputStyleClass="w-full" [(ngModel)]="filtros.capacidadMin" [min]="1" [showButtons]="false" placeholder="Desde" />
+                </div>
+
+                <div class="flex flex-col gap-1 xl:col-span-2">
+                    <label class="text-xs font-semibold uppercase tracking-wide text-surface-500">Capacidad max.</label>
+                    <p-inputnumber class="w-full" inputStyleClass="w-full" [(ngModel)]="filtros.capacidadMax" [min]="1" [showButtons]="false" placeholder="Hasta" />
+                </div>
+
+                <div class="flex flex-col gap-1 xl:col-span-2">
+                    <label class="text-xs font-semibold uppercase tracking-wide text-surface-500">Recurso</label>
+                    <input pInputText class="w-full" [(ngModel)]="filtros.recurso" placeholder="Ej: Proyector" (keyup.enter)="load()" />
+                </div>
+            </div>
+
+            <div class="mt-4 flex flex-wrap items-center gap-2">
+                <span class="text-xs font-medium uppercase tracking-wide text-surface-500">Accesos rapidos</span>
+                @for (recurso of recursosBase; track recurso) {
+                    <button type="button"
+                        class="rounded-full border px-3 py-1.5 text-xs font-medium transition-colors"
+                        [ngClass]="filtros.recurso === recurso
+                            ? 'border-primary-300 bg-primary-50 text-primary-700 dark:border-primary-500/50 dark:bg-primary-900/20 dark:text-primary-200'
+                            : 'border-surface-200 bg-surface-0 text-surface-600 hover:border-surface-300 hover:bg-surface-50 dark:border-surface-700 dark:bg-surface-900 dark:text-surface-300 dark:hover:border-surface-600 dark:hover:bg-surface-800'"
+                        (click)="usarRecursoPreset(recurso)">
+                        {{ recurso }}
+                    </button>
+                }
+            </div>
+        </div>
+    </section>
+
+    <p-table #dt [value]="aulas()" [loading]="loading" dataKey="id"
+        [globalFilterFields]="['codigo','nombre','ubicacion','estado']"
+        [paginator]="true" [rows]="10" [rowsPerPageOptions]="[10,25,50]"
+        styleClass="p-datatable-striped">
+
+        <ng-template #caption>
+            <p-iconfield>
+                <p-inputicon class="pi pi-search" />
+                <input pInputText type="text" placeholder="Buscar en la tabla..." (input)="onGlobalFilter(dt, $event)" />
+            </p-iconfield>
+        </ng-template>
+
+        <ng-template #header>
+            <tr>
+                <th pSortableColumn="codigo">Codigo <p-sortIcon field="codigo" /></th>
+                <th pSortableColumn="nombre">Aula <p-sortIcon field="nombre" /></th>
+                <th pSortableColumn="capacidad">Capacidad <p-sortIcon field="capacidad" /></th>
+                <th>Ubicacion</th>
+                <th>Recursos</th>
+                <th pSortableColumn="estado">Estado <p-sortIcon field="estado" /></th>
+                @if (canWrite) {
+                    <th class="w-28">Acciones</th>
+                }
+            </tr>
+        </ng-template>
+
+        <ng-template #body let-aula>
+            <tr>
+                <td class="font-semibold">{{ aula.codigo }}</td>
+                <td>{{ aula.nombre }}</td>
+                <td>{{ aula.capacidad }}</td>
+                <td>{{ aula.ubicacion || '-' }}</td>
+                <td>
+                    <div class="flex flex-wrap gap-1">
+                        @for (recurso of aula.recursos; track recurso) {
+                            <p-tag [value]="recurso" severity="info" />
+                        }
+                        @if (!aula.recursos?.length) {
+                            <span class="text-surface-400">-</span>
+                        }
+                    </div>
+                </td>
+                <td>
+                    <p-tag [value]="aula.estado" [severity]="aula.estado === 'ACTIVO' ? 'success' : 'danger'" />
+                </td>
+                @if (canWrite) {
+                    <td>
+                        <div class="flex gap-2">
+                            <p-button icon="pi pi-pencil" [rounded]="true" [text]="true" severity="info"
+                                pTooltip="Editar" tooltipPosition="top" (onClick)="editar(aula)" />
+                            <p-button icon="pi pi-ban" [rounded]="true" [text]="true" severity="danger"
+                                pTooltip="Desactivar" tooltipPosition="top" (onClick)="confirmarEliminar(aula)"
+                                [disabled]="aula.estado === 'INACTIVO'" />
+                        </div>
+                    </td>
+                }
+            </tr>
+        </ng-template>
+
+        <ng-template #emptymessage>
+            <tr><td [attr.colspan]="canWrite ? 7 : 6" class="py-8 text-center text-surface-400">No hay aulas registradas</td></tr>
+        </ng-template>
+    </p-table>
+</div>
+
+<p-dialog [(visible)]="dialogVisible"
+    [header]="editMode ? 'Editar Aula' : 'Nueva Aula'"
+    [modal]="true" [style]="{width: '560px'}" [draggable]="false">
+
+    <div class="flex flex-col gap-4 pt-2">
+        <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
+            <div class="flex flex-col gap-1">
+                <label class="font-medium text-sm">Codigo <span class="text-red-500">*</span></label>
+                <input pInputText [(ngModel)]="form.codigo" placeholder="Ej: AULA-101" />
+            </div>
+            <div class="flex flex-col gap-1">
+                <label class="font-medium text-sm">Capacidad <span class="text-red-500">*</span></label>
+                <p-inputnumber [(ngModel)]="form.capacidad" [min]="1" [showButtons]="false" placeholder="Ej: 30" />
+            </div>
+        </div>
+
+        <div class="flex flex-col gap-1">
+            <label class="font-medium text-sm">Nombre <span class="text-red-500">*</span></label>
+            <input pInputText [(ngModel)]="form.nombre" placeholder="Ej: Aula 1ro A" />
+        </div>
+
+        <div class="flex flex-col gap-1">
+            <label class="font-medium text-sm">Ubicacion</label>
+            <input pInputText [(ngModel)]="form.ubicacion" placeholder="Ej: Bloque A, planta baja" />
+        </div>
+
+        <div class="flex flex-col gap-2">
+            <label class="font-medium text-sm">Recursos</label>
+            <div class="grid grid-cols-2 gap-2 md:grid-cols-3">
+                @for (recurso of recursosBase; track recurso) {
+                    <label class="flex items-center gap-2 rounded border border-surface-200 px-3 py-2 text-sm dark:border-surface-700">
+                        <input type="checkbox" [checked]="tieneRecurso(recurso)" (change)="toggleRecurso(recurso, $any($event.target).checked)" />
+                        <span>{{ recurso }}</span>
+                    </label>
+                }
+            </div>
+
+            <div class="flex gap-2">
+                <input pInputText class="flex-1" [(ngModel)]="recursoManual" placeholder="Agregar recurso" (keyup.enter)="agregarRecursoManual()" />
+                <p-button icon="pi pi-plus" [rounded]="true" [outlined]="true" pTooltip="Agregar recurso" tooltipPosition="top" (onClick)="agregarRecursoManual()" />
+            </div>
+
+            @if (form.recursos.length) {
+                <div class="flex flex-wrap gap-2">
+                    @for (recurso of form.recursos; track recurso) {
+                        <button type="button"
+                            class="inline-flex items-center gap-2 rounded border border-surface-200 bg-surface-0 px-2 py-1 text-sm text-surface-700 dark:border-surface-700 dark:bg-surface-900 dark:text-surface-100"
+                            (click)="quitarRecurso(recurso)">
+                            <span>{{ recurso }}</span>
+                            <i class="pi pi-times text-xs"></i>
+                        </button>
+                    }
+                </div>
+            }
+        </div>
+    </div>
+
+    <ng-template #footer>
+        <p-button label="Cancelar" icon="pi pi-times" [text]="true" severity="secondary" (onClick)="dialogVisible = false" />
+        <p-button [label]="editMode ? 'Actualizar' : 'Crear'" icon="pi pi-check" (onClick)="guardar()" />
+    </ng-template>
+</p-dialog>

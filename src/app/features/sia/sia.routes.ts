@@ -8,6 +8,7 @@ export default [
     { path: 'gestiones', loadComponent: () => import('./gestiones/gestiones.component').then(m => m.GestionesComponent) },
     { path: 'cursos', loadComponent: () => import('./cursos/cursos.component').then(m => m.CursosComponent) },
     { path: 'paralelos', loadComponent: () => import('./paralelos/paralelos.component').then(m => m.ParalelosComponent) },
+    { path: 'aulas', canActivate: [permissionGuard('GESTION_READ', 'GESTION_WRITE')], loadComponent: () => import('./aulas/aulas.component').then(m => m.AulasComponent) },
     { path: 'materias', loadComponent: () => import('./materias/materias.component').then(m => m.MateriasComponent) },
     { path: 'materias-curso', loadComponent: () => import('./materias-curso/materias-curso.component').then(m => m.MateriasCursoComponent) },
     { path: 'docentes', loadComponent: () => import('./docentes/docentes.component').then(m => m.DocentesComponent) },
