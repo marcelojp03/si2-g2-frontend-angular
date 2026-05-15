@@ -1,41 +1,83 @@
-import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { RouterModule } from '@angular/router';
+import { Component, OnInit, inject, signal } from '@angular/core';
+import { SkeletonModule } from 'primeng/skeleton';
+import { ButtonModule } from 'primeng/button';
+import { DashboardCatalogoFiltrosResponse, DashboardInstitucionalResponse } from '@/core/models/sia.models';
+import { AuthService } from '@/core/services/auth.service';
+import { DashboardService } from '@/core/services/dashboard.service';
+import { DashboardAlertListComponent } from '@/shared/components/dashboard-alert-list/dashboard-alert-list.component';
+import { DashboardChartPanelComponent } from '@/shared/components/dashboard-chart-panel/dashboard-chart-panel.component';
+import { DashboardFiltersComponent } from '@/shared/components/dashboard-filters/dashboard-filters.component';
+import { DashboardKpiCardComponent } from '@/shared/components/dashboard-kpi-card/dashboard-kpi-card.component';
+import { DashboardQuickActionsComponent } from '@/shared/components/dashboard-quick-actions/dashboard-quick-actions.component';
+import { DashboardSetupStatusComponent } from '@/shared/components/dashboard-setup-status/dashboard-setup-status.component';
 
 @Component({
     selector: 'app-sia-dashboard',
     standalone: true,
-    imports: [CommonModule, RouterModule],
-    template: `
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            <div class="col-span-full">
-                <h2 class="text-2xl font-bold text-surface-900 dark:text-surface-0 mb-1">Panel académico</h2>
-                <p class="text-surface-500 text-sm">Gestión integral del sistema de información académica</p>
-            </div>
-
-            @for (card of cards; track card.label) {
-                <a [routerLink]="card.route"
-                   class="group flex items-center gap-4 p-5 rounded-2xl border border-surface bg-surface-0 dark:bg-surface-900 hover:border-primary hover:shadow-md transition-all cursor-pointer no-underline">
-                    <div class="w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0"
-                         [style]="'background:' + card.bg">
-                        <i [class]="'pi ' + card.icon + ' text-white text-xl'"></i>
-                    </div>
-                    <div>
-                        <p class="font-semibold text-surface-900 dark:text-surface-0 group-hover:text-primary transition-colors">{{ card.label }}</p>
-                        <p class="text-surface-400 text-xs mt-0.5">{{ card.desc }}</p>
-                    </div>
-                </a>
-            }
-        </div>
-    `
+    imports: [
+        CommonModule,
+        SkeletonModule,
+        ButtonModule,
+        DashboardAlertListComponent,
+        DashboardChartPanelComponent,
+        DashboardFiltersComponent,
+        DashboardKpiCardComponent,
+        DashboardQuickActionsComponent,
+        DashboardSetupStatusComponent,
+    ],
+    templateUrl: './sia-dashboard.component.html'
 })
-export class SiaDashboardComponent {
-    cards = [
-        { label: 'Gestiones Académicas', desc: 'Años y periodos académicos', icon: 'pi-calendar', route: '/gestiones', bg: '#3b82f6' },
-        { label: 'Cursos y Paralelos', desc: 'Niveles y divisiones por gestión', icon: 'pi-book', route: '/cursos', bg: '#8b5cf6' },
-        { label: 'Materias', desc: 'Asignaturas del plan de estudios', icon: 'pi-list', route: '/materias', bg: '#06b6d4' },
-        { label: 'Docentes', desc: 'Personal docente de la institución', icon: 'pi-id-card', route: '/docentes', bg: '#10b981' },
-        { label: 'Estudiantes', desc: 'Alumnos matriculados', icon: 'pi-user-plus', route: '/estudiantes', bg: '#f59e0b' },
-        { label: 'Usuarasdfios', desc: 'Gestión de accesos del sistema', icon: 'pi-users', route: '/usuarios', bg: '#ef4444' },
-    ];
+export class SiaDashboardComponent implements OnInit {
+    private dashboardService = inject(DashboardService);
+    private authService = inject(AuthService);
+
+    dashboard = signal<DashboardInstitucionalResponse | null>(null);
+    catalogo = signal<DashboardCatalogoFiltrosResponse | null>(null);
+    loading = signal(true);
+    error = signal<string | null>(null);
+    filters = signal<Record<string, string>>({});
+
+    ngOnInit(): void {
+        this.cargarCatalogo();
+        this.cargarDashboard();
+    }
+
+    cargarCatalogo(): void {
+        this.dashboardService.getCatalogoFiltros().subscribe({
+            next: (response) => this.catalogo.set(response.data ?? null),
+        });
+    }
+
+    cargarDashboard(): void {
+        this.loading.set(true);
+        this.error.set(null);
+        this.dashboardService.getMiDashboard(this.filters()).subscribe({
+            next: (response) => {
+                this.dashboard.set(response.data ?? null);
+                this.loading.set(false);
+            },
+            error: (error) => {
+                this.error.set(error?.error?.mensaje ?? 'No se pudo cargar el dashboard institucional');
+                this.loading.set(false);
+            }
+        });
+    }
+
+    onFiltersChange(filters: Record<string, string>): void {
+        this.filters.set(filters);
+        this.cargarDashboard();
+    }
+
+    get roleLabel(): string {
+        const user = this.authService.getCurrentUser();
+        if (!user?.roles?.length) return 'Usuario institucional';
+        if (user.roles.includes('ADMIN_INSTITUCION')) return 'Administrador institucional';
+        if (user.roles.includes('DIRECTOR')) return 'Director';
+        if (user.roles.includes('SECRETARIO')) return 'Secretario';
+        if (user.roles.includes('DOCENTE')) return 'Docente';
+        if (user.roles.includes('TUTOR')) return 'Tutor';
+        if (user.roles.includes('ESTUDIANTE')) return 'Estudiante';
+        return user.roles[0];
+    }
 }

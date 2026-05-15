@@ -1,0 +1,78 @@
+<div class="grid grid-cols-12 gap-6">
+    <div class="col-span-12 flex items-center justify-between gap-3">
+        <div>
+            <h2 class="text-2xl font-semibold m-0 text-surface-900 dark:text-surface-0">Panel institucional</h2>
+            <p class="text-surface-500 text-sm mt-1 mb-0">Vista operativa para {{ roleLabel }}.</p>
+        </div>
+        <p-button icon="pi pi-refresh" [rounded]="true" [text]="true" (onClick)="cargarDashboard()" />
+    </div>
+
+    @if (dashboard(); as data) {
+        <div class="col-span-12">
+            <app-dashboard-setup-status [institucion]="data.institucion" [gestionActiva]="data.gestionActiva || null" />
+        </div>
+    }
+
+    <div class="col-span-12">
+        <app-dashboard-filters [catalogo]="catalogo()" [filters]="filters()" (filtersChange)="onFiltersChange($event)" />
+    </div>
+
+    @if (loading()) {
+        @for (_ of [1,2,3,4,5,6,7,8]; track $index) {
+            <div class="col-span-12 md:col-span-6 xl:col-span-3">
+                <p-skeleton height="8rem" borderRadius="12px"></p-skeleton>
+            </div>
+        }
+    } @else if (error()) {
+        <div class="col-span-12 rounded-lg border border-rose-200 bg-rose-50 text-rose-700 p-4">
+            <div class="font-medium">No pudimos cargar el dashboard institucional.</div>
+            <div class="text-sm mt-1">{{ error() }}</div>
+        </div>
+    } @else if (dashboard(); as data) {
+        @for (kpi of data.kpis; track kpi.codigo) {
+            <div class="col-span-12 md:col-span-6 xl:col-span-3">
+                <app-dashboard-kpi-card [kpi]="kpi" />
+            </div>
+        }
+
+        <div class="col-span-12 xl:col-span-4">
+            <app-dashboard-alert-list
+                [alerts]="data.alertas"
+                title="Alertas institucionales"
+                subtitle="Incidencias y recordatorios del dia"
+            />
+        </div>
+        <div class="col-span-12 xl:col-span-8">
+            <app-dashboard-quick-actions
+                [actions]="data.accesosRapidos"
+                title="Accesos rapidos por rol"
+                subtitle="La navegacion se adapta a permisos y responsabilidades"
+            />
+        </div>
+
+        <div class="col-span-12 xl:col-span-6">
+            <app-dashboard-quick-actions
+                [actions]="data.tareasPendientes"
+                title="Tareas pendientes"
+                subtitle="Siguientes pasos sugeridos para mantener la operacion ordenada"
+            />
+        </div>
+        <div class="col-span-12 xl:col-span-6 rounded-lg border border-surface-200 bg-white dark:bg-surface-900 p-4">
+            <div>
+                <h3 class="text-base font-semibold m-0 text-surface-900 dark:text-surface-0">Modulos visibles</h3>
+                <p class="text-xs text-surface-500 mt-1 mb-4">El dashboard se adapta a lo configurado hoy en la institucion.</p>
+            </div>
+            <div class="flex flex-wrap gap-2">
+                @for (modulo of data.modulosDisponibles; track modulo) {
+                    <span class="px-3 py-2 rounded-full text-sm bg-surface-100 text-surface-700 dark:bg-surface-800 dark:text-surface-100">{{ modulo }}</span>
+                }
+            </div>
+        </div>
+
+        @for (chart of data.graficos; track chart.codigo) {
+            <div class="col-span-12 xl:col-span-6">
+                <app-dashboard-chart-panel [chart]="chart" />
+            </div>
+        }
+    }
+</div>
