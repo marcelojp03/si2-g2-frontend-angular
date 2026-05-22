@@ -80,7 +80,7 @@ export class InscripcionesComponent implements OnInit {
         this.form.idParalelo = '';
         if (this.form.idCurso && this.form.idGestion) {
             const filtrados = this.paralelos().filter(p =>
-                p.idCurso === this.form.idCurso && p.idGestion === this.form.idGestion
+                p.idCurso === this.form.idCurso && p.idGestionAcademica === this.form.idGestion
             );
             this.paralelosFiltrados.set(filtrados);
         } else {

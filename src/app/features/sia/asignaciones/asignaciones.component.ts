@@ -79,7 +79,7 @@ export class AsignacionesComponent implements OnInit {
     onGestionChange(): void {
         this.form.idParalelo = '';
         if (this.form.idGestion) {
-            this.paralelosFiltrados.set(this.paralelos().filter(p => p.idGestion === this.form.idGestion));
+            this.paralelosFiltrados.set(this.paralelos().filter(p => p.idGestionAcademica === this.form.idGestion));
         } else {
             this.paralelosFiltrados.set([]);
         }

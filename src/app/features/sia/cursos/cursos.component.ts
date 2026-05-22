@@ -12,6 +12,7 @@ import { IconFieldModule } from 'primeng/iconfield';
 import { DialogModule } from 'primeng/dialog';
 import { TooltipModule } from 'primeng/tooltip';
 import { ConfirmDialogModule } from 'primeng/confirmdialog';
+import { SelectModule } from 'primeng/select';
 import { SiaService } from '@/core/services/sia.service';
 import { CursoResponse, CursoRequest } from '@/core/models/sia.models';
 
@@ -20,7 +21,7 @@ import { CursoResponse, CursoRequest } from '@/core/models/sia.models';
     standalone: true,
     imports: [CommonModule, FormsModule, TableModule, ButtonModule, ToastModule, TagModule,
         InputTextModule, InputIconModule, IconFieldModule, DialogModule, TooltipModule,
-        ConfirmDialogModule],
+        ConfirmDialogModule, SelectModule],
     providers: [MessageService, ConfirmationService],
     templateUrl: './cursos.component.html'
 })
@@ -36,6 +37,12 @@ export class CursosComponent implements OnInit {
     selectedId = '';
 
     form: CursoRequest = { codigo: '', nombre: '', nivel: '' };
+
+    nivelesOptions = [
+        { label: 'Inicial', value: 'Inicial' },
+        { label: 'Primaria', value: 'Primaria' },
+        { label: 'Secundaria', value: 'Secundaria' },
+    ];
 
     @ViewChild('dt') dt!: Table;
 

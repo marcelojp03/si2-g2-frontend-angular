@@ -205,7 +205,7 @@ export interface CursoResponse {
 // ─── Paralelos ───────────────────────────────────────────────────────────────
 export interface ParaleloRequest {
     idCurso: string;
-    idGestion: string;
+    idGestionAcademica: string;
     nombre: string;
     capacidad?: number;
 }
@@ -214,7 +214,7 @@ export interface ParaleloResponse {
     id: string;
     idInstitucion: string;
     idCurso: string;
-    idGestion: string;
+    idGestionAcademica: string;
     nombre: string;
     capacidad?: number;
     estado: string;

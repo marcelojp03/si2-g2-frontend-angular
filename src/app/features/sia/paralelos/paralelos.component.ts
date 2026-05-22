@@ -43,7 +43,7 @@ export class ParalelosComponent implements OnInit {
     editMode = false;
     selectedId = '';
 
-    form: ParaleloRequest = { idCurso: '', idGestion: '', nombre: '', capacidad: undefined };
+    form: ParaleloRequest = { idCurso: '', idGestionAcademica: '', nombre: '', capacidad: undefined };
 
     @ViewChild('dt') dt!: Table;
 
@@ -67,20 +67,20 @@ export class ParalelosComponent implements OnInit {
     }
 
     nuevo(): void {
-        this.form = { idCurso: '', idGestion: '', nombre: '', capacidad: undefined };
+        this.form = { idCurso: '', idGestionAcademica: '', nombre: '', capacidad: undefined };
         this.editMode = false;
         this.dialogVisible = true;
     }
 
     editar(p: ParaleloResponse): void {
-        this.form = { idCurso: p.idCurso, idGestion: p.idGestion, nombre: p.nombre, capacidad: p.capacidad };
+        this.form = { idCurso: p.idCurso, idGestionAcademica: p.idGestionAcademica, nombre: p.nombre, capacidad: p.capacidad };
         this.selectedId = p.id;
         this.editMode = true;
         this.dialogVisible = true;
     }
 
     guardar(): void {
-        if (!this.form.idCurso || !this.form.idGestion || !this.form.nombre) {
+        if (!this.form.idCurso || !this.form.idGestionAcademica || !this.form.nombre) {
             this.messageService.add({ severity: 'warn', summary: 'Atención', detail: 'Curso, gestión y nombre son requeridos', life: 3000 });
             return;
         }
@@ -109,10 +109,18 @@ export class ParalelosComponent implements OnInit {
         });
     }
 
-    getNombreCurso(id: string): string { return this.cursos().find(c => c.id === id)?.nombre ?? id; }
+    getNombreCurso(id: string): string {
+        const c = this.cursos().find(c => c.id === id);
+        return c ? (c.nivel ? `${c.nombre} (${c.nivel})` : c.nombre) : id;
+    }
     getNombreGestion(id: string): string { return this.gestiones().find(g => g.id === id)?.nombre ?? id; }
 
-    get cursosOptions() { return this.cursos().map(c => ({ label: c.nombre, value: c.id })); }
+    get cursosOptions() {
+        return this.cursos().map(c => ({
+            label: c.nivel ? `${c.nombre} (${c.nivel})` : c.nombre,
+            value: c.id
+        }));
+    }
     get gestionesOptions() { return this.gestiones().map(g => ({ label: g.nombre, value: g.id })); }
 
     onGlobalFilter(t: Table, e: Event): void { t.filterGlobal((e.target as HTMLInputElement).value, 'contains'); }

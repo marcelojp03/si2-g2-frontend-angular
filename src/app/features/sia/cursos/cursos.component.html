@@ -74,7 +74,8 @@
         </div>
         <div class="flex flex-col gap-1">
             <label class="font-medium text-sm">Nivel</label>
-            <input pInputText [(ngModel)]="form.nivel" placeholder="Ej: Secundaria, Primaria..." />
+            <p-select [options]="nivelesOptions" [(ngModel)]="form.nivel"
+                placeholder="Seleccionar nivel" appendTo="body" [showClear]="true" />
         </div>
     </div>
 
