@@ -148,6 +148,7 @@ export class MenuService {
                 operacionItems.push(
                     { label: 'Inscripciones', icon: 'pi pi-fw pi-file-edit', routerLink: ['/inscripciones'] },
                     { label: 'Asignaciones Docentes', icon: 'pi pi-fw pi-graduation-cap', routerLink: ['/asignaciones'] },
+                    { label: 'Horarios', icon: 'pi pi-fw pi-calendar', routerLink: ['/horarios'] },
                 );
             }
 

@@ -1,0 +1,136 @@
+<p-toast />
+<p-confirmDialog />
+
+<div class="card">
+    <div class="mb-6 flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+        <div>
+            <h3 class="m-0 text-xl font-semibold text-surface-900 dark:text-surface-0">Horarios de Clases</h3>
+            <p class="mb-0 mt-1 text-sm text-surface-400">Gestión de horarios de clases por aula y asignación docente</p>
+        </div>
+        @if (canWrite) {
+            <p-button label="Nuevo Horario" icon="pi pi-plus" (onClick)="nuevo()" />
+        }
+    </div>
+
+    <section class="mb-5 overflow-hidden rounded-xl border border-surface-200 bg-surface-0 shadow-sm dark:border-surface-700 dark:bg-surface-900">
+        <div class="flex flex-col gap-4 border-b border-surface-200 px-4 py-4 lg:flex-row lg:items-start lg:justify-between dark:border-surface-700">
+            <div>
+                <div class="flex items-center gap-2">
+                    <h4 class="m-0 text-sm font-semibold uppercase tracking-wide text-surface-900 dark:text-surface-0">Filtros</h4>
+                </div>
+                <p class="mb-0 mt-1 text-sm text-surface-500">Refina la búsqueda por día, aula y asignación docente.</p>
+            </div>
+
+            <div class="flex flex-wrap gap-2 lg:justify-end">
+                <p-button label="Limpiar" icon="pi pi-times" size="small" severity="secondary" [outlined]="true" (onClick)="limpiarFiltros()" />
+            </div>
+        </div>
+
+        <div class="px-4 py-4">
+            <div class="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-12">
+                <div class="flex flex-col gap-1 xl:col-span-4">
+                    <label class="text-xs font-semibold uppercase tracking-wide text-surface-500">Día de la semana</label>
+                    <p-select class="w-full" [options]="diasSemana.map(d => ({ label: d, value: d }))" [(ngModel)]="filtros.dia" appendTo="body" placeholder="Selecciona un día" />
+                </div>
+
+                <div class="flex flex-col gap-1 xl:col-span-4">
+                    <label class="text-xs font-semibold uppercase tracking-wide text-surface-500">Aula</label>
+                    <p-select class="w-full" [options]="aulasOptions" [(ngModel)]="filtros.aula" appendTo="body" placeholder="Selecciona un aula" />
+                </div>
+
+                <div class="flex flex-col gap-1 xl:col-span-4">
+                    <label class="text-xs font-semibold uppercase tracking-wide text-surface-500">Asignación docente</label>
+                    <p-select class="w-full" [options]="asignacionesOptions" [(ngModel)]="filtros.asignacion" appendTo="body" placeholder="Selecciona una asignación" />
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="overflow-hidden rounded-xl border border-surface-200 bg-surface-0 shadow-sm dark:border-surface-700 dark:bg-surface-900">
+        <p-table [value]="horariosFiltered" [loading]="loading" [globalFilterFields]="['diaSemana', 'horaInicio']" responsiveLayout="scroll">
+            <ng-template pTemplate="header">
+                <tr>
+                    <th pSortableColumn="diaSemana" class="px-4 py-3 text-left text-xs font-semibold uppercase text-surface-700 dark:text-surface-200">
+                        Día <p-sortIcon field="diaSemana"></p-sortIcon>
+                    </th>
+                    <th pSortableColumn="horaInicio" class="px-4 py-3 text-left text-xs font-semibold uppercase text-surface-700 dark:text-surface-200">
+                        Hora Inicio <p-sortIcon field="horaInicio"></p-sortIcon>
+                    </th>
+                    <th pSortableColumn="horaFin" class="px-4 py-3 text-left text-xs font-semibold uppercase text-surface-700 dark:text-surface-200">
+                        Hora Fin <p-sortIcon field="horaFin"></p-sortIcon>
+                    </th>
+                    <th class="px-4 py-3 text-left text-xs font-semibold uppercase text-surface-700 dark:text-surface-200">Aula</th>
+                    <th class="px-4 py-3 text-left text-xs font-semibold uppercase text-surface-700 dark:text-surface-200">Asignación Docente</th>
+                    <th pSortableColumn="estado" class="px-4 py-3 text-left text-xs font-semibold uppercase text-surface-700 dark:text-surface-200">
+                        Estado <p-sortIcon field="estado"></p-sortIcon>
+                    </th>
+                    @if (canWrite) {
+                        <th class="px-4 py-3 text-center text-xs font-semibold uppercase text-surface-700 dark:text-surface-200">Acciones</th>
+                    }
+                </tr>
+            </ng-template>
+            <ng-template pTemplate="body" let-horario>
+                <tr class="border-t border-surface-200 dark:border-surface-700">
+                    <td class="px-4 py-3 text-sm text-surface-600 dark:text-surface-300">{{ horario.diaSemana }}</td>
+                    <td class="px-4 py-3 text-sm text-surface-600 dark:text-surface-300">{{ horario.horaInicio }}</td>
+                    <td class="px-4 py-3 text-sm text-surface-600 dark:text-surface-300">{{ horario.horaFin }}</td>
+                    <td class="px-4 py-3 text-sm text-surface-600 dark:text-surface-300">{{ getAulaLabel(horario.idAula) }}</td>
+                    <td class="px-4 py-3 text-sm text-surface-600 dark:text-surface-300">{{ getAsignacionLabel(horario.idAsignacionDocente) }}</td>
+                    <td class="px-4 py-3 text-sm">
+                        <p-tag [value]="horario.estado" [severity]="horario.estado === 'ACTIVO' ? 'success' : 'secondary'" />
+                    </td>
+                    @if (canWrite) {
+                        <td class="px-4 py-3 text-center">
+                            <div class="flex justify-center gap-2">
+                                <p-button icon="pi pi-pencil" severity="info" [rounded]="true" [text]="true" pTooltip="Editar" tooltipPosition="top" (onClick)="editar(horario)" />
+                                <p-button icon="pi pi-trash" severity="danger" [rounded]="true" [text]="true" pTooltip="Eliminar" tooltipPosition="top" (onClick)="eliminar(horario)" />
+                            </div>
+                        </td>
+                    }
+                </tr>
+            </ng-template>
+            <ng-template pTemplate="emptymessage">
+                <tr>
+                    <td [attr.colspan]="canWrite ? 7 : 6" class="px-4 py-8 text-center text-sm text-surface-500">
+                        No hay horarios disponibles
+                    </td>
+                </tr>
+            </ng-template>
+        </p-table>
+    </section>
+</div>
+
+<!-- Dialog para crear/editar horario -->
+<p-dialog [(visible)]="dialogVisible" [header]="editMode ? 'Editar Horario' : 'Nuevo Horario'" [modal]="true" [style]="{ width: '90vw', maxWidth: '500px' }" [showHeader]="true">
+    <div class="flex flex-col gap-4">
+        <div class="flex flex-col gap-1">
+            <label class="text-sm font-semibold text-surface-900 dark:text-surface-0">Día de la semana <span class="text-red-500">*</span></label>
+            <p-select class="w-full" [options]="diasSemana.map(d => ({ label: d, value: d }))" [(ngModel)]="form.diaSemana" appendTo="body" placeholder="Selecciona un día" />
+        </div>
+
+        <div class="flex flex-col gap-1">
+            <label class="text-sm font-semibold text-surface-900 dark:text-surface-0">Hora de inicio <span class="text-red-500">*</span></label>
+            <input pInputText type="time" class="w-full" [(ngModel)]="form.horaInicio" placeholder="HH:mm" />
+        </div>
+
+        <div class="flex flex-col gap-1">
+            <label class="text-sm font-semibold text-surface-900 dark:text-surface-0">Hora de fin <span class="text-red-500">*</span></label>
+            <input pInputText type="time" class="w-full" [(ngModel)]="form.horaFin" placeholder="HH:mm" />
+        </div>
+
+        <div class="flex flex-col gap-1">
+            <label class="text-sm font-semibold text-surface-900 dark:text-surface-0">Aula <span class="text-red-500">*</span></label>
+            <p-select class="w-full" [options]="aulasOptions" [(ngModel)]="form.idAula" appendTo="body" placeholder="Selecciona un aula" />
+        </div>
+
+        <div class="flex flex-col gap-1">
+            <label class="text-sm font-semibold text-surface-900 dark:text-surface-0">Asignación docente <span class="text-red-500">*</span></label>
+            <p-select class="w-full" [options]="asignacionesOptions" [(ngModel)]="form.idAsignacionDocente" appendTo="body" placeholder="Selecciona una asignación" />
+        </div>
+    </div>
+
+    <ng-template pTemplate="footer">
+        <p-button label="Cancelar" severity="secondary" (onClick)="dialogVisible = false" />
+        <p-button label="Guardar" (onClick)="guardar()" />
+    </ng-template>
+</p-dialog>
