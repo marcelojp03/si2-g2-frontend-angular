@@ -32,8 +32,8 @@ export class MenuService {
                     { label: 'Usuarios', icon: 'pi pi-fw pi-users', routerLink: ['/admin/usuarios'] },
                     { label: 'Roles y permisos', icon: 'pi pi-fw pi-shield', routerLink: ['/admin/roles'] },
                     { label: 'Auditoría', icon: 'pi pi-fw pi-history', routerLink: ['/admin/auditoria'] },
-                ]
-            }
+                ],
+            },
         ];
     }
 
@@ -41,39 +41,70 @@ export class MenuService {
         const has = (permiso: string) => permisos.includes(permiso);
         const hasRole = (role: string) => roles.includes(role);
 
+        const isDocente = hasRole('DOCENTE');
+        const isAdminInstitucion = hasRole('ADMIN_INSTITUCION');
+        const isDirector = hasRole('DIRECTOR');
+
         const canUsuarios = has('USUARIOS_READ') || has('USUARIOS_WRITE');
         const canConfiguracion = has('CONFIGURACION_READ') || has('CONFIGURACION_WRITE');
         const canRoles = has('ROLES_READ') || has('ROLES_WRITE');
-        const canAuditoria = has('AUDITORIA_READ') || hasRole('ADMIN_INSTITUCION') || hasRole('DIRECTOR');
+        const canAuditoria = has('AUDITORIA_READ') || isAdminInstitucion || isDirector;
+
         const canGestionAcademica = has('GESTION_READ') || has('GESTION_WRITE');
         const canPersonas = has('PERSONAS_READ') || has('PERSONAS_WRITE');
+
         const canOperacion = has('OPERACION_READ') || has('OPERACION_WRITE');
-        const canMiArea = has('MI_AREA_READ');
+        const canOperacionAdministrativa = canOperacion && !isDocente;
+
+        const canMiArea = has('MI_AREA_READ') || isDocente;
+
+        const canAsistencia =
+            has('ASISTENCIA_READ') ||
+            has('ASISTENCIA_WRITE') ||
+            has('ASISTENCIA_READ_ALL') ||
+            isDocente ||
+            isAdminInstitucion ||
+            isDirector;
 
         const menu: MenuItem[] = [
             {
                 label: 'Principal',
                 items: [
                     { label: 'Inicio', icon: 'pi pi-fw pi-home', routerLink: ['/'] },
-                ]
-            }
+                ],
+            },
         ];
 
         if (canUsuarios || canConfiguracion || canRoles || canAuditoria) {
             menu.push({ separator: true });
+
             const items: MenuItem[] = [];
-            if (canUsuarios) items.push({ label: 'Usuarios', icon: 'pi pi-fw pi-users', routerLink: ['/usuarios'] });
-            if (canRoles) items.push({ label: 'Roles y permisos', icon: 'pi pi-fw pi-shield', routerLink: ['/roles'] });
-            if (canConfiguracion) items.push({ label: 'Configuración Institución', icon: 'pi pi-fw pi-cog', routerLink: ['/configuracion'] });
-            if (canAuditoria) items.push({ label: 'Auditoría', icon: 'pi pi-fw pi-history', routerLink: ['/auditoria'] });
+
+            if (canUsuarios) {
+                items.push({ label: 'Usuarios', icon: 'pi pi-fw pi-users', routerLink: ['/usuarios'] });
+            }
+
+            if (canRoles) {
+                items.push({ label: 'Roles y permisos', icon: 'pi pi-fw pi-shield', routerLink: ['/roles'] });
+            }
+
+            if (canConfiguracion) {
+                items.push({ label: 'Configuración Institución', icon: 'pi pi-fw pi-cog', routerLink: ['/configuracion'] });
+            }
+
+            if (canAuditoria) {
+                items.push({ label: 'Auditoría', icon: 'pi pi-fw pi-history', routerLink: ['/auditoria'] });
+            }
+
             menu.push({
                 label: 'Configuración',
-                items
+                items,
             });
         }
 
         if (canGestionAcademica) {
             menu.push({ separator: true });
+
             menu.push({
                 label: 'Gestión Académica',
                 items: [
@@ -83,40 +114,63 @@ export class MenuService {
                     { label: 'Aulas', icon: 'pi pi-fw pi-building', routerLink: ['/aulas'] },
                     { label: 'Materias', icon: 'pi pi-fw pi-list', routerLink: ['/materias'] },
                     { label: 'Asig. Materias a Cursos', icon: 'pi pi-fw pi-link', routerLink: ['/materias-curso'] },
-                ]
+                ],
             });
         }
 
         if (canPersonas) {
             menu.push({ separator: true });
+
             menu.push({
                 label: 'Personas',
                 items: [
                     { label: 'Docentes', icon: 'pi pi-fw pi-id-card', routerLink: ['/docentes'] },
                     { label: 'Estudiantes', icon: 'pi pi-fw pi-user-plus', routerLink: ['/estudiantes'] },
                     { label: 'Tutores', icon: 'pi pi-fw pi-users', routerLink: ['/tutores'] },
-                ]
+                ],
             });
         }
 
-        if (canOperacion) {
+        if (canOperacionAdministrativa || (canAsistencia && !isDocente)) {
             menu.push({ separator: true });
-            menu.push({
-                label: 'Operación Académica',
-                items: [
+
+            const operacionItems: MenuItem[] = [];
+
+            if (canOperacionAdministrativa) {
+                operacionItems.push(
                     { label: 'Inscripciones', icon: 'pi pi-fw pi-file-edit', routerLink: ['/inscripciones'] },
                     { label: 'Asignaciones Docentes', icon: 'pi pi-fw pi-graduation-cap', routerLink: ['/asignaciones'] },
-                ]
+                );
+            }
+
+            if (canAsistencia && !isDocente) {
+                operacionItems.push(
+                    { label: 'Asistencia', icon: 'pi pi-fw pi-check-square', routerLink: ['/asistencia'] },
+                );
+            }
+
+            menu.push({
+                label: 'Operación Académica',
+                items: operacionItems,
             });
         }
 
         if (canMiArea) {
             menu.push({ separator: true });
+
+            const miAreaItems: MenuItem[] = [
+                { label: 'Mis asignaciones', icon: 'pi pi-fw pi-graduation-cap', routerLink: ['/asignaciones'] },
+            ];
+
+            if (canAsistencia) {
+                miAreaItems.push(
+                    { label: 'Registrar asistencia', icon: 'pi pi-fw pi-check-square', routerLink: ['/asistencia'] },
+                );
+            }
+
             menu.push({
                 label: 'Mi área',
-                items: [
-                    { label: 'Mis asignaciones', icon: 'pi pi-fw pi-graduation-cap', routerLink: ['/asignaciones'] },
-                ]
+                items: miAreaItems,
             });
         }
 
