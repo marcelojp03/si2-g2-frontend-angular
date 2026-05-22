@@ -66,6 +66,14 @@ export class MenuService {
             isAdminInstitucion ||
             isDirector;
 
+        const canCalificaciones =
+            has('CALIFICACIONES_READ') ||
+            has('CALIFICACIONES_WRITE') ||
+            has('CALIFICACIONES_READ_ALL') ||
+            isDocente ||
+            isAdminInstitucion ||
+            isDirector;
+
         const menu: MenuItem[] = [
             {
                 label: 'Principal',
@@ -131,7 +139,7 @@ export class MenuService {
             });
         }
 
-        if (canOperacionAdministrativa || (canAsistencia && !isDocente)) {
+        if (canOperacionAdministrativa || (canAsistencia && !isDocente) || (canCalificaciones && !isDocente)) {
             menu.push({ separator: true });
 
             const operacionItems: MenuItem[] = [];
@@ -146,6 +154,12 @@ export class MenuService {
             if (canAsistencia && !isDocente) {
                 operacionItems.push(
                     { label: 'Asistencia', icon: 'pi pi-fw pi-check-square', routerLink: ['/asistencia'] },
+                );
+            }
+
+            if (canCalificaciones && !isDocente) {
+                operacionItems.push(
+                    { label: 'Calificaciones', icon: 'pi pi-fw pi-file-edit', routerLink: ['/calificaciones'] },
                 );
             }
 
@@ -165,6 +179,12 @@ export class MenuService {
             if (canAsistencia) {
                 miAreaItems.push(
                     { label: 'Registrar asistencia', icon: 'pi pi-fw pi-check-square', routerLink: ['/asistencia'] },
+                );
+            }
+
+            if (canCalificaciones) {
+                miAreaItems.push(
+                    { label: 'Calificaciones', icon: 'pi pi-fw pi-file-edit', routerLink: ['/calificaciones'] },
                 );
             }
 

@@ -25,6 +25,14 @@ export default [
         )],
         loadComponent: () => import('./asistencia/asistencia.component').then(m => m.AsistenciaComponent)
     },
+    {
+        path: 'calificaciones',
+        canActivate: [permissionOrRoleGuard(
+            ['CALIFICACIONES_READ', 'CALIFICACIONES_WRITE', 'CALIFICACIONES_READ_ALL', 'MI_AREA_READ'],
+            ['ADMIN_INSTITUCION', 'SUPER_ADMIN', 'DIRECTOR', 'DOCENTE']
+        )],
+        loadComponent: () => import('./calificaciones/calificaciones.component').then(m => m.CalificacionesComponent)
+    },
 
     { path: 'roles', canActivate: [permissionGuard('ROLES_READ', 'ROLES_WRITE')], loadComponent: () => import('./roles/roles.component').then(m => m.RolesComponent) },
     { path: 'auditoria', canActivate: [permissionOrRoleGuard(['AUDITORIA_READ'], ['SUPER_ADMIN'])], loadComponent: () => import('./auditoria/auditoria.component').then(m => m.AuditoriaComponent) },
