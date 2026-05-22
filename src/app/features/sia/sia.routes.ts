@@ -16,6 +16,16 @@ export default [
     { path: 'tutores', loadComponent: () => import('./tutores/tutores.component').then(m => m.TutoresComponent) },
     { path: 'inscripciones', loadComponent: () => import('./inscripciones/inscripciones.component').then(m => m.InscripcionesComponent) },
     { path: 'asignaciones', loadComponent: () => import('./asignaciones/asignaciones.component').then(m => m.AsignacionesComponent) },
+
+    {
+        path: 'asistencia',
+        canActivate: [permissionOrRoleGuard(
+            ['ASISTENCIA_READ', 'ASISTENCIA_WRITE', 'ASISTENCIA_READ_ALL', 'MI_AREA_READ'],
+            ['ADMIN_INSTITUCION', 'SUPER_ADMIN', 'DIRECTOR', 'DOCENTE']
+        )],
+        loadComponent: () => import('./asistencia/asistencia.component').then(m => m.AsistenciaComponent)
+    },
+
     { path: 'roles', canActivate: [permissionGuard('ROLES_READ', 'ROLES_WRITE')], loadComponent: () => import('./roles/roles.component').then(m => m.RolesComponent) },
     { path: 'auditoria', canActivate: [permissionOrRoleGuard(['AUDITORIA_READ'], ['SUPER_ADMIN'])], loadComponent: () => import('./auditoria/auditoria.component').then(m => m.AuditoriaComponent) },
     { path: 'configuracion', loadComponent: () => import('./configuracion/configuracion.component').then(m => m.ConfiguracionComponent) },
