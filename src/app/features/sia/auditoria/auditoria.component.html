@@ -9,10 +9,25 @@
         <p-button label="Actualizar" icon="pi pi-refresh" (onClick)="load()" />
     </div>
 
-    <div class="grid grid-cols-1 md:grid-cols-3 gap-3 mb-4">
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-3 mb-3">
         <input pInputText [(ngModel)]="modulo" placeholder="Filtrar por módulo" />
         <input pInputText [(ngModel)]="tipoOperacion" placeholder="Filtrar por operación" />
         <p-select [options]="[{label:'Todos', value: null}, {label:'Exitoso', value: true}, {label:'Fallido', value: false}]" [(ngModel)]="exito" optionLabel="label" optionValue="value" placeholder="Estado" appendTo="body" />
+    </div>
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-3 mb-4">
+        <input pInputText [(ngModel)]="idUsuario" placeholder="ID de usuario" />
+        <div class="flex flex-col gap-1">
+            <label class="text-xs text-surface-500">Desde</label>
+            <input pInputText type="date" [(ngModel)]="fechaDesde" />
+        </div>
+        <div class="flex flex-col gap-1">
+            <label class="text-xs text-surface-500">Hasta</label>
+            <input pInputText type="date" [(ngModel)]="fechaHasta" />
+        </div>
+        <div class="flex gap-2 items-end">
+            <p-button label="Filtrar" icon="pi pi-search" (onClick)="load()" class="flex-1" />
+            <p-button icon="pi pi-filter-slash" [text]="true" severity="secondary" pTooltip="Limpiar" (onClick)="limpiar()" />
+        </div>
     </div>
 
     <p-table [value]="registros()" [loading]="loading" [paginator]="true" [rows]="10" styleClass="p-datatable-striped">

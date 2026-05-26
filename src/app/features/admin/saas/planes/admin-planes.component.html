@@ -1,0 +1,133 @@
+<p-toast />
+<p-confirmDialog />
+
+<div class="card">
+    <div class="flex justify-between items-center mb-4">
+        <div>
+            <h2 class="text-xl font-semibold text-surface-900 dark:text-surface-0">Planes de Suscripción</h2>
+            <p class="text-surface-500 text-sm mt-1">Gestión de planes disponibles para las instituciones</p>
+        </div>
+        <p-button label="Nuevo Plan" icon="pi pi-plus" (onClick)="nuevo()" />
+    </div>
+
+    <p-table
+        #dt
+        [value]="planes()"
+        [loading]="loading"
+        [paginator]="true"
+        [rows]="10"
+        [globalFilterFields]="['codigo','nombre','estado']"
+        dataKey="id"
+        styleClass="p-datatable-sm"
+    >
+        <ng-template pTemplate="caption">
+            <p-iconfield>
+                <p-inputicon class="pi pi-search" />
+                <input pInputText type="text" (input)="dt.filterGlobal($any($event.target).value, 'contains')" placeholder="Buscar..." />
+            </p-iconfield>
+        </ng-template>
+
+        <ng-template pTemplate="header">
+            <tr>
+                <th pSortableColumn="codigo">Código <p-sortIcon field="codigo" /></th>
+                <th pSortableColumn="nombre">Nombre <p-sortIcon field="nombre" /></th>
+                <th>Descripción</th>
+                <th>Max Usuarios</th>
+                <th>Almacenamiento</th>
+                <th>Precio/mes</th>
+                <th>Módulos</th>
+                <th>Estado</th>
+                <th style="width:100px">Acciones</th>
+            </tr>
+        </ng-template>
+
+        <ng-template pTemplate="body" let-plan>
+            <tr>
+                <td><span class="font-mono font-semibold">{{ plan.codigo }}</span></td>
+                <td>{{ plan.nombre }}</td>
+                <td>{{ plan.descripcion ?? '—' }}</td>
+                <td>{{ plan.maxUsuarios }}</td>
+                <td>{{ plan.maxAlmacenamientoMb | number }} MB</td>
+                <td>Bs. {{ plan.precioMensual | number:'1.2-2' }}</td>
+                <td>
+                    <span class="text-sm text-surface-600">{{ plan.modulos.length }} módulo{{ plan.modulos.length !== 1 ? 's' : '' }}</span>
+                </td>
+                <td>
+                    <p-tag [severity]="severityEstado(plan.estado)" [value]="plan.estado" />
+                </td>
+                <td>
+                    <div class="flex gap-1">
+                        <p-button icon="pi pi-pencil" [rounded]="true" [text]="true" severity="info" pTooltip="Editar" (onClick)="editar(plan)" />
+                        @if (plan.estado === 'ACTIVO') {
+                            <p-button icon="pi pi-ban" [rounded]="true" [text]="true" severity="danger" pTooltip="Desactivar" (onClick)="confirmarDesactivar(plan)" />
+                        }
+                    </div>
+                </td>
+            </tr>
+        </ng-template>
+
+        <ng-template pTemplate="emptymessage">
+            <tr><td colspan="9" class="text-center py-8 text-surface-500">No hay planes registrados</td></tr>
+        </ng-template>
+    </p-table>
+</div>
+
+<!-- Dialog crear/editar -->
+<p-dialog
+    [(visible)]="dialogVisible"
+    [header]="editMode ? 'Editar Plan' : 'Nuevo Plan'"
+    [modal]="true"
+    [style]="{ width: '600px' }"
+    [draggable]="false"
+>
+    <div class="flex flex-col gap-4 pt-2">
+        <div class="grid grid-cols-2 gap-4">
+            <div class="flex flex-col gap-1">
+                <label class="text-sm font-medium">Código *</label>
+                <input pInputText [(ngModel)]="form.codigo" [disabled]="editMode" placeholder="Ej: BASICO" class="uppercase" />
+            </div>
+            <div class="flex flex-col gap-1">
+                <label class="text-sm font-medium">Nombre *</label>
+                <input pInputText [(ngModel)]="form.nombre" placeholder="Ej: Plan Básico" />
+            </div>
+        </div>
+
+        <div class="flex flex-col gap-1">
+            <label class="text-sm font-medium">Descripción</label>
+            <input pInputText [(ngModel)]="form.descripcion" placeholder="Descripción del plan" />
+        </div>
+
+        <div class="grid grid-cols-3 gap-4">
+            <div class="flex flex-col gap-1">
+                <label class="text-sm font-medium">Máx. Usuarios</label>
+                <p-inputnumber [(ngModel)]="form.maxUsuarios" [min]="1" />
+            </div>
+            <div class="flex flex-col gap-1">
+                <label class="text-sm font-medium">Almacenamiento (MB)</label>
+                <p-inputnumber [(ngModel)]="form.maxAlmacenamientoMb" [min]="1" />
+            </div>
+            <div class="flex flex-col gap-1">
+                <label class="text-sm font-medium">Precio mensual (Bs.)</label>
+                <p-inputnumber [(ngModel)]="form.precioMensual" [min]="0" mode="decimal" [minFractionDigits]="2" />
+            </div>
+        </div>
+
+        <div class="flex flex-col gap-1">
+            <label class="text-sm font-medium">Módulos incluidos</label>
+            <p-multiselect
+                [(ngModel)]="selectedModuloIds"
+                [options]="modulos()"
+                optionLabel="nombre"
+                optionValue="id"
+                placeholder="Seleccione módulos"
+                [showClear]="true"
+                class="w-full"
+            />
+        </div>
+    </div>
+
+    <ng-template pTemplate="footer">
+        <p-button label="Cancelar" icon="pi pi-times" [text]="true" severity="secondary" (onClick)="dialogVisible = false" />
+        <p-button label="Guardar" icon="pi pi-check" (onClick)="guardar()" />
+    </ng-template>
+</p-dialog>

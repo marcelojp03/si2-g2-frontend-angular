@@ -39,5 +39,25 @@ export default [
     { path: 'roles', canActivate: [permissionGuard('ROLES_READ', 'ROLES_WRITE')], loadComponent: () => import('./roles/roles.component').then(m => m.RolesComponent) },
     { path: 'auditoria', canActivate: [permissionOrRoleGuard(['AUDITORIA_READ'], ['SUPER_ADMIN'])], loadComponent: () => import('./auditoria/auditoria.component').then(m => m.AuditoriaComponent) },
     { path: 'configuracion', loadComponent: () => import('./configuracion/configuracion.component').then(m => m.ConfiguracionComponent) },
+    {
+        path: 'suscripcion',
+        canActivate: [permissionOrRoleGuard([], ['ADMIN_INSTITUCION', 'DIRECTOR'])],
+        loadComponent: () => import('./suscripcion/mi-plan.component').then(m => m.MiPlanComponent)
+    },
+    {
+        path: 'seguridad',
+        canActivate: [permissionOrRoleGuard([], ['ADMIN_INSTITUCION', 'DIRECTOR'])],
+        loadComponent: () => import('./seguridad/seguridad.component').then(m => m.SeguridadComponent)
+    },
+    {
+        path: 'backups',
+        canActivate: [permissionOrRoleGuard([], ['SUPER_ADMIN', 'ADMIN_INSTITUCION'])],
+        loadComponent: () => import('./backups/backups.component').then(m => m.BackupsComponent)
+    },
+    {
+        path: 'reportes',
+        canActivate: [permissionOrRoleGuard(['REPORTES_READ'], ['SUPER_ADMIN', 'ADMIN_INSTITUCION', 'DIRECTOR', 'SECRETARIO'])],
+        loadComponent: () => import('./reportes/reportes.component').then(m => m.ReportesComponent)
+    },
     { path: 'perfil', loadChildren: () => import('../perfil/perfil.routes') },
 ] as Routes;
