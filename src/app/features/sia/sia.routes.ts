@@ -59,5 +59,10 @@ export default [
         canActivate: [permissionOrRoleGuard(['REPORTES_READ'], ['SUPER_ADMIN', 'ADMIN_INSTITUCION', 'DIRECTOR', 'SECRETARIO'])],
         loadComponent: () => import('./reportes/reportes.component').then(m => m.ReportesComponent)
     },
+    {
+        path: 'alertas',
+        canActivate: [permissionOrRoleGuard([], ['SUPER_ADMIN', 'ADMIN_INSTITUCION', 'DIRECTOR', 'SECRETARIO'])],
+        loadComponent: () => import('./alertas/alertas-riesgo.component').then(m => m.AlertasRiesgoComponent)
+    },
     { path: 'perfil', loadChildren: () => import('../perfil/perfil.routes') },
 ] as Routes;

@@ -77,6 +77,7 @@ export class MenuService {
 
         const canBackups = isAdminInstitucion;
         const canReportes = has('REPORTES_READ') || isAdminInstitucion || isDirector || hasRole('SECRETARIO');
+        const canAlertas = isAdminInstitucion || isDirector || hasRole('SECRETARIO');
 
         const canAsistencia =
             has('ASISTENCIA_READ') ||
@@ -220,13 +221,17 @@ export class MenuService {
             });
         }
 
-        if (canBackups || canReportes) {
+        if (canBackups || canReportes || canAlertas) {
             menu.push({ separator: true });
 
             const herramientasItems: MenuItem[] = [];
 
             if (canReportes) {
                 herramientasItems.push({ label: 'Reportes', icon: 'pi pi-fw pi-chart-bar', routerLink: ['/reportes'] });
+            }
+
+            if (canAlertas) {
+                herramientasItems.push({ label: 'Alertas de Riesgo', icon: 'pi pi-fw pi-exclamation-triangle', routerLink: ['/alertas'] });
             }
 
             if (canBackups) {
