@@ -293,6 +293,17 @@
                 class="w-full"
             />
         </div>
+
+        <!-- Advertencia cuando ponderación total es 100% -->
+        @if (ponderacionTotal() >= 100) {
+            <div class="col-span-12 p-3 border border-orange-300 bg-orange-50 rounded-lg flex gap-3">
+                <i class="pi pi-exclamation-triangle text-orange-600 text-lg"></i>
+                <div class="text-sm text-orange-800">
+                    <strong>Ponderación completa:</strong> Ya se ha utilizado el 100% en este período.
+                    Para agregar más evaluaciones, edita una existente y reduce su ponderación.
+                </div>
+            </div>
+        }
     </div>
 
     <ng-template #footer>
