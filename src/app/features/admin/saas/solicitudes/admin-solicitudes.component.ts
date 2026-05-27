@@ -16,7 +16,7 @@ import { ConfirmDialogModule } from 'primeng/confirmdialog';
 import { SelectModule } from 'primeng/select';
 import { TextareaModule } from 'primeng/textarea';
 import { DividerModule } from 'primeng/divider';
-import { SolicitudService } from '@/core/services/solicitud.service';
+import { SolicitudService } from '@/features/admin/saas/services/solicitud.service';
 import { SolicitudOnboardingResponse } from '@/core/models/sia.models';
 
 type EstadoFiltro = '' | 'PENDIENTE_REVISION' | 'APROBADA' | 'PENDIENTE_PAGO' | 'PAGADO' | 'ACTIVA' | 'RECHAZADA';
@@ -58,12 +58,12 @@ type EstadoFiltro = '' | 'PENDIENTE_REVISION' | 'APROBADA' | 'PENDIENTE_PAGO' | 
                  dataKey="id" styleClass="p-datatable-sm">
             <ng-template pTemplate="header">
                 <tr>
-                    <th pSortableColumn="nombreInstitucion">Institución <p-sorticon field="nombreInstitucion" /></th>
-                    <th pSortableColumn="tipoInstitucion">Tipo <p-sorticon field="tipoInstitucion" /></th>
+                    <th pSortableColumn="nombreInstitucion">Institución <p-sortIcon field="nombreInstitucion" /></th>
+                    <th pSortableColumn="tipoInstitucion">Tipo <p-sortIcon field="tipoInstitucion" /></th>
                     <th>Contacto</th>
-                    <th pSortableColumn="nombrePlan">Plan <p-sorticon field="nombrePlan" /></th>
-                    <th pSortableColumn="estado">Estado <p-sorticon field="estado" /></th>
-                    <th pSortableColumn="creadoEn">Fecha <p-sorticon field="creadoEn" /></th>
+                    <th pSortableColumn="nombrePlan">Plan <p-sortIcon field="nombrePlan" /></th>
+                    <th pSortableColumn="estado">Estado <p-sortIcon field="estado" /></th>
+                    <th pSortableColumn="creadoEn">Fecha <p-sortIcon field="creadoEn" /></th>
                     <th class="text-right">Acciones</th>
                 </tr>
             </ng-template>

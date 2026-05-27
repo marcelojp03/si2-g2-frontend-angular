@@ -13,7 +13,7 @@ import { DialogModule } from 'primeng/dialog';
 import { TooltipModule } from 'primeng/tooltip';
 import { ConfirmDialogModule } from 'primeng/confirmdialog';
 import { InputNumberModule } from 'primeng/inputnumber';
-import { SiaService } from '@/core/services/sia.service';
+import { MateriasService } from '@/features/sia/materias/services/materias.service';
 import { MateriaResponse, MateriaRequest } from '@/core/models/sia.models';
 
 @Component({
@@ -26,7 +26,7 @@ import { MateriaResponse, MateriaRequest } from '@/core/models/sia.models';
     templateUrl: './materias.component.html'
 })
 export class MateriasComponent implements OnInit {
-    private service = inject(SiaService);
+    private service = inject(MateriasService);
     private messageService = inject(MessageService);
     private confirmationService = inject(ConfirmationService);
 

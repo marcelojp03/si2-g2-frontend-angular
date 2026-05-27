@@ -15,7 +15,9 @@ import { ConfirmDialogModule } from 'primeng/confirmdialog';
 import { SelectModule } from 'primeng/select';
 import { InputNumberModule } from 'primeng/inputnumber';
 import { forkJoin } from 'rxjs';
-import { SiaService } from '@/core/services/sia.service';
+import { ParalelosService } from '@/features/sia/paralelos/services/paralelos.service';
+import { CursosService } from '@/features/sia/cursos/services/cursos.service';
+import { GestionesService } from '@/features/sia/gestiones/services/gestiones.service';
 import {
     ParaleloRequest, ParaleloResponse,
     CursoResponse, GestionAcademicaResponse
@@ -31,7 +33,9 @@ import {
     templateUrl: './paralelos.component.html'
 })
 export class ParalelosComponent implements OnInit {
-    private service = inject(SiaService);
+    private service = inject(ParalelosService);
+    private cursosService = inject(CursosService);
+    private gestionesService = inject(GestionesService);
     private messageService = inject(MessageService);
     private confirmationService = inject(ConfirmationService);
 
@@ -53,8 +57,8 @@ export class ParalelosComponent implements OnInit {
         this.loading = true;
         forkJoin({
             paralelos: this.service.listarParalelos(),
-            cursos: this.service.listarCursos(),
-            gestiones: this.service.listarGestiones()
+            cursos: this.cursosService.listarCursos(),
+            gestiones: this.gestionesService.listarGestiones()
         }).subscribe({
             next: ({ paralelos, cursos, gestiones }) => {
                 this.loading = false;

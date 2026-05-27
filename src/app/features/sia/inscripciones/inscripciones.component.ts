@@ -14,7 +14,11 @@ import { DialogModule } from 'primeng/dialog';
 import { TooltipModule } from 'primeng/tooltip';
 import { ConfirmDialogModule } from 'primeng/confirmdialog';
 import { SelectModule } from 'primeng/select';
-import { SiaService } from '@/core/services/sia.service';
+import { InscripcionesService } from '@/features/sia/inscripciones/services/inscripciones.service';
+import { EstudiantesService } from '@/features/sia/estudiantes/services/estudiantes.service';
+import { GestionesService } from '@/features/sia/gestiones/services/gestiones.service';
+import { CursosService } from '@/features/sia/cursos/services/cursos.service';
+import { ParalelosService } from '@/features/sia/paralelos/services/paralelos.service';
 import {
     InscripcionRequest, InscripcionResponse,
     EstudianteResponse, GestionAcademicaResponse, CursoResponse, ParaleloResponse
@@ -30,7 +34,11 @@ import {
     templateUrl: './inscripciones.component.html'
 })
 export class InscripcionesComponent implements OnInit {
-    private service = inject(SiaService);
+    private service = inject(InscripcionesService);
+    private estudiantesService = inject(EstudiantesService);
+    private gestionesService = inject(GestionesService);
+    private cursosService = inject(CursosService);
+    private paralelosService = inject(ParalelosService);
     private messageService = inject(MessageService);
     private confirmationService = inject(ConfirmationService);
 
@@ -53,10 +61,10 @@ export class InscripcionesComponent implements OnInit {
         this.loading = true;
         forkJoin({
             inscripciones: this.service.listarInscripciones(),
-            estudiantes: this.service.listarEstudiantes(),
-            gestiones: this.service.listarGestiones(),
-            cursos: this.service.listarCursos(),
-            paralelos: this.service.listarParalelos()
+            estudiantes: this.estudiantesService.listarEstudiantes(),
+            gestiones: this.gestionesService.listarGestiones(),
+            cursos: this.cursosService.listarCursos(),
+            paralelos: this.paralelosService.listarParalelos()
         }).subscribe({
             next: ({ inscripciones, estudiantes, gestiones, cursos, paralelos }) => {
                 this.loading = false;

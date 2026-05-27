@@ -13,7 +13,7 @@ import { DialogModule } from 'primeng/dialog';
 import { TooltipModule } from 'primeng/tooltip';
 import { ConfirmDialogModule } from 'primeng/confirmdialog';
 import { CheckboxModule } from 'primeng/checkbox';
-import { SiaService } from '@/core/services/sia.service';
+import { GestionesService } from '@/features/sia/gestiones/services/gestiones.service';
 import { GestionAcademicaResponse, GestionAcademicaRequest } from '@/core/models/sia.models';
 
 @Component({
@@ -26,7 +26,7 @@ import { GestionAcademicaResponse, GestionAcademicaRequest } from '@/core/models
     templateUrl: './gestiones.component.html'
 })
 export class GestionesComponent implements OnInit {
-    private service = inject(SiaService);
+    private service = inject(GestionesService);
     private messageService = inject(MessageService);
     private confirmationService = inject(ConfirmationService);
 

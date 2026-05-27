@@ -1,8 +1,8 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
-import { environment } from '../../../environments/environment';
-import { ApiResponse } from '../models/api-response.model';
+import { environment } from '../../../../../environments/environment';
+import { ApiResponse } from '@/core/models/api-response.model';
 
 export interface RiesgoEstudianteRequest {
   id_estudiante: string;
@@ -42,10 +42,6 @@ export class IaService {
   private http = inject(HttpClient);
   private base = `${environment.api.baseUrl}/ia`;
 
-  /**
-   * Predice el nivel de riesgo académico para una lista de estudiantes.
-   * El JWT se adjunta automáticamente via el interceptor oauth2.interceptor.
-   */
   predecirRiesgo(
     estudiantes: RiesgoEstudianteRequest[]
   ): Observable<ApiResponse<RiesgoEstudianteResponse[]>> {
@@ -55,9 +51,6 @@ export class IaService {
     );
   }
 
-  /**
-   * Interpreta una consulta en lenguaje natural y devuelve filtros de reporte.
-   */
   interpretarConsulta(
     request: InterpretacionIaRequest
   ): Observable<ApiResponse<InterpretacionIaResponse>> {

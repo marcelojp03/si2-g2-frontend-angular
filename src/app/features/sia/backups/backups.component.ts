@@ -9,7 +9,7 @@ import { Textarea } from 'primeng/textarea';
 import { ToastModule } from 'primeng/toast';
 import { MessageService, ConfirmationService } from 'primeng/api';
 import { ConfirmDialogModule } from 'primeng/confirmdialog';
-import { RespaldoService, RegistroRespaldo, RegistroRestauracion } from '../../../core/services/respaldo.service';
+import { RespaldoService, RegistroRespaldo, RegistroRestauracion } from './services/respaldo.service';
 import { AuthService } from '../../../core/services/auth.service';
 
 @Component({

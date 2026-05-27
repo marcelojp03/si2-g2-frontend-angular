@@ -9,7 +9,7 @@ import { TagModule } from 'primeng/tag';
 import { ToastModule } from 'primeng/toast';
 import { MessageService } from 'primeng/api';
 import { TooltipModule } from 'primeng/tooltip';
-import { AuditoriaService } from '@/core/services/auditoria.service';
+import { AuditoriaService } from '@/features/sia/auditoria/services/auditoria.service';
 import { BitacoraAuditoriaResponse } from '@/core/models/sia.models';
 
 @Component({

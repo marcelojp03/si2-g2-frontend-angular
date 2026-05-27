@@ -14,8 +14,9 @@ import { TagModule } from 'primeng/tag';
 import { ToastModule } from 'primeng/toast';
 import { TooltipModule } from 'primeng/tooltip';
 import { AuthService } from '@/core/services/auth.service';
-import { HorarioService } from '@/core/services/horario.service';
-import { SiaService } from '@/core/services/sia.service';
+import { HorarioService } from '@/features/sia/horarios/services/horario.service';
+import { AsignacionesService } from '@/features/sia/asignaciones/services/asignaciones.service';
+import { AulasService } from '@/features/sia/aulas/services/aulas.service';
 import { HorarioClaseResponse, HorarioClaseRequest, AsignacionDocenteResponse, AulaResponse } from '@/core/models/sia.models';
 
 @Component({
@@ -41,7 +42,8 @@ import { HorarioClaseResponse, HorarioClaseRequest, AsignacionDocenteResponse, A
 })
 export class GestionHorariosComponent implements OnInit {
     private horarioService = inject(HorarioService);
-    private siaService = inject(SiaService);
+    private asignacionesService = inject(AsignacionesService);
+    private aulasService = inject(AulasService);
     private auth = inject(AuthService);
     private messageService = inject(MessageService);
     private confirmationService = inject(ConfirmationService);
@@ -125,8 +127,8 @@ export class GestionHorariosComponent implements OnInit {
         // Cargar en paralelo
         Promise.all([
             this.horarioService.listarPorInstitucion(this.idInstitucion).toPromise(),
-            this.siaService.listarAsignaciones().toPromise(),
-            this.siaService.listarAulas().toPromise()
+            this.asignacionesService.listarAsignaciones().toPromise(),
+            this.aulasService.listarAulas().toPromise()
         ]).then(([horariosResp, asignacionesResp, aulasResp]) => {
             this.loading = false;
 

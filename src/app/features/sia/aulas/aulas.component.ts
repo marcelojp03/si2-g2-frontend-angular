@@ -15,7 +15,7 @@ import { TagModule } from 'primeng/tag';
 import { ToastModule } from 'primeng/toast';
 import { TooltipModule } from 'primeng/tooltip';
 import { AuthService } from '@/core/services/auth.service';
-import { SiaService } from '@/core/services/sia.service';
+import { AulasService } from '@/features/sia/aulas/services/aulas.service';
 import { AulaRequest, AulaResponse } from '@/core/models/sia.models';
 
 @Component({
@@ -41,7 +41,7 @@ import { AulaRequest, AulaResponse } from '@/core/models/sia.models';
     templateUrl: './aulas.component.html'
 })
 export class AulasComponent implements OnInit {
-    private service = inject(SiaService);
+    private service = inject(AulasService);
     private auth = inject(AuthService);
     private messageService = inject(MessageService);
     private confirmationService = inject(ConfirmationService);

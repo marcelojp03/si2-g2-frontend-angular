@@ -13,7 +13,7 @@ import { TextareaModule } from 'primeng/textarea';
 import { ToastModule } from 'primeng/toast';
 import { TooltipModule } from 'primeng/tooltip';
 import { AuthService } from '@/core/services/auth.service';
-import { CalificacionService } from '@/core/services/calificacion.service';
+import { CalificacionService } from '@/features/sia/calificaciones/services/calificacion.service';
 import {
     CalificacionAsignacionResponse,
     CalificacionDetalleRequest,

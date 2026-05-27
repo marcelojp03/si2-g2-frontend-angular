@@ -8,9 +8,11 @@ import { Select } from 'primeng/select';
 import { ToastModule } from 'primeng/toast';
 import { CardModule } from 'primeng/card';
 import { MessageService } from 'primeng/api';
-import { ReporteService } from '../../../core/services/reporte.service';
-import { SiaService } from '../../../core/services/sia.service';
-import { GestionAcademicaResponse, ParaleloResponse, CursoResponse } from '../../../core/models/sia.models';
+import { ReporteService } from './services/reporte.service';
+import { GestionesService } from '@/features/sia/gestiones/services/gestiones.service';
+import { ParalelosService } from '@/features/sia/paralelos/services/paralelos.service';
+import { CursosService } from '@/features/sia/cursos/services/cursos.service';
+import { GestionAcademicaResponse, ParaleloResponse, CursoResponse } from '@/core/models/sia.models';
 
 @Component({
   selector: 'app-reportes',
@@ -274,7 +276,9 @@ import { GestionAcademicaResponse, ParaleloResponse, CursoResponse } from '../..
 })
 export class ReportesComponent implements OnInit {
   private reporteSvc = inject(ReporteService);
-  private siaSvc = inject(SiaService);
+  private gestionesService = inject(GestionesService);
+  private paralelosService = inject(ParalelosService);
+  private cursosService = inject(CursosService);
   private toast = inject(MessageService);
 
   gestiones = signal<GestionAcademicaResponse[]>([]);
@@ -296,9 +300,9 @@ export class ReportesComponent implements OnInit {
   cargandoGerencial = signal(false);
 
   ngOnInit(): void {
-    this.siaSvc.listarGestiones().subscribe(r => { if (r?.codigo === 200) this.gestiones.set(r.data ?? []); });
-    this.siaSvc.listarParalelos().subscribe(r => { if (r?.codigo === 200) this.paralelos.set(r.data ?? []); });
-    this.siaSvc.listarCursos().subscribe(r => { if (r?.codigo === 200) this.cursos.set(r.data ?? []); });
+    this.gestionesService.listarGestiones().subscribe(r => { if (r?.codigo === 200) this.gestiones.set(r.data ?? []); });
+    this.paralelosService.listarParalelos().subscribe(r => { if (r?.codigo === 200) this.paralelos.set(r.data ?? []); });
+    this.cursosService.listarCursos().subscribe(r => { if (r?.codigo === 200) this.cursos.set(r.data ?? []); });
   }
 
   generarAsistencia(): void {

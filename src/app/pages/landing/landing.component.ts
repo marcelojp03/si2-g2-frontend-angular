@@ -10,7 +10,7 @@ import { CardModule } from 'primeng/card';
 import { TagModule } from 'primeng/tag';
 import { ToastModule } from 'primeng/toast';
 import { MessageService } from 'primeng/api';
-import { SolicitudService } from '@/core/services/solicitud.service';
+import { SolicitudService } from '@/features/admin/saas/services/solicitud.service';
 import { SaasService } from '@/core/services/saas.service';
 import { PlanSuscripcionResponse } from '@/core/models/sia.models';
 

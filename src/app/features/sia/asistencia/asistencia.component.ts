@@ -9,7 +9,7 @@ import { TableModule } from 'primeng/table';
 import { TagModule } from 'primeng/tag';
 import { ToastModule } from 'primeng/toast';
 import { TooltipModule } from 'primeng/tooltip';
-import { AsistenciaService } from '@/core/services/asistencia.service';
+import { AsistenciaService } from '@/features/sia/asistencia/services/asistencia.service';
 import { AuthService } from '@/core/services/auth.service';
 import {
     AsistenciaAsignacionResponse,

@@ -15,8 +15,9 @@ import {
   RiesgoEstudianteResponse,
   InterpretacionIaRequest,
   InterpretacionIaResponse,
-} from '../../../core/services/ia.service';
-import { SiaService } from '../../../core/services/sia.service';
+} from './services/ia.service';
+import { GestionesService } from '@/features/sia/gestiones/services/gestiones.service';
+import { ParalelosService } from '@/features/sia/paralelos/services/paralelos.service';
 
 @Component({
   selector: 'app-alertas-riesgo',
@@ -200,7 +201,8 @@ import { SiaService } from '../../../core/services/sia.service';
 })
 export class AlertasRiesgoComponent implements OnInit {
   private iaSvc = inject(IaService);
-  private siaSvc = inject(SiaService);
+  private gestionesService = inject(GestionesService);
+  private paralelosService = inject(ParalelosService);
   private msg = inject(MessageService);
 
   gestiones = signal<{ id: string; nombre: string }[]>([]);
@@ -229,7 +231,7 @@ export class AlertasRiesgoComponent implements OnInit {
   );
 
   ngOnInit(): void {
-    this.siaSvc.listarGestiones().subscribe({
+    this.gestionesService.listarGestiones().subscribe({
       next: res => {
         if (res.codigo === 200) this.gestiones.set(res.data as any);
       },
@@ -239,7 +241,7 @@ export class AlertasRiesgoComponent implements OnInit {
   onGestionChange(): void {
     this.idParaleloSeleccionado = null;
     if (!this.idGestionSeleccionada) return;
-    this.siaSvc.listarParalelos().subscribe({
+    this.paralelosService.listarParalelos().subscribe({
       next: res => {
         if (res.codigo === 200) this.paralelos.set(res.data as any);
       },
