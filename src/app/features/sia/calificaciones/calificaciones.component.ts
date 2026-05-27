@@ -103,7 +103,7 @@ export class CalificacionesComponent implements OnInit {
     dialogEvaluacion = false;          // Modal de nueva evaluación
 
     // DATOS DEL FORMULARIO
-    idAsignacionDocente = '';          // UUID de asignación seleccionada
+    idMateria = '';                    // UUID de materia seleccionada
     idEvaluacion = '';                 // UUID de evaluación seleccionada
     periodo = 1;                       // Período actual (1-6)
     razonesCambio: Record<string, string> = {}; // Razón de cambio por estudiante
@@ -159,7 +159,7 @@ export class CalificacionesComponent implements OnInit {
     readonly asignacionesOptions = computed(() =>
         this.asignaciones().map((a) => ({
             label: this.asignacionLabel(a),
-            value: a.idAsignacionDocente,
+            value: a.idMateria,
         }))
     );
 
@@ -213,9 +213,9 @@ export class CalificacionesComponent implements OnInit {
                 }
                 const data = response.data ?? [];
                 this.asignaciones.set(data);
-                // Auto-selecciona primera asignación
-                if (data.length > 0 && !this.idAsignacionDocente) {
-                    this.idAsignacionDocente = data[0].idAsignacionDocente;
+                // Auto-selecciona primera asignación (extrae idMateria)
+                if (data.length > 0 && !this.idMateria) {
+                    this.idMateria = data[0].idMateria;
                     this.cargarEvaluaciones();
                 }
             },
@@ -227,26 +227,26 @@ export class CalificacionesComponent implements OnInit {
     }
 
     /**
-     * OPERACIÓN: Cargar evaluaciones de asignación seleccionada
+     * OPERACIÓN: Cargar evaluaciones de materia seleccionada
      * 
      * PRECONDICIONES:
-     * - idAsignacionDocente debe estar establecido
+     * - idMateria debe estar establecido
      * - periodo debe ser válido (1-6)
      * 
      * FLUJO:
-     * 1. Consulta GET /api/calificaciones/evaluaciones?idAsignacionDocente=X&periodo=Y
+     * 1. Consulta GET /api/calificaciones/evaluaciones?idMateria=X&periodo=Y
      * 2. Reinicia plantilla y resumen previos
      * 3. Si hay evaluaciones: selecciona la primera automáticamente
      * 4. Carga plantilla de estudiantes para esa evaluación
      * 5. Carga resumen consolidado del período
      * 
      * ÚTIL PARA:
-     * - Cambio de asignación docente
+     * - Cambio de materia
      * - Cambio de período académico
      */
     cargarEvaluaciones(): void {
-        if (!this.idAsignacionDocente) {
-            this.showWarn('Selecciona una materia/grupo');
+        if (!this.idMateria) {
+            this.showWarn('Selecciona una materia');
             return;
         }
 
@@ -255,7 +255,7 @@ export class CalificacionesComponent implements OnInit {
         this.plantilla.set(null);      // Limpia plantilla
         this.resumen.set(null);        // Limpia resumen
 
-        this.calificacionService.listarEvaluaciones(this.idAsignacionDocente, this.periodo).subscribe({
+        this.calificacionService.listarEvaluacionesPorMateria(this.idMateria, this.periodo).subscribe({
             next: (response) => {
                 this.loadingEvaluaciones = false;
                 if (response.codigo !== 200) {
@@ -330,7 +330,7 @@ export class CalificacionesComponent implements OnInit {
      * OPERACIÓN: Abrir diálogo para crear nueva evaluación
      * 
      * PRECONDICIONES:
-     * - idAsignacionDocente debe estar seleccionado
+     * - idMateria debe estar seleccionado
      * 
      * FLUJO:
      * 1. Reinicia formulario (nuevaEvaluacionForm)
@@ -338,8 +338,8 @@ export class CalificacionesComponent implements OnInit {
      * 3. Usuario completa: nombre, tipo, ponderación, escala, estado
      */
     abrirNuevaEvaluacion(): void {
-        if (!this.idAsignacionDocente) {
-            this.showWarn('Selecciona una materia/grupo');
+        if (!this.idMateria) {
+            this.showWarn('Selecciona una materia');
             return;
         }
         this.formEvaluacion = this.nuevaEvaluacionForm();
@@ -485,7 +485,7 @@ export class CalificacionesComponent implements OnInit {
      * OPERACIÓN: Cargar resumen de desempeño (notas consolidadas)
      * 
      * PRECONDICIONES:
-     * - idAsignacionDocente y periodo deben estar establecidos
+     * - idAsignacionDocente (para obtener materia) y periodo deben estar establecidos
      * 
      * CONTENIDO DEL RESUMEN:
      * - Nota consolidada = Σ(nota × ponderación / 100)
@@ -501,8 +501,14 @@ export class CalificacionesComponent implements OnInit {
      * LLAMADA SILENCIOSA: Si falla, no muestra error (solo pasa silenciosamente)
      */
     cargarResumen(): void {
-        if (!this.idAsignacionDocente || !this.periodo) return;
-        this.calificacionService.obtenerResumen(this.idAsignacionDocente, this.periodo).subscribe({
+        // Se necesita una asignación (idAsignacionDocente) para obtener el contexto completo.
+        // Se busca en asignaciones la primera que pertenezca a idMateria actual.
+        if (!this.idMateria || !this.periodo) return;
+        
+        const asignacion = this.asignaciones().find(a => a.idMateria === this.idMateria);
+        if (!asignacion) return;
+        
+        this.calificacionService.obtenerResumen(asignacion.idAsignacionDocente, this.periodo).subscribe({
             next: (response) => {
                 if (response.codigo === 200) {
                     this.resumen.set(response.data);
@@ -610,7 +616,7 @@ export class CalificacionesComponent implements OnInit {
      * HELPER: Crea nuevo formulario vacío para evaluación
      * 
      * Valores iniciales:
-     * - idAsignacionDocente: Seleccionada actualmente
+     * - idMateria: Seleccionada actualmente
      * - periodo: Período actual
      * - tipo: PARCIAL (default)
      * - ponderacion: 10 (default)
@@ -621,7 +627,7 @@ export class CalificacionesComponent implements OnInit {
      */
     private nuevaEvaluacionForm(): EvaluacionRequest {
         return {
-            idAsignacionDocente: this.idAsignacionDocente,
+            idMateria: this.idMateria,
             periodo: this.periodo,
             tipo: 'PARCIAL',
             nombre: '',
