@@ -613,7 +613,7 @@ export interface CalificacionAsignacionResponse {
 }
 
 export interface EvaluacionRequest {
-    idAsignacionDocente: string;
+    idMateria: string;
     periodo: number;
     tipo: string;
     nombre: string;
@@ -625,7 +625,7 @@ export interface EvaluacionRequest {
 export interface EvaluacionResponse {
     id: string;
     idInstitucion: string;
-    idAsignacionDocente: string;
+    idMateria: string;
     creadoPor?: string | null;
     periodo: number;
     tipo: string;

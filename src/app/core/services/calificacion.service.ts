@@ -82,18 +82,18 @@ export class CalificacionService {
     }
 
     /**
-     * Obtiene las evaluaciones de una asignación docente específica.
+     * Obtiene las evaluaciones de una materia específica.
      * 
      * ENDPOINT: GET /api/calificaciones/evaluaciones
      * 
      * PARÁMETROS:
-     * - idAsignacionDocente: UUID obligatoria
+     * - idMateria: UUID obligatoria
      * - periodo: Opcional (1-6). Si no viene, lista todas
      * 
      * FLUJO:
      * 1. Construye HttpParams con los parámetros
      * 2. Llama GET con params
-     * 3. Backend filtra evaluaciones por asignación+periodo
+     * 3. Backend filtra evaluaciones por materia+periodo
      * 4. Ordena por período y nombre
      * 
      * RESPUESTA:
@@ -113,10 +113,22 @@ export class CalificacionService {
      *   ]
      * }
      * 
-     * @param idAsignacionDocente UUID de la asignación
+     * @param idMateria UUID de la materia
      * @param periodo Período opcional (1-6)
      * @return Observable de array de evaluaciones
      */
+    listarEvaluacionesPorMateria(idMateria: string, periodo?: number): Observable<ApiResponse<EvaluacionResponse[]>> {
+        let params = new HttpParams().set('idMateria', idMateria);
+        if (periodo) {
+            params = params.set('periodo', periodo);
+        }
+        return this.http.get<ApiResponse<EvaluacionResponse[]>>(
+            `${this.base}/calificaciones/evaluaciones`,
+            { params }
+        );
+    }
+
+    @Deprecated('Usar listarEvaluacionesPorMateria en su lugar')
     listarEvaluaciones(idAsignacionDocente: string, periodo?: number): Observable<ApiResponse<EvaluacionResponse[]>> {
         let params = new HttpParams().set('idAsignacionDocente', idAsignacionDocente);
         if (periodo) {
