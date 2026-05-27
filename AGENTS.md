@@ -25,20 +25,27 @@ npm run format       # Prettier sobre *.ts, *.html, *.js
 ```
 src/app/
   core/
-    guards/      # authGuard, superadminGuard, roleGuard, loggedGuard
-    http/        # http-api.ts (endpoints estáticos), oauth2.interceptor.ts
-    models/      # api-response.model.ts, sia.models.ts
-    services/    # auth, menu, sia, asistencia, calificacion, horario, dashboard, ...
+    guards/      # authGuard, superadminGuard, loggedGuard
+               # permissionGuard(...perms)       — factory; requiere al menos uno de los permisos
+               # permissionOrRoleGuard(perms, roles) — factory; acceso si tiene permiso O rol
+    http/        # http-api.ts (legacy, NO usar para servicios nuevos), oauth2.interceptor.ts
+    models/      # api-response.model.ts, sia.models.ts, auth.model.ts
+    services/    # auth, menu, sia, asistencia, calificacion, horario, dashboard,
+               #  saas, solicitud, authz, auditoria, respaldo, role, reporte, ...
   features/
-    admin/       # Rutas protegidas por superadminGuard (/admin)
-    sia/         # Rutas protegidas por authGuard (raíz /)
+    admin/       # Rutas SUPER_ADMIN (/admin)
+      saas/      #   planes/, suscripciones/, solicitudes/ (gestión global SaaS)
+    sia/         # Rutas autenticadas (raíz /)
       # Sprint 1: cursos, paralelos, materias, gestiones, docentes, estudiantes,
       #           tutores, inscripciones, asignaciones, configuracion
       # Sprint 2: aulas, horarios, asistencia, calificaciones, historial
-      # Sprint Especial (en progreso): suscripcion, seguridad, roles, auditoria, backups, reportes, planes
+      # Sprint Especial: suscripcion, seguridad, roles, auditoria, backups, reportes
     perfil/
   layout/        # Shell de la app (topbar, sidebar, menú)
-  pages/         # Auth, dashboard, notfound, empty
+  pages/
+    auth/        # Login y recuperación de contraseña
+    landing/     # Página pública SaaS (/solicitud) — muestra planes y formulario pre-venta
+    dashboard, notfound, empty
   shared/        # PrimeNGModule, SharedModule, componentes/utils reutilizables
 ```
 
@@ -72,8 +79,14 @@ Ejemplo: `import { AppLayout } from '@/layout/component/app.layout';`
 
 - Token JWT almacenado en `localStorage` bajo la clave `sia_token` (configurable en `environment.auth.tokenKey`).
 - El interceptor [`oauth2Interceptor`](src/app/core/http/oauth2.interceptor.ts) adjunta `Authorization: Bearer <token>` automáticamente, excepto en rutas públicas (`/auth/login`) y rutas QR (`/qr-proxy`).
-- **Roles**: `SUPER_ADMIN` → `/admin`; resto → rutas SIA raíz.
-- Guards disponibles: `authGuard`, `superadminGuard`, `roleGuard`, `loggedGuard`.
+- **Roles**: `SUPER_ADMIN` → `/admin`; resto → rutas SIA raíz. Ruta `/solicitud` es completamente pública (landing pre-ventas).
+- Guards disponibles:
+  - `authGuard` — requiere token válido
+  - `superadminGuard` — requiere rol `SUPER_ADMIN`
+  - `loggedGuard` — redirige si ya está autenticado (login page)
+  - `permissionGuard(...perms)` — factory; acceso si tiene **alguno** de los permisos dados
+  - `permissionOrRoleGuard(perms, roles)` — factory; acceso si tiene permiso **o** rol listado
+- `ROLE_PERMISSION_FALLBACK` en `auth.service.ts` (líneas 18–58) asigna permisos por defecto según rol cuando el JWT no los incluye. Es deuda técnica pero actualmente necesario.
 
 ---
 
@@ -109,26 +122,43 @@ Nuevos servicios en `src/app/core/services/`:
 
 ---
 
-## Servicios Sprint Especial
+## Servicios Sprint Especial (implementados)
 
-- `saas.service.ts` — planes de suscripción y módulos del sistema (CRUD para SUPER_ADMIN)
-- `solicitud.service.ts` — solicitudes de restauración y backups
+- `saas.service.ts` — planes y módulos del sistema (`GET /planes`, `POST/PUT/DELETE /planes/:id`); solo SUPER_ADMIN para mutaciones
+- `solicitud.service.ts` — envío del formulario público pre-ventas (`POST /solicitudes`); usado por `LandingComponent`
+- `authz.service.ts` — mapa de privilegios UI (`GET /api/privilegios-ui/mi-mapa`); `canView(modulo, entidad, campo)` y `canEdit(...)`. Cargar tras login exitoso con `cargarMapa()`; limpiar en logout con `limpiarMapa()`.
+- `respaldo.service.ts` — backups y restauraciones (`GET/POST /respaldos`, `GET/POST /restauraciones`)
+- `auditoria.service.ts` — bitácora con filtros (`GET /auditoria?modulo=&tipoOperacion=&exito=&idUsuario=&fechaDesde=&fechaHasta=`)
+- `role.service.ts` — CRUD de roles dinámicos (`GET /roles`, `GET /roles/asignables`, `GET /roles/permisos`, `POST/PUT/DELETE /roles/:id`)
+- `reporte.service.ts` — generación y descarga de reportes (`GET /reportes`)
+- `empresa.service.ts` — **@deprecated** legacy, no usar en código nuevo
 
-Features en `features/sia/` ya creadas para este sprint:
-- `suscripcion/` — componente "Mi Plan" (`mi-plan.component.ts`)
-- `seguridad/` — vista de seguridad/intentos de login (`seguridad.component.ts`)
+> **Patrón de URLs**: Los servicios nuevos construyen la URL base desde `environment.api.baseUrl` directamente. `http-api.ts` tiene contenido legacy (Django) que no se usa; no agregar nuevos servicios SIA ahí.
 
-**Patrón `AuthzService` (HU-SE-07):** al implementar, cargar el mapa de privilegios desde `GET /api/privilegios-ui` al iniciar sesión. Usar directiva estructural `*appCanView` y directiva de atributo `[appCanEdit]` para controlar visibilidad por campo/botón sin duplicar formularios.
+Features en `features/sia/` (Sprint Especial):
+- `suscripcion/mi-plan.component.ts` — consulta del plan activo de la institución
+- `seguridad/seguridad.component.ts` — intentos de login fallidos
+- `auditoria/auditoria.component.ts` — vista de bitácora con filtros
+- `backups/backups.component.ts` — gestión de respaldos y restauraciones
+- `reportes/reportes.component.ts` — generación de reportes
+- `roles/roles.component.ts` — gestión de roles y permisos dinámicos
+
+Features en `features/admin/saas/` (SUPER_ADMIN):
+- `planes/admin-planes.component.ts` — CRUD de planes de suscripción
+- `suscripciones/admin-suscripciones.component.ts` — gestión de suscripciones activas
+- `solicitudes/admin-solicitudes.component.ts` — aprobar/rechazar solicitudes de acceso
+
+**`AuthzService` (implementado, HU-SE-07):** mapa en signal, cargado desde `GET /api/privilegios-ui/mi-mapa` al iniciar sesión. Llamar `authz.cargarMapa()` en el pipe de `login()` y `authz.limpiarMapa()` en `logout()`. Las directivas `*appCanView` y `[appCanEdit]` aún están pendientes de crear.
 
 ---
 
-## Deuda técnica pendiente (Sprint Especial)
+## Deuda técnica pendiente
 
 > Ver checklist completo: [`si2-g2-backend-springboot/docs/checklist sprint especial.md`](../si2-g2-backend-springboot/docs/checklist%20sprint%20especial.md)
 
-- Eliminar `ROLE_PERMISSION_FALLBACK` hardcodeado en `auth.service.ts` (líneas 18–58).
-- Limpiar endpoints legacy en `http-api.ts` (`catalog/`, `sales/`, `analyticsReports`).
-- Agregar nuevos endpoints SaaS en `http-api.ts`: `planes`, `suscripcion`, `privilegios-ui`, `respaldos`, `restauraciones`, `reportes/`.
+- Crear directivas `*appCanView` y `[appCanEdit]` que consuman `AuthzService.canView/canEdit`.
+- `ROLE_PERMISSION_FALLBACK` hardcodeado en `auth.service.ts` (líneas 18–58): reemplazar cuando el backend incluya permisos en el JWT.
+- `http-api.ts` contiene endpoints legacy (Django, `catalog/`, `sales/`): limpiar cuando no haya dependencias.
 
 ---
 
