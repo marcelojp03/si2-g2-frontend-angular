@@ -1,6 +1,7 @@
 import { Component, OnInit, inject, signal, ViewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { forkJoin } from 'rxjs';
 import { MessageService, ConfirmationService } from 'primeng/api';
 import { Table, TableModule } from 'primeng/table';
 import { ButtonModule } from 'primeng/button';
@@ -12,17 +13,18 @@ import { IconFieldModule } from 'primeng/iconfield';
 import { DialogModule } from 'primeng/dialog';
 import { TooltipModule } from 'primeng/tooltip';
 import { ConfirmDialogModule } from 'primeng/confirmdialog';
+import { MultiSelectModule } from 'primeng/multiselect';
 import { SiaService } from '@/core/services/sia.service';
 import { StorageService } from '@/core/services/storage.service';
 import { FileUploadComponent } from '@/shared/components/file-upload/file-upload.component';
-import { DocenteResponse, DocenteRequest } from '@/core/models/sia.models';
+import { DocenteResponse, DocenteRequest, MateriaResponse } from '@/core/models/sia.models';
 
 @Component({
     selector: 'app-docentes',
     standalone: true,
     imports: [CommonModule, FormsModule, TableModule, ButtonModule, ToastModule, TagModule,
         InputTextModule, InputIconModule, IconFieldModule, DialogModule, TooltipModule,
-        ConfirmDialogModule, FileUploadComponent],
+        ConfirmDialogModule, MultiSelectModule, FileUploadComponent],
     providers: [MessageService, ConfirmationService],
     templateUrl: './docentes.component.html'
 })
@@ -33,17 +35,20 @@ export class DocentesComponent implements OnInit {
     private confirmationService = inject(ConfirmationService);
 
     docentes = signal<DocenteResponse[]>([]);
+    materias = signal<MateriaResponse[]>([]);
     loading = true;
     dialogVisible = false;
     editMode = false;
     selectedId = '';
 
-    // Foto de perfil
     fotoUrl = signal<string | null>(null);
     fotoArchivo: File | null = null;
     uploadingFoto = false;
 
-    form: DocenteRequest = { codigo: '', documentoIdentidad: '', nombres: '', apellidos: '', telefono: '', correo: '', especialidad: '' };
+    form: DocenteRequest = {
+        codigo: '', documentoIdentidad: '', nombres: '', apellidos: '',
+        telefono: '', correo: '', idsMateria: []
+    };
 
     @ViewChild('dt') dt!: Table;
 
@@ -51,14 +56,30 @@ export class DocentesComponent implements OnInit {
 
     load(): void {
         this.loading = true;
-        this.service.listarDocentes().subscribe({
-            next: (r) => { this.loading = false; if (r.codigo === 200) this.docentes.set(r.data ?? []); },
+        forkJoin({
+            docentes: this.service.listarDocentes(),
+            materias: this.service.listarMaterias()
+        }).subscribe({
+            next: ({ docentes, materias }) => {
+                this.loading = false;
+                if (docentes.codigo === 200) this.docentes.set(docentes.data ?? []);
+                if (materias.codigo === 200) this.materias.set(materias.data ?? []);
+            },
             error: () => { this.loading = false; this.error('No se pudieron cargar los docentes'); }
         });
     }
 
+    get materiasOptions() {
+        return this.materias()
+            .filter(m => m.estado === 'ACTIVO')
+            .map(m => ({ label: `${m.nombre} (${m.codigo})`, value: m.id }));
+    }
+
     nuevo(): void {
-        this.form = { codigo: '', documentoIdentidad: '', nombres: '', apellidos: '', telefono: '', correo: '', especialidad: '' };
+        this.form = {
+            codigo: '', documentoIdentidad: '', nombres: '', apellidos: '',
+            telefono: '', correo: '', idsMateria: []
+        };
         this.fotoUrl.set(null);
         this.fotoArchivo = null;
         this.editMode = false;
@@ -66,7 +87,15 @@ export class DocentesComponent implements OnInit {
     }
 
     editar(d: DocenteResponse): void {
-        this.form = { codigo: d.codigo, documentoIdentidad: d.documentoIdentidad, nombres: d.nombres, apellidos: d.apellidos, telefono: d.telefono ?? '', correo: d.correo, especialidad: d.especialidad ?? '' };
+        this.form = {
+            codigo: d.codigo,
+            documentoIdentidad: d.documentoIdentidad,
+            nombres: d.nombres,
+            apellidos: d.apellidos,
+            telefono: d.telefono ?? '',
+            correo: d.correo,
+            idsMateria: (d.materias ?? []).map(m => m.id)
+        };
         this.selectedId = d.id;
         this.fotoArchivo = null;
         this.fotoUrl.set(null);

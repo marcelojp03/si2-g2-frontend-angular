@@ -105,11 +105,23 @@ export class AdminUsuariosComponent implements OnInit {
             this.messageService.add({ severity: 'warn', summary: 'Atencion', detail: 'La contrasena es requerida', life: 3000 });
             return;
         }
+        if (!this.form.idRol) {
+            this.messageService.add({ severity: 'warn', summary: 'Atencion', detail: 'Seleccione un rol inicial', life: 3000 });
+            return;
+        }
+        const rolSeleccionado = this.rolesDisponibles().find(r => r.id === this.form.idRol);
+        if (!rolSeleccionado) {
+            this.messageService.add({ severity: 'warn', summary: 'Atencion', detail: 'El rol seleccionado no es valido', life: 3000 });
+            return;
+        }
         const body: CrearUsuarioRequest = {
-            ...this.form,
+            correo: this.form.correo.trim(),
+            contrasena: this.form.contrasena,
+            nombres: this.form.nombres.trim(),
+            apellidos: this.form.apellidos.trim(),
             idInstitucion: this.form.idInstitucion || undefined,
-            idRol: this.form.idRol || undefined,
-            codigoRol: undefined
+            idRol: rolSeleccionado.id,
+            codigoRol: rolSeleccionado.codigo
         };
         this.usuarioService.crear(body).subscribe({
             next: () => {
@@ -165,7 +177,12 @@ export class AdminUsuariosComponent implements OnInit {
             this.messageService.add({ severity: 'warn', summary: 'Atencion', detail: 'Seleccione un rol', life: 3000 });
             return;
         }
-        const body: AsignarRolRequest = { idRol: this.rolSeleccionado, codigoRol: undefined };
+        const rol = this.rolesDisponibles().find(r => r.id === this.rolSeleccionado);
+        if (!rol) {
+            this.messageService.add({ severity: 'warn', summary: 'Atencion', detail: 'Seleccione un rol valido', life: 3000 });
+            return;
+        }
+        const body: AsignarRolRequest = { idRol: rol.id, codigoRol: rol.codigo };
         this.usuarioService.asignarRol(this.usuarioRoles.id, body).subscribe({
             next: () => {
                 this.rolesVisible = false;

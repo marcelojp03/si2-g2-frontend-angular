@@ -36,9 +36,24 @@ export class RolesComponent implements OnInit {
     editId: string | null = null;
 
     form: RolRequest = { nombre: '', descripcion: '', idsPermiso: [] };
+    editingGlobalRole = false;
 
     get isSuperAdmin(): boolean {
         return this.authService.isSuperAdmin();
+    }
+
+    canEditRole(rol: RolResponse): boolean {
+        if (this.isSuperAdmin) {
+            return rol.codigo !== 'SUPER_ADMIN';
+        }
+        return rol.editable;
+    }
+
+    canDeleteRole(rol: RolResponse): boolean {
+        if (this.isSuperAdmin) {
+            return this.canEditRole(rol);
+        }
+        return rol.editable && !rol.esGlobal;
     }
 
     ngOnInit(): void {
@@ -53,8 +68,7 @@ export class RolesComponent implements OnInit {
                     next: permisosResp => {
                         this.loading = false;
                         if (rolesResp.codigo === 200) {
-                            const roles = rolesResp.data ?? [];
-                            this.roles.set(this.isSuperAdmin ? roles : roles.filter(r => !r.esGlobal || r.editable));
+                            this.roles.set(rolesResp.data ?? []);
                         }
                         if (permisosResp.codigo === 200) this.permisos.set(permisosResp.data ?? []);
                     },
@@ -76,8 +90,9 @@ export class RolesComponent implements OnInit {
     }
 
     editar(rol: RolResponse): void {
-        if (!rol.editable) return;
+        if (!this.canEditRole(rol)) return;
         this.editId = rol.id;
+        this.editingGlobalRole = rol.esGlobal;
         this.form = {
             nombre: rol.nombre,
             descripcion: rol.descripcion ?? '',
@@ -113,7 +128,7 @@ export class RolesComponent implements OnInit {
     }
 
     confirmarEliminar(rol: RolResponse): void {
-        if (!rol.editable) return;
+        if (!this.canDeleteRole(rol)) return;
         this.confirmationService.confirm({
             message: `¿Desactivar el rol "${rol.nombre}"?`,
             header: 'Confirmar desactivación',

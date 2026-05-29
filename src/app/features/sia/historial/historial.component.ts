@@ -19,6 +19,8 @@ import {
 } from '@/core/models/sia.models';
 import { HistorialService } from './historial.service';
 
+type PrimeTagSeverity = 'success' | 'info' | 'warn' | 'danger' | 'secondary' | 'contrast';
+
 @Component({
     selector: 'app-historial',
     standalone: true,
@@ -93,14 +95,14 @@ export class HistorialComponent implements OnInit {
             });
     }
 
-    promedioColor(promedio: number | null): string {
+    promedioColor(promedio: number | null): PrimeTagSeverity {
         if (promedio === null || promedio === undefined) return 'secondary';
         if (promedio >= 51) return 'success';
         if (promedio >= 40) return 'warn';
         return 'danger';
     }
 
-    asistenciaColor(porcentaje: number): string {
+    asistenciaColor(porcentaje: number): PrimeTagSeverity {
         if (porcentaje >= 80) return 'success';
         if (porcentaje >= 60) return 'warn';
         return 'danger';
