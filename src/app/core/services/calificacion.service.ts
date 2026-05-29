@@ -198,6 +198,12 @@ export class CalificacionService {
         );
     }
 
+    eliminarEvaluacion(id: string): Observable<ApiResponse<void>> {
+        return this.http.delete<ApiResponse<void>>(
+            `${this.base}/calificaciones/evaluaciones/${id}`
+        );
+    }
+
     /**
      * Obtiene la plantilla de calificaciones para una evaluación.
      * 

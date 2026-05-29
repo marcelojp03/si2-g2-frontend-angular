@@ -1,8 +1,9 @@
 import { CommonModule } from '@angular/common';
 import { Component, OnInit, computed, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { MessageService } from 'primeng/api';
+import { ConfirmationService, MessageService } from 'primeng/api';
 import { ButtonModule } from 'primeng/button';
+import { ConfirmDialogModule } from 'primeng/confirmdialog';
 import { DialogModule } from 'primeng/dialog';
 import { InputNumberModule } from 'primeng/inputnumber';
 import { InputTextModule } from 'primeng/inputtext';
@@ -74,8 +75,9 @@ import {
         TooltipModule,
         DialogModule,
         TextareaModule,
+        ConfirmDialogModule,
     ],
-    providers: [MessageService],
+    providers: [MessageService, ConfirmationService],
     templateUrl: './calificaciones.component.html',
 })
 export class CalificacionesComponent implements OnInit {
@@ -83,6 +85,7 @@ export class CalificacionesComponent implements OnInit {
     private calificacionService = inject(CalificacionService);
     private authService = inject(AuthService);
     private messageService = inject(MessageService);
+    private confirmationService = inject(ConfirmationService);
 
     // ESTADO REACTIVO (Signals)
     /** Array de asignaciones docentes disponibles */
@@ -99,8 +102,11 @@ export class CalificacionesComponent implements OnInit {
     loadingEvaluaciones = false;       // Consultando evaluaciones
     loadingPlantilla = false;          // Consultando plantilla
     guardandoNotas = false;            // Guardando calificaciones
-    guardandoEvaluacion = false;       // Creando evaluación
-    dialogEvaluacion = false;          // Modal de nueva evaluación
+    guardandoEvaluacion = false;       // Creando/actualizando evaluación
+    eliminandoEvaluacion = false;      // Eliminando evaluación
+    dialogEvaluacion = false;          // Modal de nueva/editar evaluación
+    modoEdicion = false;               // true = editando, false = creando
+    evaluacionEditandoId = '';         // UUID de la evaluación en edición
 
     // DATOS DEL FORMULARIO
     idMateria = '';                    // UUID de materia seleccionada
@@ -342,8 +348,65 @@ export class CalificacionesComponent implements OnInit {
             this.showWarn('Selecciona una materia');
             return;
         }
+        this.modoEdicion = false;
+        this.evaluacionEditandoId = '';
         this.formEvaluacion = this.nuevaEvaluacionForm();
         this.dialogEvaluacion = true;
+    }
+
+    abrirEditarEvaluacion(evaluacion: EvaluacionResponse): void {
+        this.modoEdicion = true;
+        this.evaluacionEditandoId = evaluacion.id;
+        this.formEvaluacion = {
+            idMateria: evaluacion.idMateria ?? this.idMateria,
+            periodo: evaluacion.periodo,
+            tipo: evaluacion.tipo,
+            nombre: evaluacion.nombre,
+            ponderacion: Number(evaluacion.ponderacion),
+            escala: evaluacion.escala as any,
+            estado: evaluacion.estado as any,
+        };
+        this.dialogEvaluacion = true;
+    }
+
+    confirmarEliminarEvaluacion(evaluacion: EvaluacionResponse): void {
+        this.confirmationService.confirm({
+            message: `¿Eliminar la evaluacion "${evaluacion.nombre}"? Esta acción no se puede deshacer. Si ya tiene calificaciones registradas, cambia su estado a ANULADA.`,
+            header: 'Eliminar evaluacion',
+            icon: 'pi pi-exclamation-triangle',
+            acceptLabel: 'Eliminar',
+            rejectLabel: 'Cancelar',
+            acceptButtonProps: { severity: 'danger' },
+            accept: () => this.ejecutarEliminarEvaluacion(evaluacion),
+        });
+    }
+
+    private ejecutarEliminarEvaluacion(evaluacion: EvaluacionResponse): void {
+        this.eliminandoEvaluacion = true;
+        this.calificacionService.eliminarEvaluacion(evaluacion.id).subscribe({
+            next: (response) => {
+                this.eliminandoEvaluacion = false;
+                if (response.codigo !== 200) {
+                    this.showWarn(response.mensaje || 'No se pudo eliminar la evaluacion');
+                    return;
+                }
+                this.messageService.add({
+                    severity: 'success',
+                    summary: 'Evaluacion eliminada',
+                    detail: `"${evaluacion.nombre}" fue eliminada correctamente`,
+                    life: 3000,
+                });
+                if (this.idEvaluacion === evaluacion.id) {
+                    this.idEvaluacion = '';
+                    this.plantilla.set(null);
+                }
+                this.cargarEvaluaciones();
+            },
+            error: (e) => {
+                this.eliminandoEvaluacion = false;
+                this.showError(e, 'No se pudo eliminar la evaluacion');
+            },
+        });
     }
 
     /**
@@ -383,7 +446,12 @@ export class CalificacionesComponent implements OnInit {
         }
 
         this.guardandoEvaluacion = true;
-        this.calificacionService.crearEvaluacion(this.formEvaluacion).subscribe({
+
+        const operacion$ = this.modoEdicion
+            ? this.calificacionService.actualizarEvaluacion(this.evaluacionEditandoId, this.formEvaluacion)
+            : this.calificacionService.crearEvaluacion(this.formEvaluacion);
+
+        operacion$.subscribe({
             next: (response) => {
                 this.guardandoEvaluacion = false;
                 if (response.codigo !== 201 && response.codigo !== 200) {
@@ -393,15 +461,17 @@ export class CalificacionesComponent implements OnInit {
                 this.dialogEvaluacion = false;
                 this.messageService.add({
                     severity: 'success',
-                    summary: 'Evaluacion creada',
-                    detail: 'La evaluacion fue registrada correctamente',
+                    summary: this.modoEdicion ? 'Evaluacion actualizada' : 'Evaluacion creada',
+                    detail: this.modoEdicion
+                        ? 'Los cambios fueron guardados correctamente'
+                        : 'La evaluacion fue registrada correctamente',
                     life: 3000,
                 });
                 this.cargarEvaluaciones();
             },
             error: (e) => {
                 this.guardandoEvaluacion = false;
-                this.showError(e, 'No se pudo guardar la evaluacion');
+                this.showError(e, this.modoEdicion ? 'No se pudo actualizar la evaluacion' : 'No se pudo guardar la evaluacion');
             },
         });
     }
