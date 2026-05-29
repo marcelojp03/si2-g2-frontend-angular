@@ -190,6 +190,12 @@ export class MenuService {
                 );
             }
 
+            if (canOperacionAdministrativa) {
+                operacionItems.push(
+                    { label: 'Historial Académico', icon: 'pi pi-fw pi-book', routerLink: ['/historial'] },
+                );
+            }
+
             menu.push({
                 label: 'Operación Académica',
                 items: operacionItems,
@@ -214,6 +220,10 @@ export class MenuService {
                     { label: 'Calificaciones', icon: 'pi pi-fw pi-file-edit', routerLink: ['/calificaciones'] },
                 );
             }
+
+            miAreaItems.push(
+                { label: 'Historial Académico', icon: 'pi pi-fw pi-book', routerLink: ['/historial'] },
+            );
 
             menu.push({
                 label: 'Mi área',

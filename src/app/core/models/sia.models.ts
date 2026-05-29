@@ -613,7 +613,7 @@ export interface CalificacionAsignacionResponse {
 }
 
 export interface EvaluacionRequest {
-    idAsignacionDocente: string;
+    idMateria: string;
     periodo: number;
     tipo: string;
     nombre: string;
@@ -625,7 +625,7 @@ export interface EvaluacionRequest {
 export interface EvaluacionResponse {
     id: string;
     idInstitucion: string;
-    idAsignacionDocente: string;
+    idMateria: string;
     creadoPor?: string | null;
     periodo: number;
     tipo: string;
@@ -817,3 +817,45 @@ export interface SolicitudOnboardingResponse {
     actualizadoEn: string;
 }
 
+// ─── Historial académico ───────────────────────────────────────────────────
+
+export interface HistorialEvaluacionResponse {
+    idEvaluacion: string;
+    nombre: string;
+    tipo: string;
+    periodo: number;
+    ponderacion: number;
+    notaNumerica: number | null;
+    notaLiteral: string | null;
+}
+
+export interface HistorialMateriaResponse {
+    idMateria: string;
+    codigoMateria: string;
+    nombreMateria: string;
+    idAsignacion: string;
+    promedioGeneral: number | null;
+    evaluaciones: HistorialEvaluacionResponse[];
+    totalSesiones: number;
+    sesionesPresente: number;
+    porcentajeAsistencia: number;
+}
+
+export interface HistorialGestionResponse {
+    idGestion: string;
+    nombreGestion: string;
+    idParalelo: string;
+    nombreParalelo: string;
+    idInscripcion: string;
+    estadoInscripcion: string;
+    fechaInscripcion: string;
+    materias: HistorialMateriaResponse[];
+}
+
+export interface HistorialAcademicoResponse {
+    idEstudiante: string;
+    codigoEstudiante: string;
+    nombres: string;
+    apellidos: string;
+    gestiones: HistorialGestionResponse[];
+}

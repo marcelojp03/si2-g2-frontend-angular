@@ -34,6 +34,14 @@ export default [
         )],
         loadComponent: () => import('./calificaciones/calificaciones.component').then(m => m.CalificacionesComponent)
     },
+    {
+        path: 'historial',
+        canActivate: [permissionOrRoleGuard(
+            [],
+            ['ADMIN_INSTITUCION', 'SUPER_ADMIN', 'DIRECTOR', 'SECRETARIO', 'DOCENTE']
+        )],
+        loadComponent: () => import('./historial/historial.component').then(m => m.HistorialComponent)
+    },
 
 
     { path: 'roles', canActivate: [permissionGuard('ROLES_READ', 'ROLES_WRITE')], loadComponent: () => import('./roles/roles.component').then(m => m.RolesComponent) },
