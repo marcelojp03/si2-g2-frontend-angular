@@ -5,7 +5,13 @@
     <div class="flex items-center justify-between mb-6">
         <div>
             <h3 class="text-xl font-semibold m-0">Roles y permisos</h3>
-            <p class="text-surface-400 text-sm mt-1 mb-0">Crea grupos institucionales y asígnales privilegios por módulo.</p>
+            <p class="text-surface-400 text-sm mt-1 mb-0">
+                @if (isSuperAdmin) {
+                    Administra permisos de roles globales del sistema. SUPER_ADMIN no es editable.
+                } @else {
+                    Consulta y ajusta permisos de roles predefinidos. También puedes crear roles institucionales personalizados.
+                }
+            </p>
         </div>
         <p-button label="Nuevo rol" icon="pi pi-plus" [disabled]="isSuperAdmin" (onClick)="nuevo()" />
     </div>
@@ -38,8 +44,8 @@
                 </td>
                 <td>
                     <div class="flex gap-1">
-                        <p-button icon="pi pi-pencil" [rounded]="true" [text]="true" severity="secondary" [disabled]="!rol.editable" (onClick)="editar(rol)" />
-                        <p-button icon="pi pi-trash" [rounded]="true" [text]="true" severity="danger" [disabled]="!rol.editable" (onClick)="confirmarEliminar(rol)" />
+                        <p-button icon="pi pi-pencil" [rounded]="true" [text]="true" severity="secondary" [disabled]="!canEditRole(rol)" (onClick)="editar(rol)" />
+                        <p-button icon="pi pi-trash" [rounded]="true" [text]="true" severity="danger" [disabled]="!canDeleteRole(rol)" (onClick)="confirmarEliminar(rol)" />
                     </div>
                 </td>
             </tr>
@@ -52,7 +58,7 @@
         <div class="grid grid-cols-2 gap-4">
             <div class="flex flex-col gap-1">
                 <label class="font-medium text-sm">Nombre <span class="text-red-500">*</span></label>
-                <input pInputText [(ngModel)]="form.nombre" placeholder="Ej: Coordinador Académico" />
+                <input pInputText [(ngModel)]="form.nombre" placeholder="Ej: Coordinador Académico" [readonly]="editingGlobalRole" />
             </div>
             <div class="flex flex-col gap-1">
                 <label class="font-medium text-sm">Descripción</label>
