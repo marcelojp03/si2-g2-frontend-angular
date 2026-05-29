@@ -714,3 +714,47 @@ export interface HorarioClaseResponse {
     creadoEn: string;
     actualizadoEn: string;
 }
+
+// ─── Historial académico ───────────────────────────────────────────────────
+
+export interface HistorialEvaluacionResponse {
+    idEvaluacion: string;
+    nombre: string;
+    tipo: string;
+    periodo: number;
+    ponderacion: number;
+    notaNumerica: number | null;
+    notaLiteral: string | null;
+}
+
+export interface HistorialMateriaResponse {
+    idMateria: string;
+    codigoMateria: string;
+    nombreMateria: string;
+    idAsignacion: string;
+    promedioGeneral: number | null;
+    evaluaciones: HistorialEvaluacionResponse[];
+    totalSesiones: number;
+    sesionesPresente: number;
+    porcentajeAsistencia: number;
+}
+
+export interface HistorialGestionResponse {
+    idGestion: string;
+    nombreGestion: string;
+    idParalelo: string;
+    nombreParalelo: string;
+    idInscripcion: string;
+    estadoInscripcion: string;
+    fechaInscripcion: string;
+    materias: HistorialMateriaResponse[];
+}
+
+export interface HistorialAcademicoResponse {
+    idEstudiante: string;
+    codigoEstudiante: string;
+    nombres: string;
+    apellidos: string;
+    gestiones: HistorialGestionResponse[];
+}
+
