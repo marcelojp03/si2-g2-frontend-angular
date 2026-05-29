@@ -12,7 +12,7 @@
         <p-button
             label="Nueva evaluacion"
             icon="pi pi-plus"
-            [disabled]="!idAsignacionDocente"
+            [disabled]="!idMateria"
             (onClick)="abrirNuevaEvaluacion()"
         />
     </div>
@@ -22,7 +22,7 @@
             <label class="font-medium text-sm block mb-2">Materia / grupo</label>
             <p-select
                 [options]="asignacionesOptions()"
-                [(ngModel)]="idAsignacionDocente"
+                [(ngModel)]="idMateria"
                 placeholder="Seleccionar asignacion"
                 [filter]="true"
                 filterPlaceholder="Buscar materia o curso..."
