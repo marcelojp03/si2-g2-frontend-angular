@@ -232,12 +232,14 @@ export class AsistenciaComponent implements OnInit {
 
         return this.authService.hasRole('DOCENTE')
             || this.authService.hasRole('ADMIN_INSTITUCION')
+            || this.authService.hasRole('DIRECTOR')
             || this.authService.hasRole('SUPER_ADMIN')
             || this.authService.hasPermission('ASISTENCIA_WRITE');
     }
 
     puedeEditarFechaPasada(): boolean {
         return this.authService.hasRole('ADMIN_INSTITUCION')
+            || this.authService.hasRole('DIRECTOR')
             || this.authService.hasRole('SUPER_ADMIN')
             || this.authService.hasPermission('ASISTENCIA_BACKDATE');
     }

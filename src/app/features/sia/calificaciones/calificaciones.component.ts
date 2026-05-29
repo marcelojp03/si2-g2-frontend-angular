@@ -310,6 +310,18 @@ export class CalificacionesComponent implements OnInit {
         });
     }
 
+    puedeEditarNotas(): boolean {
+        const plantilla = this.plantilla();
+        if (!plantilla) return false;
+        return plantilla.puedeEditar && (
+            this.authService.hasRole('DOCENTE')
+            || this.authService.hasRole('ADMIN_INSTITUCION')
+            || this.authService.hasRole('DIRECTOR')
+            || this.authService.hasRole('SUPER_ADMIN')
+            || this.authService.hasPermission('CALIFICACIONES_WRITE')
+        );
+    }
+
     reabrirTrimestre(): void {
         this.calificacionService.reabrirTrimestre({
             idGestionAcademica: this.filtroGestion,
