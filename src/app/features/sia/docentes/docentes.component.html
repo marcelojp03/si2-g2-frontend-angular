@@ -41,7 +41,17 @@
                 <td class="font-medium">{{ d.apellidos }}, {{ d.nombres }}</td>
                 <td class="text-surface-500 text-sm">{{ d.documentoIdentidad }}</td>
                 <td class="text-sm">{{ d.correo }}</td>
-                <td class="text-surface-500 text-sm">{{ d.especialidad ?? '—' }}</td>
+                <td>
+                    @if (d.materias?.length) {
+                        <div class="flex flex-wrap gap-1">
+                            @for (m of d.materias; track m.id) {
+                                <p-tag [value]="m.nombre" severity="secondary" styleClass="text-xs" />
+                            }
+                        </div>
+                    } @else {
+                        <span class="text-surface-500 text-sm">{{ d.especialidad ?? '—' }}</span>
+                    }
+                </td>
                 <td>
                     <p-tag [value]="d.estado"
                         [severity]="d.estado === 'ACTIVO' ? 'success' : 'danger'" />
@@ -99,8 +109,11 @@
             </div>
         </div>
         <div class="flex flex-col gap-1">
-            <label class="font-medium text-sm">Especialidad</label>
-            <input pInputText [(ngModel)]="form.especialidad" placeholder="Ej: Matemáticas, Física..." />
+            <label class="font-medium text-sm">Especialidades (materias)</label>
+            <p-multiselect [options]="materiasOptions" optionLabel="label" optionValue="value"
+                [(ngModel)]="form.idsMateria" placeholder="Seleccionar materias" appendTo="body"
+                [filter]="true" display="chip" styleClass="w-full" />
+            <p class="text-xs text-surface-400 m-0">Puede seleccionar varias materias del catálogo institucional.</p>
         </div>
 
         @if (!editMode) {

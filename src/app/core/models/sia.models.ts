@@ -246,7 +246,7 @@ export interface DocenteRequest {
     apellidos: string;
     telefono?: string;
     correo: string;
-    especialidad?: string;
+    idsMateria?: string[];
 }
 
 export interface DocenteResponse {
@@ -259,6 +259,7 @@ export interface DocenteResponse {
     telefono?: string;
     correo: string;
     especialidad?: string;
+    materias?: MateriaResponse[];
     estado: string;
 }
 
