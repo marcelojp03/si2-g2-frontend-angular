@@ -128,7 +128,7 @@ export class CalificacionService {
         );
     }
 
-    @Deprecated('Usar listarEvaluacionesPorMateria en su lugar')
+    /** @deprecated Usar listarEvaluacionesPorMateria en su lugar */
     listarEvaluaciones(idAsignacionDocente: string, periodo?: number): Observable<ApiResponse<EvaluacionResponse[]>> {
         let params = new HttpParams().set('idAsignacionDocente', idAsignacionDocente);
         if (periodo) {
