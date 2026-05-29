@@ -692,6 +692,175 @@ export interface CalificacionResumenResponse {
     estudiantes: CalificacionResumenEstudianteResponse[];
 }
 
+// ─── Calificaciones Trimestrales ───────────────────────────────────────────
+
+export interface PeriodoTrimestralResponse {
+    id: string;
+    idInstitucion: string;
+    idGestionAcademica: string;
+    numeroTrimestre: number;
+    estado: string;
+    fechaCierre?: string | null;
+    justificacionCierre?: string | null;
+    idUsuarioCierre?: string | null;
+    fechaReapertura?: string | null;
+    justificacionReapertura?: string | null;
+    idUsuarioReapertura?: string | null;
+    creadoEn: string;
+    actualizadoEn: string;
+}
+
+export interface ActividadEvaluativaRequest {
+    idGestionAcademica: string;
+    trimestre: number;
+    idCurso: string;
+    idParalelo: string;
+    idMateria: string;
+    idDocente: string;
+    nombreActividad: string;
+    tipoActividad: string;
+    dimension: string;
+    fechaActividad?: string | null;
+    descripcion?: string | null;
+    estado?: string | null;
+}
+
+export interface ActividadEvaluativaResponse {
+    id: string;
+    idPeriodoTrimestral: string;
+    idGestionAcademica: string;
+    idCurso: string;
+    idParalelo: string;
+    idMateria: string;
+    idDocente: string;
+    nombreActividad: string;
+    tipoActividad: string;
+    dimension: string;
+    puntajeMaximo: number;
+    fechaActividad: string;
+    descripcion?: string | null;
+    estado: string;
+    creadoEn: string;
+    actualizadoEn: string;
+}
+
+export interface CalificacionActividadDetalleRequest {
+    idEstudiante: string;
+    notaObtenida?: number | null;
+    observacion?: string | null;
+}
+
+export interface CalificacionActividadRegistroRequest {
+    idActividad: string;
+    detalles: CalificacionActividadDetalleRequest[];
+}
+
+export interface CalificacionActividadResponse {
+    id?: string | null;
+    idActividad: string;
+    idEstudiante: string;
+    notaObtenida?: number | null;
+    observacion?: string | null;
+    estado: string;
+    idUsuarioRegistro?: string | null;
+    idUsuarioModificacion?: string | null;
+    creadoEn?: string | null;
+    actualizadoEn?: string | null;
+}
+
+export interface CalificacionSerRequest {
+    idGestionAcademica: string;
+    trimestre: number;
+    idCurso: string;
+    idParalelo: string;
+    idMateria: string;
+    idDocente: string;
+    idEstudiante: string;
+    notaSer: number;
+    observacion?: string | null;
+}
+
+export interface CalificacionSerResponse {
+    id: string;
+    idGestionAcademica: string;
+    idTrimestre: string;
+    idCurso: string;
+    idParalelo: string;
+    idMateria: string;
+    idDocente: string;
+    idEstudiante: string;
+    notaSer: number;
+    observacion?: string | null;
+    estado: string;
+    idUsuarioRegistro?: string | null;
+    idUsuarioModificacion?: string | null;
+    creadoEn: string;
+    actualizadoEn: string;
+}
+
+export interface AutoevaluacionTrimestralRequest {
+    idGestionAcademica: string;
+    trimestre: number;
+    idMateria: string;
+    idEstudiante: string;
+    notaAutoevaluacion: number;
+    comentario?: string | null;
+}
+
+export interface AutoevaluacionTrimestralResponse {
+    id: string;
+    idGestionAcademica: string;
+    idTrimestre: string;
+    idMateria: string;
+    idEstudiante: string;
+    notaAutoevaluacion: number;
+    comentario?: string | null;
+    estado: string;
+    idUsuarioRegistro?: string | null;
+    idUsuarioModificacion?: string | null;
+    creadoEn: string;
+    actualizadoEn: string;
+}
+
+export interface ConsolidadoTrimestralEstudianteResponse {
+    idEstudiante: string;
+    codigoEstudiante: string;
+    nombreCompleto: string;
+    ser: number;
+    promedioSaber: number;
+    promedioHacer: number;
+    autoevaluacion: number;
+    totalParcial: number;
+    totalFinal: number;
+    estado: string;
+    observacion?: string | null;
+}
+
+export interface ConsolidadoTrimestralMateriaResponse {
+    idMateria: string;
+    codigoMateria: string;
+    nombreMateria: string;
+    idDocente: string;
+    nombreDocente: string;
+    actividadesSaber: number;
+    actividadesHacer: number;
+    estudiantesPendientesAutoevaluacion: number;
+    promedioGeneral: number;
+    estado: string;
+    estudiantes: ConsolidadoTrimestralEstudianteResponse[];
+}
+
+export interface ConsolidadoTrimestralDirectorResponse {
+    totalMaterias: number;
+    materiasCompletas: number;
+    materiasConPendientes: number;
+    estudiantesSinAutoevaluacion: number;
+    docentesConSerPendiente: number;
+    estudiantesEnRiesgo: number;
+    promedioGeneral: number;
+    materias: ConsolidadoTrimestralMateriaResponse[];
+}
+
 // ─── Horarios ────────────────────────────────────────────────────────────────
 export interface HorarioClaseRequest {
     idInstitucion: string;

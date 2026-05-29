@@ -5,11 +5,23 @@ import { environment } from '../../../environments/environment';
 import { ApiResponse } from '../models/api-response.model';
 import {
     CalificacionAsignacionResponse,
+    ActividadEvaluativaRequest,
+    ActividadEvaluativaResponse,
+    AutoevaluacionTrimestralRequest,
+    AutoevaluacionTrimestralResponse,
+    CalificacionActividadRegistroRequest,
+    CalificacionActividadResponse,
+    CalificacionSerRequest,
+    CalificacionSerResponse,
     CalificacionPlantillaResponse,
     CalificacionRegistroRequest,
     CalificacionResumenResponse,
+    ConsolidadoTrimestralDirectorResponse,
+    ConsolidadoTrimestralEstudianteResponse,
+    ConsolidadoTrimestralMateriaResponse,
     EvaluacionRequest,
     EvaluacionResponse,
+    BitacoraAuditoriaResponse,
 } from '../models/sia.models';
 
 /**
@@ -34,7 +46,7 @@ import {
  * 
  * MÉTODOS:
  * - listarMisAsignaciones: GET asignaciones disponibles
- * - listarEvaluaciones: GET evaluaciones de asignación+periodo
+ * - listarEvaluacionesPorMateria: GET evaluaciones de materia+periodo
  * - crearEvaluacion: POST nueva evaluación
  * - actualizarEvaluacion: PUT evaluación existente
  * - obtenerPlantilla: GET plantilla de calificaciones
@@ -47,7 +59,8 @@ export class CalificacionService {
     private base = environment.api.baseUrl;
 
     /**
-     * Obtiene las asignaciones docentes donde se pueden registrar calificaciones.
+    * Obtiene las asignaciones docentes donde se pueden registrar calificaciones.
+    * El componente usa esta lista para escoger la materia activa.
      * 
      * ENDPOINT: GET /api/calificaciones/mis-asignaciones
      * 
@@ -128,7 +141,8 @@ export class CalificacionService {
         );
     }
 
-    @Deprecated('Usar listarEvaluacionesPorMateria en su lugar')
+    // Compatibilidad con una firma antigua. El módulo nuevo usa materia como
+    // eje principal, por eso este método debe considerarse transitorio.
     listarEvaluaciones(idAsignacionDocente: string, periodo?: number): Observable<ApiResponse<EvaluacionResponse[]>> {
         let params = new HttpParams().set('idAsignacionDocente', idAsignacionDocente);
         if (periodo) {
@@ -141,13 +155,13 @@ export class CalificacionService {
     }
 
     /**
-     * Crea una nueva evaluación en una asignación.
+    * Crea una nueva evaluación en una materia.
      * 
      * ENDPOINT: POST /api/calificaciones/evaluaciones
      * 
      * BODY ESPERADO:
      * {
-     *   idAsignacionDocente: UUID,
+    *   idMateria: UUID,
      *   periodo: 1-6,
      *   tipo: "PARCIAL|EXAMEN|TRABAJO_PRACTICO|PROYECTO|PARTICIPACION",
      *   nombre: "Parcial 1",
@@ -327,5 +341,102 @@ export class CalificacionService {
             `${this.base}/calificaciones/resumen`,
             { params }
         );
+    }
+
+    listarActividadesTrimestrales(idGestionAcademica: string, trimestre: number, filtros?: {
+        idCurso?: string;
+        idParalelo?: string;
+        idMateria?: string;
+    }): Observable<ApiResponse<ActividadEvaluativaResponse[]>> {
+        let params = new HttpParams()
+            .set('idGestionAcademica', idGestionAcademica)
+            .set('trimestre', trimestre);
+        if (filtros?.idCurso) params = params.set('idCurso', filtros.idCurso);
+        if (filtros?.idParalelo) params = params.set('idParalelo', filtros.idParalelo);
+        if (filtros?.idMateria) params = params.set('idMateria', filtros.idMateria);
+        return this.http.get<ApiResponse<ActividadEvaluativaResponse[]>>(`${this.base}/calificaciones/trimestres/actividades`, { params });
+    }
+
+    crearActividadTrimestral(body: ActividadEvaluativaRequest): Observable<ApiResponse<ActividadEvaluativaResponse>> {
+        return this.http.post<ApiResponse<ActividadEvaluativaResponse>>(`${this.base}/calificaciones/trimestres/actividades`, body);
+    }
+
+    actualizarActividadTrimestral(id: string, body: ActividadEvaluativaRequest): Observable<ApiResponse<ActividadEvaluativaResponse>> {
+        return this.http.put<ApiResponse<ActividadEvaluativaResponse>>(`${this.base}/calificaciones/trimestres/actividades/${id}`, body);
+    }
+
+    cambiarEstadoActividadTrimestral(id: string, estado: string): Observable<ApiResponse<ActividadEvaluativaResponse>> {
+        const params = new HttpParams().set('estado', estado);
+        return this.http.patch<ApiResponse<ActividadEvaluativaResponse>>(`${this.base}/calificaciones/trimestres/actividades/${id}/estado`, null, { params });
+    }
+
+    listarCalificacionesActividadTrimestral(idActividad: string): Observable<ApiResponse<CalificacionActividadResponse[]>> {
+        return this.http.get<ApiResponse<CalificacionActividadResponse[]>>(`${this.base}/calificaciones/trimestres/actividades/${idActividad}/calificaciones`);
+    }
+
+    guardarCalificacionesActividadTrimestral(body: CalificacionActividadRegistroRequest): Observable<ApiResponse<CalificacionActividadResponse[]>> {
+        return this.http.post<ApiResponse<CalificacionActividadResponse[]>>(`${this.base}/calificaciones/trimestres/calificaciones-actividad`, body);
+    }
+
+    listarSerTrimestral(idGestionAcademica: string, trimestre: number, idMateria: string): Observable<ApiResponse<CalificacionSerResponse[]>> {
+        const params = new HttpParams()
+            .set('idGestionAcademica', idGestionAcademica)
+            .set('trimestre', trimestre)
+            .set('idMateria', idMateria);
+        return this.http.get<ApiResponse<CalificacionSerResponse[]>>(`${this.base}/calificaciones/trimestres/ser`, { params });
+    }
+
+    guardarSerTrimestral(body: CalificacionSerRequest): Observable<ApiResponse<CalificacionSerResponse>> {
+        return this.http.post<ApiResponse<CalificacionSerResponse>>(`${this.base}/calificaciones/trimestres/ser`, body);
+    }
+
+    listarAutoevaluacionTrimestral(idGestionAcademica: string, trimestre: number, idMateria: string): Observable<ApiResponse<AutoevaluacionTrimestralResponse[]>> {
+        const params = new HttpParams()
+            .set('idGestionAcademica', idGestionAcademica)
+            .set('trimestre', trimestre)
+            .set('idMateria', idMateria);
+        return this.http.get<ApiResponse<AutoevaluacionTrimestralResponse[]>>(`${this.base}/calificaciones/trimestres/autoevaluacion`, { params });
+    }
+
+    guardarAutoevaluacionTrimestral(body: AutoevaluacionTrimestralRequest): Observable<ApiResponse<AutoevaluacionTrimestralResponse>> {
+        return this.http.post<ApiResponse<AutoevaluacionTrimestralResponse>>(`${this.base}/calificaciones/trimestres/autoevaluacion`, body);
+    }
+
+    consolidadoEstudianteTrimestral(idGestionAcademica: string, trimestre: number, idEstudiante: string): Observable<ApiResponse<ConsolidadoTrimestralEstudianteResponse[]>> {
+        const params = new HttpParams()
+            .set('idGestionAcademica', idGestionAcademica)
+            .set('trimestre', trimestre)
+            .set('idEstudiante', idEstudiante);
+        return this.http.get<ApiResponse<ConsolidadoTrimestralEstudianteResponse[]>>(`${this.base}/calificaciones/trimestres/consolidado/estudiante`, { params });
+    }
+
+    consolidadoDocenteTrimestral(idGestionAcademica: string, trimestre: number): Observable<ApiResponse<ConsolidadoTrimestralMateriaResponse[]>> {
+        const params = new HttpParams()
+            .set('idGestionAcademica', idGestionAcademica)
+            .set('trimestre', trimestre);
+        return this.http.get<ApiResponse<ConsolidadoTrimestralMateriaResponse[]>>(`${this.base}/calificaciones/trimestres/consolidado/docente`, { params });
+    }
+
+    consolidadoDirectorTrimestral(idGestionAcademica: string, trimestre: number): Observable<ApiResponse<ConsolidadoTrimestralDirectorResponse>> {
+        const params = new HttpParams()
+            .set('idGestionAcademica', idGestionAcademica)
+            .set('trimestre', trimestre);
+        return this.http.get<ApiResponse<ConsolidadoTrimestralDirectorResponse>>(`${this.base}/calificaciones/trimestres/consolidado/director`, { params });
+    }
+
+    cerrarTrimestre(body: { idGestionAcademica: string; trimestre: number; justificacion?: string | null }): Observable<ApiResponse<any>> {
+        return this.http.post<ApiResponse<any>>(`${this.base}/calificaciones/trimestres/cerrar`, body);
+    }
+
+    reabrirTrimestre(body: { idGestionAcademica: string; trimestre: number; justificacion?: string | null }): Observable<ApiResponse<any>> {
+        return this.http.post<ApiResponse<any>>(`${this.base}/calificaciones/trimestres/reabrir`, body);
+    }
+
+    listarBitacoraTrimestral(filtros?: { modulo?: string; tipoOperacion?: string; exito?: boolean }): Observable<ApiResponse<BitacoraAuditoriaResponse[]>> {
+        let params = new HttpParams();
+        if (filtros?.modulo) params = params.set('modulo', filtros.modulo);
+        if (filtros?.tipoOperacion) params = params.set('tipoOperacion', filtros.tipoOperacion);
+        if (filtros?.exito !== undefined) params = params.set('exito', filtros.exito);
+        return this.http.get<ApiResponse<BitacoraAuditoriaResponse[]>>(`${this.base}/calificaciones/trimestres/bitacora`, { params });
     }
 }
