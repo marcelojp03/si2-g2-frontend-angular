@@ -3,7 +3,7 @@ import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { environment } from '../../../../../environments/environment';
 import { ApiResponse } from '@/core/models/api-response.model';
-import { DocenteRequest, DocenteResponse } from '@/core/models/sia.models';
+import { DocenteRequest, DocenteResponse, MateriaResponse } from '@/core/models/sia.models';
 
 @Injectable({ providedIn: 'root' })
 export class DocentesService {
@@ -21,5 +21,8 @@ export class DocentesService {
     }
     eliminarDocente(id: string): Observable<ApiResponse<void>> {
         return this.http.delete<ApiResponse<void>>(`${this.base}/docentes/${id}`);
+    }
+    listarMaterias(): Observable<ApiResponse<MateriaResponse[]>> {
+        return this.http.get<ApiResponse<MateriaResponse[]>>(`${this.base}/materias`);
     }
 }

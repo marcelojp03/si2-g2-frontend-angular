@@ -4,6 +4,7 @@ import { Observable } from 'rxjs';
 import { environment } from '../../../../../environments/environment';
 import { ApiResponse } from '@/core/models/api-response.model';
 import {
+    BitacoraAuditoriaResponse,
     CalificacionAsignacionResponse,
     ActividadEvaluativaRequest,
     ActividadEvaluativaResponse,
