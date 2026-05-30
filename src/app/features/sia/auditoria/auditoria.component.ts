@@ -8,13 +8,14 @@ import { SelectModule } from 'primeng/select';
 import { TagModule } from 'primeng/tag';
 import { ToastModule } from 'primeng/toast';
 import { MessageService } from 'primeng/api';
-import { AuditoriaService } from '@/core/services/auditoria.service';
+import { TooltipModule } from 'primeng/tooltip';
+import { AuditoriaService } from '@/features/sia/auditoria/services/auditoria.service';
 import { BitacoraAuditoriaResponse } from '@/core/models/sia.models';
 
 @Component({
     selector: 'app-auditoria',
     standalone: true,
-    imports: [CommonModule, FormsModule, TableModule, ButtonModule, InputTextModule, SelectModule, TagModule, ToastModule],
+    imports: [CommonModule, FormsModule, TableModule, ButtonModule, InputTextModule, SelectModule, TagModule, ToastModule, TooltipModule],
     providers: [MessageService],
     templateUrl: './auditoria.component.html'
 })
@@ -27,14 +28,34 @@ export class AuditoriaComponent implements OnInit {
     modulo = '';
     tipoOperacion = '';
     exito: boolean | null = null;
+    idUsuario = '';
+    fechaDesde = '';
+    fechaHasta = '';
 
     ngOnInit(): void {
         this.load();
     }
 
+    limpiar(): void {
+        this.modulo = '';
+        this.tipoOperacion = '';
+        this.exito = null;
+        this.idUsuario = '';
+        this.fechaDesde = '';
+        this.fechaHasta = '';
+        this.load();
+    }
+
     load(): void {
         this.loading = true;
-        this.auditoriaService.listar({ modulo: this.modulo || undefined, tipoOperacion: this.tipoOperacion || undefined, exito: this.exito }).subscribe({
+        this.auditoriaService.listar({
+            modulo: this.modulo || undefined,
+            tipoOperacion: this.tipoOperacion || undefined,
+            exito: this.exito,
+            idUsuario: this.idUsuario || undefined,
+            fechaDesde: this.fechaDesde || undefined,
+            fechaHasta: this.fechaHasta || undefined,
+        }).subscribe({
             next: response => {
                 this.loading = false;
                 if (response.codigo === 200) this.registros.set(response.data ?? []);

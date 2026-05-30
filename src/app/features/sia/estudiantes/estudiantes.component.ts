@@ -13,7 +13,7 @@ import { DialogModule } from 'primeng/dialog';
 import { TooltipModule } from 'primeng/tooltip';
 import { ConfirmDialogModule } from 'primeng/confirmdialog';
 import { SelectModule } from 'primeng/select';
-import { SiaService } from '@/core/services/sia.service';
+import { EstudiantesService } from '@/features/sia/estudiantes/services/estudiantes.service';
 import { StorageService } from '@/core/services/storage.service';
 import { FileUploadComponent } from '@/shared/components/file-upload/file-upload.component';
 import { EstudianteResponse, EstudianteRequest } from '@/core/models/sia.models';
@@ -28,7 +28,7 @@ import { EstudianteResponse, EstudianteRequest } from '@/core/models/sia.models'
     templateUrl: './estudiantes.component.html'
 })
 export class EstudiantesComponent implements OnInit {
-    private service = inject(SiaService);
+    private service = inject(EstudiantesService);
     private storageService = inject(StorageService);
     private messageService = inject(MessageService);
     private confirmationService = inject(ConfirmationService);

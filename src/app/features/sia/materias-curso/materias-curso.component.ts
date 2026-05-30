@@ -12,7 +12,9 @@ import { ConfirmDialogModule } from 'primeng/confirmdialog';
 import { SelectModule } from 'primeng/select';
 import { DividerModule } from 'primeng/divider';
 import { forkJoin } from 'rxjs';
-import { SiaService } from '@/core/services/sia.service';
+import { MateriasCursoService } from '@/features/sia/materias-curso/services/materias-curso.service';
+import { CursosService } from '@/features/sia/cursos/services/cursos.service';
+import { MateriasService } from '@/features/sia/materias/services/materias.service';
 import { CursoResponse, MateriaResponse, CursoMateriaResponse } from '@/core/models/sia.models';
 
 @Component({
@@ -24,7 +26,9 @@ import { CursoResponse, MateriaResponse, CursoMateriaResponse } from '@/core/mod
     templateUrl: './materias-curso.component.html'
 })
 export class MateriasCursoComponent implements OnInit {
-    private service = inject(SiaService);
+    private service = inject(MateriasCursoService);
+    private cursosService = inject(CursosService);
+    private materiasService = inject(MateriasService);
     private messageService = inject(MessageService);
     private confirmationService = inject(ConfirmationService);
 
@@ -40,8 +44,8 @@ export class MateriasCursoComponent implements OnInit {
 
     ngOnInit(): void {
         forkJoin({
-            cursos: this.service.listarCursos(),
-            materias: this.service.listarMaterias()
+            cursos: this.cursosService.listarCursos(),
+            materias: this.materiasService.listarMaterias()
         }).subscribe({
             next: ({ cursos, materias }) => {
                 if (cursos.codigo === 200) this.cursos.set(cursos.data ?? []);

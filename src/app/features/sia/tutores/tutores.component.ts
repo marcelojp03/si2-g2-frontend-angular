@@ -15,7 +15,8 @@ import { TooltipModule } from 'primeng/tooltip';
 import { ConfirmDialogModule } from 'primeng/confirmdialog';
 import { CheckboxModule } from 'primeng/checkbox';
 import { SelectModule } from 'primeng/select';
-import { SiaService } from '@/core/services/sia.service';
+import { TutoresService } from '@/features/sia/tutores/services/tutores.service';
+import { EstudiantesService } from '@/features/sia/estudiantes/services/estudiantes.service';
 import { StorageService } from '@/core/services/storage.service';
 import { FileUploadComponent } from '@/shared/components/file-upload/file-upload.component';
 import {
@@ -34,7 +35,8 @@ import {
     templateUrl: './tutores.component.html'
 })
 export class TutoresComponent implements OnInit {
-    private service = inject(SiaService);
+    private service = inject(TutoresService);
+    private estudiantesService = inject(EstudiantesService);
     private storageService = inject(StorageService);
     private messageService = inject(MessageService);
     private confirmationService = inject(ConfirmationService);
@@ -68,7 +70,7 @@ export class TutoresComponent implements OnInit {
         this.loading = true;
         forkJoin({
             tutores: this.service.listarTutores(),
-            estudiantes: this.service.listarEstudiantes()
+            estudiantes: this.estudiantesService.listarEstudiantes()
         }).subscribe({
             next: ({ tutores, estudiantes }) => {
                 this.loading = false;

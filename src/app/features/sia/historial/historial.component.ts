@@ -8,7 +8,8 @@ import { SelectModule } from 'primeng/select';
 import { TableModule } from 'primeng/table';
 import { TagModule } from 'primeng/tag';
 import { ToastModule } from 'primeng/toast';
-import { SiaService } from '@/core/services/sia.service';
+import { EstudiantesService } from '@/features/sia/estudiantes/services/estudiantes.service';
+import { GestionesService } from '@/features/sia/gestiones/services/gestiones.service';
 import {
     EstudianteResponse,
     GestionAcademicaResponse,
@@ -38,7 +39,8 @@ type PrimeTagSeverity = 'success' | 'info' | 'warn' | 'danger' | 'secondary' | '
     templateUrl: './historial.component.html',
 })
 export class HistorialComponent implements OnInit {
-    private siaService = inject(SiaService);
+    private estudiantesService = inject(EstudiantesService);
+    private gestionesService = inject(GestionesService);
     private historialService = inject(HistorialService);
     private messageService = inject(MessageService);
 
@@ -58,13 +60,13 @@ export class HistorialComponent implements OnInit {
 
     cargarFiltros(): void {
         this.cargandoFiltros = true;
-        this.siaService.listarEstudiantes().subscribe({
+        this.estudiantesService.listarEstudiantes().subscribe({
             next: (res) => {
                 if (res.codigo === 200) this.estudiantes.set(res.data ?? []);
             },
             complete: () => { this.cargandoFiltros = false; },
         });
-        this.siaService.listarGestiones().subscribe({
+        this.gestionesService.listarGestiones().subscribe({
             next: (res) => {
                 if (res.codigo === 200) this.gestiones.set(res.data ?? []);
             },

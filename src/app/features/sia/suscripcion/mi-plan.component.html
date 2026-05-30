@@ -1,0 +1,94 @@
+<p-toast />
+
+<div class="card">
+    <h2 class="text-xl font-semibold text-surface-900 dark:text-surface-0 mb-1">Mi Plan</h2>
+    <p class="text-surface-500 text-sm mb-6">Plan de suscripción activo de la institución</p>
+
+    @if (loading) {
+        <div class="flex justify-center py-12">
+            <i class="pi pi-spin pi-spinner text-4xl text-primary"></i>
+        </div>
+    } @else if (suscripcion()) {
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <!-- Info del plan -->
+            <div class="surface-card border border-surface-200 dark:border-surface-700 rounded-xl p-6">
+                <div class="flex justify-between items-start mb-4">
+                    <div>
+                        <h3 class="text-lg font-bold text-surface-900 dark:text-surface-0">{{ suscripcion()!.plan.nombre }}</h3>
+                        <span class="font-mono text-sm text-primary">{{ suscripcion()!.plan.codigo }}</span>
+                    </div>
+                    <p-tag [severity]="severidadEstado(suscripcion()!.estado)" [value]="suscripcion()!.estado" />
+                </div>
+                @if (suscripcion()!.plan.descripcion) {
+                    <p class="text-surface-600 text-sm mb-4">{{ suscripcion()!.plan.descripcion }}</p>
+                }
+                <div class="grid grid-cols-2 gap-3 text-sm">
+                    <div class="flex flex-col">
+                        <span class="text-surface-500 text-xs uppercase font-medium">Máx. usuarios</span>
+                        <span class="font-semibold text-surface-900 dark:text-surface-0 text-base">{{ suscripcion()!.plan.maxUsuarios }}</span>
+                    </div>
+                    <div class="flex flex-col">
+                        <span class="text-surface-500 text-xs uppercase font-medium">Almacenamiento</span>
+                        <span class="font-semibold text-surface-900 dark:text-surface-0 text-base">{{ formatMb(suscripcion()!.plan.maxAlmacenamientoMb) }}</span>
+                    </div>
+                    <div class="flex flex-col">
+                        <span class="text-surface-500 text-xs uppercase font-medium">Precio mensual</span>
+                        <span class="font-semibold text-surface-900 dark:text-surface-0 text-base">Bs. {{ suscripcion()!.plan.precioMensual | number:'1.2-2' }}</span>
+                    </div>
+                    <div class="flex flex-col">
+                        <span class="text-surface-500 text-xs uppercase font-medium">Simulada</span>
+                        <span class="font-semibold text-surface-900 dark:text-surface-0 text-base">{{ suscripcion()!.simulada ? 'Sí' : 'No' }}</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Info de vigencia -->
+            <div class="surface-card border border-surface-200 dark:border-surface-700 rounded-xl p-6">
+                <h4 class="font-semibold text-surface-700 dark:text-surface-200 mb-4">Vigencia</h4>
+                <div class="flex flex-col gap-3 text-sm">
+                    <div class="flex justify-between">
+                        <span class="text-surface-500">Fecha de inicio</span>
+                        <span class="font-medium">{{ suscripcion()!.fechaInicio | date:'dd/MM/yyyy' }}</span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span class="text-surface-500">Fecha de vencimiento</span>
+                        <span class="font-medium">{{ suscripcion()!.fechaFin ? (suscripcion()!.fechaFin | date:'dd/MM/yyyy') : 'Sin vencimiento' }}</span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span class="text-surface-500">Suscripción desde</span>
+                        <span class="font-medium">{{ suscripcion()!.creadoEn | date:'dd/MM/yyyy HH:mm' }}</span>
+                    </div>
+                    @if (suscripcion()!.observacion) {
+                        <div class="pt-2 border-t border-surface-200 dark:border-surface-700">
+                            <span class="text-surface-500 block mb-1">Observación</span>
+                            <span class="text-surface-700 dark:text-surface-300">{{ suscripcion()!.observacion }}</span>
+                        </div>
+                    }
+                </div>
+            </div>
+
+            <!-- Módulos incluidos -->
+            @if (suscripcion()!.plan.modulos.length > 0) {
+                <div class="md:col-span-2 surface-card border border-surface-200 dark:border-surface-700 rounded-xl p-6">
+                    <h4 class="font-semibold text-surface-700 dark:text-surface-200 mb-4">Módulos incluidos</h4>
+                    <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
+                        @for (modulo of suscripcion()!.plan.modulos; track modulo.id) {
+                            <div class="flex items-center gap-2 surface-50 dark:surface-800 rounded-lg px-3 py-2 border border-surface-200 dark:border-surface-700">
+                                @if (modulo.icono) {
+                                    <i [class]="modulo.icono + ' text-primary'"></i>
+                                }
+                                <span class="text-sm font-medium text-surface-700 dark:text-surface-300">{{ modulo.nombre }}</span>
+                            </div>
+                        }
+                    </div>
+                </div>
+            }
+        </div>
+    } @else {
+        <div class="flex flex-col items-center justify-center py-16 text-surface-400">
+            <i class="pi pi-box text-5xl mb-4"></i>
+            <p class="text-lg">Esta institución no tiene un plan activo</p>
+            <p class="text-sm">Contacte al administrador del sistema para asignar un plan</p>
+        </div>
+    }
+</div>

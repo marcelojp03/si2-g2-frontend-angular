@@ -34,6 +34,23 @@ export class MenuService {
                     { label: 'Auditoría', icon: 'pi pi-fw pi-history', routerLink: ['/admin/auditoria'] },
                 ],
             },
+            { separator: true },
+            {
+                label: 'SaaS',
+                items: [
+                    { label: 'Planes de Suscripción', icon: 'pi pi-fw pi-box', routerLink: ['/admin/saas/planes'] },
+                    { label: 'Suscripciones', icon: 'pi pi-fw pi-credit-card', routerLink: ['/admin/saas/suscripciones'] },
+                    { label: 'Solicitudes', icon: 'pi pi-fw pi-inbox', routerLink: ['/admin/saas/solicitudes'] },
+                ],
+            },
+            { separator: true },
+            {
+                label: 'Herramientas',
+                items: [
+                    { label: 'Respaldos', icon: 'pi pi-fw pi-database', routerLink: ['/backups'] },
+                    { label: 'Reportes', icon: 'pi pi-fw pi-chart-bar', routerLink: ['/reportes'] },
+                ],
+            },
         ];
     }
 
@@ -57,6 +74,10 @@ export class MenuService {
         const canOperacionAdministrativa = canOperacion && !isDocente;
 
         const canMiArea = has('MI_AREA_READ') || isDocente;
+
+        const canBackups = isAdminInstitucion;
+        const canReportes = has('REPORTES_READ') || isAdminInstitucion || isDirector || hasRole('SECRETARIO');
+        const canAlertas = isAdminInstitucion || isDirector || hasRole('SECRETARIO');
 
         const canAsistencia =
             has('ASISTENCIA_READ') ||
@@ -102,6 +123,11 @@ export class MenuService {
 
             if (canAuditoria) {
                 items.push({ label: 'Auditoría', icon: 'pi pi-fw pi-history', routerLink: ['/auditoria'] });
+            }
+
+            if (isAdminInstitucion || isDirector) {
+                items.push({ label: 'Mi Plan', icon: 'pi pi-fw pi-credit-card', routerLink: ['/suscripcion'] });
+                items.push({ label: 'Seguridad', icon: 'pi pi-fw pi-lock', routerLink: ['/seguridad'] });
             }
 
             menu.push({
@@ -203,6 +229,26 @@ export class MenuService {
                 label: 'Mi área',
                 items: miAreaItems,
             });
+        }
+
+        if (canBackups || canReportes || canAlertas) {
+            menu.push({ separator: true });
+
+            const herramientasItems: MenuItem[] = [];
+
+            if (canReportes) {
+                herramientasItems.push({ label: 'Reportes', icon: 'pi pi-fw pi-chart-bar', routerLink: ['/reportes'] });
+            }
+
+            if (canAlertas) {
+                herramientasItems.push({ label: 'Alertas de Riesgo', icon: 'pi pi-fw pi-exclamation-triangle', routerLink: ['/alertas'] });
+            }
+
+            if (canBackups) {
+                herramientasItems.push({ label: 'Respaldos', icon: 'pi pi-fw pi-database', routerLink: ['/backups'] });
+            }
+
+            menu.push({ label: 'Herramientas', items: herramientasItems });
         }
 
         return menu;

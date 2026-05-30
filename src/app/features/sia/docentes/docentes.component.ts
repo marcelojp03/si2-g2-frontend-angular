@@ -14,7 +14,7 @@ import { DialogModule } from 'primeng/dialog';
 import { TooltipModule } from 'primeng/tooltip';
 import { ConfirmDialogModule } from 'primeng/confirmdialog';
 import { MultiSelectModule } from 'primeng/multiselect';
-import { SiaService } from '@/core/services/sia.service';
+import { DocentesService } from '@/features/sia/docentes/services/docentes.service';
 import { StorageService } from '@/core/services/storage.service';
 import { FileUploadComponent } from '@/shared/components/file-upload/file-upload.component';
 import { DocenteResponse, DocenteRequest, MateriaResponse } from '@/core/models/sia.models';
@@ -29,7 +29,7 @@ import { DocenteResponse, DocenteRequest, MateriaResponse } from '@/core/models/
     templateUrl: './docentes.component.html'
 })
 export class DocentesComponent implements OnInit {
-    private service = inject(SiaService);
+    private service = inject(DocentesService);
     private storageService = inject(StorageService);
     private messageService = inject(MessageService);
     private confirmationService = inject(ConfirmationService);

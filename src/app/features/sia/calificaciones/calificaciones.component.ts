@@ -12,7 +12,7 @@ import { TagModule } from 'primeng/tag';
 import { TextareaModule } from 'primeng/textarea';
 import { ToastModule } from 'primeng/toast';
 import { AuthService } from '@/core/services/auth.service';
-import { CalificacionService } from '@/core/services/calificacion.service';
+import { CalificacionService } from '@/features/sia/calificaciones/services/calificacion.service';
 import { SiaService } from '@/core/services/sia.service';
 import {
     ActividadEvaluativaRequest,

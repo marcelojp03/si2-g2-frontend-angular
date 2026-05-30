@@ -14,7 +14,11 @@ import { DialogModule } from 'primeng/dialog';
 import { TooltipModule } from 'primeng/tooltip';
 import { ConfirmDialogModule } from 'primeng/confirmdialog';
 import { SelectModule } from 'primeng/select';
-import { SiaService } from '@/core/services/sia.service';
+import { AsignacionesService } from '@/features/sia/asignaciones/services/asignaciones.service';
+import { DocentesService } from '@/features/sia/docentes/services/docentes.service';
+import { MateriasService } from '@/features/sia/materias/services/materias.service';
+import { ParalelosService } from '@/features/sia/paralelos/services/paralelos.service';
+import { GestionesService } from '@/features/sia/gestiones/services/gestiones.service';
 import {
     AsignacionDocenteRequest, AsignacionDocenteResponse,
     DocenteResponse, MateriaResponse, ParaleloResponse, GestionAcademicaResponse
@@ -30,7 +34,11 @@ import {
     templateUrl: './asignaciones.component.html'
 })
 export class AsignacionesComponent implements OnInit {
-    private service = inject(SiaService);
+    private service = inject(AsignacionesService);
+    private docentesService = inject(DocentesService);
+    private materiasService = inject(MateriasService);
+    private paralelosService = inject(ParalelosService);
+    private gestionesService = inject(GestionesService);
     private messageService = inject(MessageService);
     private confirmationService = inject(ConfirmationService);
 
@@ -53,10 +61,10 @@ export class AsignacionesComponent implements OnInit {
         this.loading = true;
         forkJoin({
             asignaciones: this.service.listarAsignaciones(),
-            docentes: this.service.listarDocentes(),
-            materias: this.service.listarMaterias(),
-            paralelos: this.service.listarParalelos(),
-            gestiones: this.service.listarGestiones()
+            docentes: this.docentesService.listarDocentes(),
+            materias: this.materiasService.listarMaterias(),
+            paralelos: this.paralelosService.listarParalelos(),
+            gestiones: this.gestionesService.listarGestiones()
         }).subscribe({
             next: ({ asignaciones, docentes, materias, paralelos, gestiones }) => {
                 this.loading = false;

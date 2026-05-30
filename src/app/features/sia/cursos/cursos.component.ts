@@ -13,7 +13,7 @@ import { DialogModule } from 'primeng/dialog';
 import { TooltipModule } from 'primeng/tooltip';
 import { ConfirmDialogModule } from 'primeng/confirmdialog';
 import { SelectModule } from 'primeng/select';
-import { SiaService } from '@/core/services/sia.service';
+import { CursosService } from '@/features/sia/cursos/services/cursos.service';
 import { CursoResponse, CursoRequest } from '@/core/models/sia.models';
 
 @Component({
@@ -26,7 +26,7 @@ import { CursoResponse, CursoRequest } from '@/core/models/sia.models';
     templateUrl: './cursos.component.html'
 })
 export class CursosComponent implements OnInit {
-    private service = inject(SiaService);
+    private service = inject(CursosService);
     private messageService = inject(MessageService);
     private confirmationService = inject(ConfirmationService);
 

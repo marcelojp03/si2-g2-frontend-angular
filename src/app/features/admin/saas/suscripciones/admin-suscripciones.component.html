@@ -1,0 +1,119 @@
+<p-toast />
+<p-confirmDialog />
+
+<div class="card">
+    <div class="flex justify-between items-center mb-4">
+        <div>
+            <h2 class="text-xl font-semibold text-surface-900 dark:text-surface-0">Suscripciones de Instituciones</h2>
+            <p class="text-surface-500 text-sm mt-1">Gestión de planes activos por institución</p>
+        </div>
+        <p-button icon="pi pi-refresh" [text]="true" pTooltip="Recargar" (onClick)="load()" />
+    </div>
+
+    <p-table
+        [value]="rows()"
+        [loading]="loading"
+        [paginator]="true"
+        [rows]="15"
+        dataKey="institucion.id"
+        styleClass="p-datatable-sm"
+    >
+        <ng-template pTemplate="header">
+            <tr>
+                <th pSortableColumn="institucion.nombre">Institución <p-sortIcon field="institucion.nombre" /></th>
+                <th>Plan activo</th>
+                <th>Módulos</th>
+                <th>Inicio</th>
+                <th>Vencimiento</th>
+                <th>Estado</th>
+                <th style="width:120px">Acciones</th>
+            </tr>
+        </ng-template>
+
+        <ng-template pTemplate="body" let-row>
+            <tr>
+                <td>
+                    <div class="font-medium">{{ row.institucion.nombre }}</div>
+                    <div class="text-xs text-surface-500">{{ row.institucion.correo }}</div>
+                </td>
+                <td>
+                    @if (row.suscripcion) {
+                        <span class="font-semibold">{{ row.suscripcion.plan.nombre }}</span>
+                    } @else {
+                        <span class="text-surface-400 italic">Sin plan</span>
+                    }
+                </td>
+                <td>
+                    @if (row.suscripcion) {
+                        <span class="text-sm">{{ row.suscripcion.plan.modulos.length }}</span>
+                    } @else { <span>—</span> }
+                </td>
+                <td>{{ row.suscripcion ? (row.suscripcion.fechaInicio | date:'dd/MM/yyyy') : '—' }}</td>
+                <td>{{ row.suscripcion?.fechaFin ? (row.suscripcion.fechaFin | date:'dd/MM/yyyy') : '—' }}</td>
+                <td>
+                    @if (row.suscripcion) {
+                        <p-tag [severity]="severidadEstado(row.suscripcion.estado)" [value]="row.suscripcion.estado" />
+                    } @else {
+                        <p-tag severity="secondary" value="SIN PLAN" />
+                    }
+                </td>
+                <td>
+                    <div class="flex gap-1">
+                        <p-button icon="pi pi-plus" [rounded]="true" [text]="true" severity="success" pTooltip="Asignar plan" (onClick)="abrirDialog(row)" />
+                        @if (row.suscripcion?.estado === 'ACTIVA') {
+                            <p-button icon="pi pi-times" [rounded]="true" [text]="true" severity="danger" pTooltip="Cancelar suscripción" (onClick)="confirmarCancelar(row)" />
+                        }
+                    </div>
+                </td>
+            </tr>
+        </ng-template>
+
+        <ng-template pTemplate="emptymessage">
+            <tr><td colspan="7" class="text-center py-8 text-surface-500">No hay instituciones registradas</td></tr>
+        </ng-template>
+    </p-table>
+</div>
+
+<!-- Dialog asignar plan -->
+<p-dialog
+    [(visible)]="dialogVisible"
+    [header]="'Asignar Plan — ' + (selectedInstitucion?.nombre ?? '')"
+    [modal]="true"
+    [style]="{ width: '480px' }"
+    [draggable]="false"
+>
+    <div class="flex flex-col gap-4 pt-2">
+        <div class="flex flex-col gap-1">
+            <label class="text-sm font-medium">Plan *</label>
+            <p-select
+                [(ngModel)]="form.idPlan"
+                [options]="planes()"
+                optionLabel="nombre"
+                optionValue="id"
+                placeholder="Seleccione un plan"
+                class="w-full"
+            />
+        </div>
+
+        <div class="grid grid-cols-2 gap-4">
+            <div class="flex flex-col gap-1">
+                <label class="text-sm font-medium">Fecha inicio *</label>
+                <p-datepicker [(ngModel)]="fechaInicioDate" dateFormat="dd/mm/yy" class="w-full" />
+            </div>
+            <div class="flex flex-col gap-1">
+                <label class="text-sm font-medium">Fecha fin (opcional)</label>
+                <p-datepicker [(ngModel)]="fechaFinDate" dateFormat="dd/mm/yy" [showClear]="true" class="w-full" />
+            </div>
+        </div>
+
+        <div class="flex flex-col gap-1">
+            <label class="text-sm font-medium">Observación</label>
+            <input pInputText [(ngModel)]="form.observacion" placeholder="Observación opcional" />
+        </div>
+    </div>
+
+    <ng-template pTemplate="footer">
+        <p-button label="Cancelar" icon="pi pi-times" [text]="true" severity="secondary" (onClick)="dialogVisible = false" />
+        <p-button label="Asignar" icon="pi pi-check" (onClick)="guardar()" />
+    </ng-template>
+</p-dialog>
