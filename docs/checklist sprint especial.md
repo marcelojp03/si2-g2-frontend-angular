@@ -27,7 +27,9 @@
 
 - [x] `AuthResponse` incluye `roles` y `permisos` — extraídos en `auth.service.ts`
 - [x] `plan_codigo` y `modulos_activos` disponibles en JWT claims (decodificables)
-- [ ] Mostrar `plan_codigo` en topbar o perfil (mejora visual)
+- [x] Mostrar `plan_codigo` en topbar (badge visual + ítem en menú de usuario)
+- [x] `UsuarioSIA` extendido con `planCodigo` y `modulosActivos`
+- [x] Eliminado `ROLE_PERMISSION_FALLBACK` hardcodeado — permisos 100% desde JWT claims
 
 ---
 
@@ -103,7 +105,16 @@
 - [x] Tabla de resultados (solo al pulsar "Generar")
 - [x] Pestaña Gerencial: KPIs + tabla resumen
 - [x] Pestaña Dinámico: selector plantilla + columnas + filtros + guardar
-- [x] `reporte.service.ts`
+- [x] **Pestaña Consulta IA** (HU-SE-13): textarea lenguaje natural → SQL generado (gpt-4o-mini) → tabla dinámica de resultados
+- [x] `reporte.service.ts` — `consultaNatural()` + `ConsultaNaturalResponse`
+
+---
+
+## Deuda técnica resuelta
+
+- [x] Eliminado `http-api.ts` (endpoints legacy Django catalog/sales/inventory/analytics — código muerto)
+- [x] Eliminado `ROLE_PERMISSION_FALLBACK` hardcodeado en `auth.service.ts`
+- [x] Build TypeScript limpio (`ngc --noEmit` exit 0)
 
 ---
 
@@ -134,6 +145,6 @@
 
 ## Deuda técnica pendiente
 
-- [ ] Eliminar `ROLE_PERMISSION_FALLBACK` hardcodeado en `auth.service.ts` (líneas 18–58)
-- [ ] Limpiar endpoints legacy en `http-api.ts` (`catalog/`, `sales/`, `analyticsReports`)
-- [ ] Mostrar `plan_codigo` en topbar o perfil
+- [x] Eliminar `ROLE_PERMISSION_FALLBACK` hardcodeado en `auth.service.ts` — **resuelto**
+- [x] Eliminar `http-api.ts` completo (endpoints legacy Django — cero importaciones confirmadas) — **resuelto**
+- [x] Mostrar `plan_codigo` en topbar (badge + ítem en menú usuario) — **resuelto**

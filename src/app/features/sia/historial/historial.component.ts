@@ -104,7 +104,8 @@ export class HistorialComponent implements OnInit {
         return 'danger';
     }
 
-    asistenciaColor(porcentaje: number): PrimeTagSeverity {
+    asistenciaColor(porcentaje: number | null): PrimeTagSeverity {
+        if (porcentaje === null) return 'secondary';
         if (porcentaje >= 80) return 'success';
         if (porcentaje >= 60) return 'warn';
         return 'danger';

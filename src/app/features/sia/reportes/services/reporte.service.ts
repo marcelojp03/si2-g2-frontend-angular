@@ -4,6 +4,13 @@ import { Observable } from 'rxjs';
 import { environment } from '../../../../../environments/environment';
 import { ApiResponse } from '@/core/models/api-response.model';
 
+export interface ConsultaNaturalResponse {
+  sqlGenerado: string;
+  columnas: string[];
+  filas: (string | null)[][];
+  total: number;
+}
+
 @Injectable({ providedIn: 'root' })
 export class ReporteService {
   private http = inject(HttpClient);
@@ -30,5 +37,12 @@ export class ReporteService {
   reporteGerencial(idGestion: string): Observable<ApiResponse<Record<string, unknown>>> {
     const params = new HttpParams().set('idGestion', idGestion);
     return this.http.get<ApiResponse<Record<string, unknown>>>(`${this.base}/reportes/gerencial`, { params });
+  }
+
+  consultaNatural(consulta: string, limite = 100): Observable<ApiResponse<ConsultaNaturalResponse>> {
+    return this.http.post<ApiResponse<ConsultaNaturalResponse>>(
+      `${this.base}/ia/reporte/consulta-natural`,
+      { consulta, limite }
+    );
   }
 }

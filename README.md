@@ -1,59 +1,120 @@
-# Sakai19
+# SI2 G2 — Frontend Angular
 
-This project was generated using [Angular CLI](https://github.com/angular/angular-cli) version 20.0.5.
+[![Angular](https://img.shields.io/badge/Angular-21-red.svg)](https://angular.dev/)
+[![PrimeNG](https://img.shields.io/badge/PrimeNG-20-blue.svg)](https://primeng.org/)
+[![Tailwind CSS](https://img.shields.io/badge/Tailwind-4-38bdf8.svg)](https://tailwindcss.com/)
+[![TypeScript](https://img.shields.io/badge/TypeScript-5.9-3178c6.svg)](https://www.typescriptlang.org/)
+[![AWS](https://img.shields.io/badge/Deploy-S3_+_CloudFront-232F3E.svg)](https://aws.amazon.com/cloudfront/)
 
-## Development server
+Frontend web del Sistema de Gestión Académica SaaS — UAGRM Sistemas de Información 2, Grupo 2.
 
-To start a local development server, run:
+---
 
-```bash
-ng serve
-```
+## Stack
 
-Once the server is running, open your browser and navigate to `http://localhost:4200/`. The application will automatically reload whenever you modify any of the source files.
+| Capa | Tecnología |
+|---|---|
+| Framework | Angular 21 |
+| UI | PrimeNG 20 |
+| Estilos | Tailwind CSS 4 + SCSS |
+| Lenguaje | TypeScript 5.9 |
+| Estado reactivo | Signals (`signal()`, `computed()`) |
+| HTTP | `HttpClient` con interceptor JWT |
+| Deploy | AWS S3 + CloudFront |
 
-## Code scaffolding
+---
 
-Angular CLI includes powerful code scaffolding tools. To generate a new component, run:
+## Requisitos previos
 
-```bash
-ng generate component component-name
-```
+- Node.js >= 22
+- npm >= 10
 
-For a complete list of available schematics (such as `components`, `directives`, or `pipes`), run:
+---
 
-```bash
-ng generate --help
-```
-
-## Building
-
-To build the project run:
-
-```bash
-ng build
-```
-
-This will compile your project and store the build artifacts in the `dist/` directory. By default, the production build optimizes your application for performance and speed.
-
-## Running unit tests
-
-To execute unit tests with the [Karma](https://karma-runner.github.io) test runner, use the following command:
+## Levantar el servidor de desarrollo
 
 ```bash
-ng test
+cd si2-g2-frontend-angular
+npm install
+npm start
 ```
 
-## Running end-to-end tests
+La app queda disponible en `http://localhost:4200/`. Se recarga automáticamente al guardar.
 
-For end-to-end (e2e) testing, run:
+El proxy hacia el backend local está configurado en `proxy.conf.json`.
+
+---
+
+## Comandos
 
 ```bash
-ng e2e
+npm start              # Dev server → localhost:4200
+npm run build:prod     # Build producción (dist/)
+npm test               # Tests Karma + Jasmine
+npm run format         # Prettier
+npx tsc --noEmit       # Verificar tipos sin compilar
 ```
 
-Angular CLI does not come with an end-to-end testing framework by default. You can choose one that suits your needs.
+---
 
-## Additional Resources
+## Variables de entorno
 
-For more information on using the Angular CLI, including detailed command references, visit the [Angular CLI Overview and Command Reference](https://angular.dev/tools/cli) page.
+Las URLs del backend se configuran en:
+
+```
+src/environments/
+├── environment.ts          # Local  → http://localhost:2026
+└── environment.prod.ts     # Prod   → https://s7hwsnmsxf.us-east-1.awsapprunner.com
+```
+
+---
+
+## Estructura del proyecto
+
+```
+src/app/
+├── core/
+│   ├── guards/       — authGuard, roleGuard, superadminGuard, loggedGuard
+│   ├── models/       — api-response.model, auth.model, sia.models
+│   └── services/     — auth, menu, institucion, sia, storage, usuario,
+│                        asistencia, calificacion, horario, dashboard,
+│                        saas, solicitud, authz, auditoria, respaldo, role, reporte
+├── features/
+│   ├── admin/        — Panel Super Admin (instituciones, usuarios globales, planes)
+│   ├── perfil/       — Perfil de usuario
+│   └── sia/          — Módulos académicos (lazy loading)
+│       ├── cursos/, paralelos/, materias/, materias-curso/
+│       ├── gestiones/, docentes/, estudiantes/, tutores/
+│       ├── inscripciones/, asignaciones/, configuracion/, dashboard/
+│       ├── aulas/, horarios/, asistencia/, calificaciones/, historial/
+│       ├── suscripcion/, seguridad/, roles/, auditoria/, backups/, reportes/, planes/
+│       └── alertas/   — IA y alertas tempranas (ia.service.ts scoped a feature)
+├── layout/           — AppLayout, topbar (badge plan), sidebar, menú dinámico por rol
+├── pages/            — auth (login), dashboard, notfound, empty
+└── shared/           — PrimeNGModule, SharedModule, FileUploadComponent, utils
+```
+
+---
+
+## Auth y multi-tenant
+
+- JWT stateless con `Bearer` token
+- Claims del token: `id_institucion`, `roles[]`, `permisos[]`, `plan_codigo`, `modulos_activos[]`
+- `authGuard` protege todas las rutas autenticadas
+- `roleGuard` restringe acceso por rol (`ADMIN_INSTITUCION`, `DOCENTE`, etc.)
+- `superadminGuard` bloquea rutas del panel `/admin` a no super-admins
+
+---
+
+## Deploy
+
+```powershell
+# Build y subir a S3
+npm run build:prod
+.\deploy-s3.ps1
+```
+
+| Entorno | URL |
+|---|---|
+| Local | `http://localhost:4200` |
+| Producción | `https://d32gr4vkubb6g5.cloudfront.net` |

@@ -15,47 +15,6 @@ import {
 } from '../models/auth.model';
 import { ApiResponse } from '../models/api-response.model';
 
-const ROLE_PERMISSION_FALLBACK: Record<string, string[]> = {
-    ADMIN_INSTITUCION: [
-        'USUARIOS_READ', 'USUARIOS_WRITE',
-        'CONFIGURACION_READ', 'CONFIGURACION_WRITE',
-        'GESTION_READ', 'GESTION_WRITE',
-        'PERSONAS_READ', 'PERSONAS_WRITE',
-        'OPERACION_READ', 'OPERACION_WRITE',
-        'ROLES_READ', 'ROLES_WRITE',
-        'MI_AREA_READ',
-        'AUDITORIA_READ',
-        'ASISTENCIA_READ', 'ASISTENCIA_WRITE', 'ASISTENCIA_READ_ALL', 'ASISTENCIA_BACKDATE',
-        'CALIFICACIONES_READ', 'CALIFICACIONES_WRITE', 'CALIFICACIONES_READ_ALL', 'CALIFICACIONES_OVERRIDE_CIERRE'
-    ],
-    DIRECTOR: [
-        'USUARIOS_READ', 'USUARIOS_WRITE',
-        'CONFIGURACION_READ', 'CONFIGURACION_WRITE',
-        'GESTION_READ', 'GESTION_WRITE',
-        'PERSONAS_READ', 'PERSONAS_WRITE',
-        'OPERACION_READ', 'OPERACION_WRITE',
-        'ROLES_READ',
-        'MI_AREA_READ',
-        'AUDITORIA_READ',
-        'ASISTENCIA_READ', 'ASISTENCIA_WRITE', 'ASISTENCIA_READ_ALL', 'ASISTENCIA_BACKDATE',
-        'CALIFICACIONES_READ', 'CALIFICACIONES_WRITE', 'CALIFICACIONES_READ_ALL', 'CALIFICACIONES_OVERRIDE_CIERRE'
-    ],
-    SECRETARIO: [
-        'USUARIOS_READ',
-        'GESTION_READ', 'GESTION_WRITE',
-        'PERSONAS_READ', 'PERSONAS_WRITE',
-        'OPERACION_READ', 'OPERACION_WRITE',
-        'ASISTENCIA_READ', 'ASISTENCIA_READ_ALL',
-        'CALIFICACIONES_READ', 'CALIFICACIONES_READ_ALL'
-    ],
-    DOCENTE: [
-        'OPERACION_READ',
-        'MI_AREA_READ',
-        'ASISTENCIA_READ',
-        'CALIFICACIONES_READ', 'CALIFICACIONES_WRITE'
-    ]
-};
-
 @Injectable({ providedIn: 'root' })
 export class AuthService {
     private http = inject(HttpClient);
@@ -190,27 +149,15 @@ export class AuthService {
         const payload = this.getTokenPayload(token);
         if (!payload) return null;
         const roles = Array.isArray(payload.roles) ? payload.roles : [];
-        const permisosToken = Array.isArray(payload.permisos) ? payload.permisos : [];
+        const permisos = Array.isArray(payload.permisos) ? payload.permisos : [];
         return this.normalizeUser({
             correo: payload.sub ?? '',
             idInstitucion: payload.id_institucion ?? null,
             roles,
-            permisos: this.resolvePermissions(roles, permisosToken),
+            permisos,
+            planCodigo: payload.plan_codigo ?? null,
+            modulosActivos: Array.isArray(payload.modulos_activos) ? payload.modulos_activos : [],
         });
-    }
-
-    private resolvePermissions(roles: string[], explicitPermissions: string[]): string[] {
-        if (explicitPermissions.length) {
-            return explicitPermissions;
-        }
-
-        const fallback = new Set<string>();
-        for (const role of roles) {
-            for (const permission of ROLE_PERMISSION_FALLBACK[role] ?? []) {
-                fallback.add(permission);
-            }
-        }
-        return Array.from(fallback);
     }
 
     private getTokenPayload(token: string): any {
@@ -245,12 +192,14 @@ export class AuthService {
 
     private normalizeUser(user: UsuarioSIA): UsuarioSIA {
         const roles = Array.isArray(user.roles) ? user.roles : [];
-        const explicitPermissions = Array.isArray(user.permisos) ? user.permisos : [];
+        const permisos = Array.isArray(user.permisos) ? user.permisos : [];
         return {
             correo: user.correo ?? '',
             idInstitucion: user.idInstitucion ?? null,
             roles,
-            permisos: this.resolvePermissions(roles, explicitPermissions),
+            permisos,
+            planCodigo: user.planCodigo ?? null,
+            modulosActivos: Array.isArray(user.modulosActivos) ? user.modulosActivos : [],
         };
     }
 }

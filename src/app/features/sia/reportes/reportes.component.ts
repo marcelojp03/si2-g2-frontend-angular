@@ -7,8 +7,9 @@ import { Tabs, TabList, Tab, TabPanels, TabPanel } from 'primeng/tabs';
 import { Select } from 'primeng/select';
 import { ToastModule } from 'primeng/toast';
 import { CardModule } from 'primeng/card';
+import { TextareaModule } from 'primeng/textarea';
 import { MessageService } from 'primeng/api';
-import { ReporteService } from './services/reporte.service';
+import { ReporteService, ConsultaNaturalResponse } from './services/reporte.service';
 import { GestionesService } from '@/features/sia/gestiones/services/gestiones.service';
 import { ParalelosService } from '@/features/sia/paralelos/services/paralelos.service';
 import { CursosService } from '@/features/sia/cursos/services/cursos.service';
@@ -25,7 +26,8 @@ import { GestionAcademicaResponse, ParaleloResponse, CursoResponse } from '@/cor
     Tabs, TabList, Tab, TabPanels, TabPanel,
     Select,
     ToastModule,
-    CardModule
+    CardModule,
+    TextareaModule
   ],
   providers: [MessageService],
   template: `
@@ -34,7 +36,7 @@ import { GestionAcademicaResponse, ParaleloResponse, CursoResponse } from '@/cor
     <div class="flex flex-col gap-4 p-4">
       <div>
         <h2 class="text-2xl font-semibold text-surface-800 dark:text-surface-100">Reportes</h2>
-        <p class="text-surface-500 text-sm mt-1">Asistencia, calificaciones, inscripciones y resumen gerencial</p>
+        <p class="text-surface-500 text-sm mt-1">Asistencia, calificaciones, inscripciones, resumen gerencial y consulta IA</p>
       </div>
 
       <!-- FILTROS COMUNES -->
@@ -85,6 +87,11 @@ import { GestionAcademicaResponse, ParaleloResponse, CursoResponse } from '@/cor
           <p-tab value="calificaciones">Calificaciones</p-tab>
           <p-tab value="inscripciones">Inscripciones</p-tab>
           <p-tab value="gerencial">Gerencial</p-tab>
+          <p-tab value="consulta-ia">
+            <span class="flex items-center gap-1">
+              <i class="pi pi-sparkles text-purple-500"></i> Consulta IA
+            </span>
+          </p-tab>
         </p-tablist>
         <p-tabpanels>
           <!-- ASISTENCIA -->
@@ -269,6 +276,89 @@ import { GestionAcademicaResponse, ParaleloResponse, CursoResponse } from '@/cor
               </div>
             }
           </p-tabpanel>
+          <!-- CONSULTA IA -->
+          <p-tabpanel value="consulta-ia">
+            <div class="flex flex-col gap-4 pt-2">
+              <div class="card">
+                <p class="text-sm text-surface-500 mb-3">
+                  Escribe una pregunta en lenguaje natural. La IA generará y ejecutará la consulta SQL automáticamente
+                  filtrando los datos de tu institución.
+                </p>
+                <div class="flex flex-col gap-2">
+                  <textarea
+                    pTextarea
+                    rows="3"
+                    [(ngModel)]="consultaTexto"
+                    placeholder="Ej: ¿Cuántos estudiantes están inscritos en la gestión 2025 por curso?"
+                    class="w-full resize-none"
+                    [disabled]="cargandoConsulta()"
+                  ></textarea>
+                  <div class="flex justify-between items-center">
+                    <span class="text-xs text-surface-400">Máx. {{ limiteFilas }} filas</span>
+                    <p-button
+                      label="Consultar"
+                      icon="pi pi-sparkles"
+                      [loading]="cargandoConsulta()"
+                      [disabled]="!consultaTexto.trim()"
+                      (onClick)="consultarIA()"
+                      severity="help"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              @if (resultadoConsulta()) {
+                <!-- SQL generado (colapsable) -->
+                <div class="card">
+                  <div
+                    class="flex justify-between items-center cursor-pointer select-none"
+                    (click)="sqlVisible.set(!sqlVisible())"
+                  >
+                    <span class="text-sm font-medium text-surface-600">SQL generado</span>
+                    <i [class]="sqlVisible() ? 'pi pi-chevron-up' : 'pi pi-chevron-down'" class="text-xs"></i>
+                  </div>
+                  @if (sqlVisible()) {
+                    <pre class="mt-2 p-3 bg-surface-100 dark:bg-surface-800 rounded text-xs overflow-x-auto text-surface-700 dark:text-surface-300">{{ resultadoConsulta()!.sqlGenerado }}</pre>
+                  }
+                </div>
+
+                <!-- Resultados -->
+                <div class="card">
+                  <p class="text-sm font-medium text-surface-600 mb-2">Resultados ({{ resultadoConsulta()!.total }} filas)</p>
+                  @if (resultadoConsulta()!.columnas.length > 0) {
+                    <p-table
+                      [value]="filasComoObjetos()"
+                      [paginator]="true"
+                      [rows]="15"
+                      styleClass="p-datatable-sm"
+                      [scrollable]="true"
+                      scrollHeight="420px"
+                    >
+                      <ng-template pTemplate="header">
+                        <tr>
+                          @for (col of resultadoConsulta()!.columnas; track col) {
+                            <th>{{ col }}</th>
+                          }
+                        </tr>
+                      </ng-template>
+                      <ng-template pTemplate="body" let-row>
+                        <tr>
+                          @for (col of resultadoConsulta()!.columnas; track col) {
+                            <td>{{ row[col] }}</td>
+                          }
+                        </tr>
+                      </ng-template>
+                      <ng-template pTemplate="emptymessage">
+                        <tr><td [attr.colspan]="resultadoConsulta()!.columnas.length" class="text-center text-surface-400 py-4">Sin resultados</td></tr>
+                      </ng-template>
+                    </p-table>
+                  } @else {
+                    <p class="text-surface-400 text-sm">La consulta no retornó filas.</p>
+                  }
+                </div>
+              }
+            </div>
+          </p-tabpanel>
         </p-tabpanels>
       </p-tabs>
     </div>
@@ -298,6 +388,13 @@ export class ReportesComponent implements OnInit {
   cargandoCalificaciones = signal(false);
   cargandoInscripciones = signal(false);
   cargandoGerencial = signal(false);
+
+  // Consulta IA
+  consultaTexto = '';
+  limiteFilas = 100;
+  cargandoConsulta = signal(false);
+  resultadoConsulta = signal<ConsultaNaturalResponse | null>(null);
+  sqlVisible = signal(false);
 
   ngOnInit(): void {
     this.gestionesService.listarGestiones().subscribe(r => { if (r?.codigo === 200) this.gestiones.set(r.data ?? []); });
@@ -349,5 +446,34 @@ export class ReportesComponent implements OnInit {
     const n = Number(pct);
     if (isNaN(n)) return '';
     return n >= 75 ? 'text-green-600 font-medium' : 'text-red-500 font-medium';
+  }
+
+  consultarIA(): void {
+    const texto = this.consultaTexto.trim();
+    if (!texto) return;
+    this.cargandoConsulta.set(true);
+    this.resultadoConsulta.set(null);
+    this.sqlVisible.set(false);
+    this.reporteSvc.consultaNatural(texto, this.limiteFilas).subscribe({
+      next: r => {
+        if (r?.codigo === 200 && r.data) {
+          this.resultadoConsulta.set(r.data);
+          this.sqlVisible.set(true);
+        } else {
+          this.toast.add({ severity: 'warn', summary: 'Sin resultados', detail: r?.mensaje ?? 'La IA no pudo generar la consulta' });
+        }
+      },
+      error: () => this.toast.add({ severity: 'error', summary: 'Error IA', detail: 'No se pudo ejecutar la consulta. Intente reformular la pregunta.' }),
+      complete: () => this.cargandoConsulta.set(false)
+    });
+  }
+
+  /** Convierte las filas (array de arrays) a array de objetos para p-table */
+  filasComoObjetos(): Record<string, unknown>[] {
+    const res = this.resultadoConsulta();
+    if (!res) return [];
+    return res.filas.map(fila =>
+      Object.fromEntries(res.columnas.map((col, i) => [col, fila[i]]))
+    );
   }
 }

@@ -35,6 +35,8 @@ export interface UsuarioSIA {
     idInstitucion: string | null;
     roles: string[];
     permisos: string[];
+    planCodigo: string | null;
+    modulosActivos: string[];
 }
 
 /** @deprecated Use UsuarioSIA */

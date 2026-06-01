@@ -53,6 +53,14 @@ import { Subscription } from 'rxjs';
                 </button>
                 <div class="layout-topbar-menu hidden lg:block">
                     <div class="layout-topbar-menu-content">
+                        @if (usuario?.planCodigo) {
+                            <span class="inline-flex items-center gap-1 px-2 py-1 rounded-md text-xs font-semibold mr-2"
+                                  style="background: rgba(13,33,69,0.08); color: #0d2145"
+                                  title="Plan de suscripcion activo">
+                                <i class="pi pi-star-fill text-[10px]"></i>
+                                {{ usuario?.planCodigo }}
+                            </span>
+                        }
                         <button type="button" class="layout-topbar-action" (click)="userMenu.toggle($event)">
                             <i class="pi pi-user"></i>
                             <span>{{ usuario?.correo || 'Perfil' }}</span>
@@ -88,6 +96,7 @@ export class AppTopbar implements OnInit, OnDestroy {
         this.userMenuItems = [
             ...(user ? [{ label: user.correo, disabled: true, styleClass: 'text-xs' }] : []),
             ...(isSuperAdmin ? [{ label: 'Super Administrador', disabled: true, styleClass: 'text-xs text-primary' }] : []),
+            ...(user?.planCodigo ? [{ label: 'Plan: ' + user.planCodigo, icon: 'pi pi-star-fill', disabled: true, styleClass: 'text-xs' }] : []),
             { separator: true },
             { label: 'Mi perfil', icon: 'pi pi-user', command: () => this.router.navigate([isSuperAdmin ? '/admin/perfil' : '/perfil']) },
             { separator: true },
