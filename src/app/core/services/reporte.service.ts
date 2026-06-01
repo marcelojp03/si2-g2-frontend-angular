@@ -1,44 +1,14 @@
-import { HttpClient, HttpParams } from '@angular/common/http';
+import { HttpClient } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
 import { Observable } from 'rxjs';
-import { environment } from '../../../../../environments/environment';
-import { ApiResponse } from '@/core/models/api-response.model';
-import {
-    QbeEntityDefinitionResponse,
-    QbePreviewRequest,
-    ReporteMetadataResponse,
-    ReporteNaturalLanguageRequest,
-    ReportePreviewRequest,
-    ReportePreviewResponse,
-} from '@/core/models/reporte.models';
+import { environment } from '../../../environments/environment';
+import { ApiResponse } from '../models/api-response.model';
+import { QbeEntityDefinitionResponse, QbePreviewRequest, ReporteMetadataResponse, ReporteNaturalLanguageRequest, ReportePreviewRequest, ReportePreviewResponse } from '../models/reporte.models';
 
 @Injectable({ providedIn: 'root' })
 export class ReporteService {
     private http = inject(HttpClient);
     private base = `${environment.api.baseUrl}/reportes`;
-
-    reporteAsistencia(idGestion: string, idParalelo?: string): Observable<ApiResponse<Record<string, unknown>[]>> {
-        let params = new HttpParams().set('idGestion', idGestion);
-        if (idParalelo) params = params.set('idParalelo', idParalelo);
-        return this.http.get<ApiResponse<Record<string, unknown>[]>>(`${this.base}/asistencia`, { params });
-    }
-
-    reporteCalificaciones(idGestion: string, idParalelo?: string): Observable<ApiResponse<Record<string, unknown>[]>> {
-        let params = new HttpParams().set('idGestion', idGestion);
-        if (idParalelo) params = params.set('idParalelo', idParalelo);
-        return this.http.get<ApiResponse<Record<string, unknown>[]>>(`${this.base}/calificaciones`, { params });
-    }
-
-    reporteInscripciones(idGestion: string, idCurso?: string): Observable<ApiResponse<Record<string, unknown>[]>> {
-        let params = new HttpParams().set('idGestion', idGestion);
-        if (idCurso) params = params.set('idCurso', idCurso);
-        return this.http.get<ApiResponse<Record<string, unknown>[]>>(`${this.base}/inscripciones`, { params });
-    }
-
-    reporteGerencial(idGestion: string): Observable<ApiResponse<Record<string, unknown>>> {
-        const params = new HttpParams().set('idGestion', idGestion);
-        return this.http.get<ApiResponse<Record<string, unknown>>>(`${this.base}/gerencial`, { params });
-    }
 
     catalogo(): Observable<ApiResponse<ReporteMetadataResponse[]>> {
         return this.http.get<ApiResponse<ReporteMetadataResponse[]>>(`${this.base}/catalogo`);

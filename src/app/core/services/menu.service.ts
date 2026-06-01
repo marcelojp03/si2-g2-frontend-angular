@@ -76,7 +76,7 @@ export class MenuService {
         const canMiArea = has('MI_AREA_READ') || isDocente;
 
         const canBackups = isAdminInstitucion;
-        const canReportes = has('REPORTES_READ') || isAdminInstitucion || isDirector || hasRole('SECRETARIO');
+        const canReportes = has('REPORTES_READ') || has('REPORTES_EXPORT') || has('REPORTES_WRITE') || isAdminInstitucion || isDirector || hasRole('SECRETARIO');
         const canAlertas = isAdminInstitucion || isDirector || hasRole('SECRETARIO');
 
         const canAsistencia =
@@ -199,6 +199,16 @@ export class MenuService {
             menu.push({
                 label: 'Operación Académica',
                 items: operacionItems,
+            });
+        }
+
+        if (canReportes) {
+            menu.push({ separator: true });
+            menu.push({
+                label: 'Análisis',
+                items: [
+                    { label: 'Reportes', icon: 'pi pi-fw pi-chart-bar', routerLink: ['/reportes'] },
+                ],
             });
         }
 
