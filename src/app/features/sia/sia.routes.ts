@@ -46,6 +46,14 @@ export default [
 
     { path: 'roles', canActivate: [permissionGuard('ROLES_READ', 'ROLES_WRITE')], loadComponent: () => import('./roles/roles.component').then(m => m.RolesComponent) },
     { path: 'auditoria', canActivate: [permissionOrRoleGuard(['AUDITORIA_READ'], ['SUPER_ADMIN'])], loadComponent: () => import('./auditoria/auditoria.component').then(m => m.AuditoriaComponent) },
+    {
+        path: 'reportes',
+        canActivate: [permissionOrRoleGuard(
+            ['REPORTES_READ', 'REPORTES_EXPORT', 'REPORTES_WRITE'],
+            ['ADMIN_INSTITUCION', 'SUPER_ADMIN', 'DIRECTOR', 'SECRETARIO', 'DOCENTE']
+        )],
+        loadComponent: () => import('./reportes/reportes.component').then(m => m.ReportesComponent)
+    },
     { path: 'configuracion', loadComponent: () => import('./configuracion/configuracion.component').then(m => m.ConfiguracionComponent) },
     {
         path: 'suscripcion',
