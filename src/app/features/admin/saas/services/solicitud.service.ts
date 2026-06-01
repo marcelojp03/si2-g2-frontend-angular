@@ -4,6 +4,7 @@ import { Observable } from 'rxjs';
 import { environment } from '../../../../../environments/environment';
 import { ApiResponse } from '@/core/models/api-response.model';
 import { SolicitudOnboardingRequest, SolicitudOnboardingResponse } from '@/core/models/sia.models';
+import { EstadoPagoResponse, PagoSuscripcionResponse } from '@/features/admin/saas/models/saas-solicitud.models';
 
 @Injectable({ providedIn: 'root' })
 export class SolicitudService {
@@ -57,6 +58,28 @@ export class SolicitudService {
         return this.http.post<ApiResponse<SolicitudOnboardingResponse>>(
             `${this.base}/saas/solicitudes/${id}/activar`,
             {}
+        );
+    }
+
+    /** Genera el QR de pago (Vpay) para una solicitud aprobada y notifica al contacto. */
+    generarQr(idSolicitud: string): Observable<ApiResponse<PagoSuscripcionResponse>> {
+        return this.http.post<ApiResponse<PagoSuscripcionResponse>>(
+            `${this.base}/saas/solicitudes/${idSolicitud}/generar-qr`,
+            {}
+        );
+    }
+
+    /** Consulta el estado del pago contra Vpay (polling). */
+    estadoPago(idPago: string): Observable<ApiResponse<EstadoPagoResponse>> {
+        return this.http.get<ApiResponse<EstadoPagoResponse>>(
+            `${this.base}/saas/pagos/${idPago}/estado`
+        );
+    }
+
+    /** Obtiene el pago vigente de una solicitud (o null si no tiene). */
+    obtenerPago(idSolicitud: string): Observable<ApiResponse<PagoSuscripcionResponse>> {
+        return this.http.get<ApiResponse<PagoSuscripcionResponse>>(
+            `${this.base}/saas/solicitudes/${idSolicitud}/pago`
         );
     }
 }

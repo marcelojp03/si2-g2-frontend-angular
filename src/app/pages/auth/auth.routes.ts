@@ -10,4 +10,5 @@ export default [
     { path: 'error', component: Error },
     { path: 'forgot-password', component: ForgotPassword },
     { path: 'login', component: Login, resolve: { logged: loggedResolver } },
+    { path: 'crear-contrasena', loadComponent: () => import('./crear-contrasena/crear-contrasena').then(m => m.CrearContrasena) },
 ] as Routes;

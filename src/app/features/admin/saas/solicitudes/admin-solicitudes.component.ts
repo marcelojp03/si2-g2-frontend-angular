@@ -18,6 +18,7 @@ import { TextareaModule } from 'primeng/textarea';
 import { DividerModule } from 'primeng/divider';
 import { SolicitudService } from '@/features/admin/saas/services/solicitud.service';
 import { SolicitudOnboardingResponse } from '@/core/models/sia.models';
+import { PagoSuscripcionResponse } from '@/features/admin/saas/models/saas-solicitud.models';
 
 type EstadoFiltro = '' | 'PENDIENTE_REVISION' | 'APROBADA' | 'PENDIENTE_PAGO' | 'PAGADO' | 'ACTIVA' | 'RECHAZADA';
 
@@ -98,10 +99,18 @@ type EstadoFiltro = '' | 'PENDIENTE_REVISION' | 'APROBADA' | 'PENDIENTE_PAGO' | 
                                         pTooltip="Rechazar" (click)="abrirAccion(s, 'rechazar')"></button>
                             }
                             @if (s.estado === 'APROBADA') {
+                                <button pButton icon="pi pi-qrcode" severity="info" size="small" text
+                                        pTooltip="Generar QR de pago" (click)="generarQr(s)"></button>
                                 <button pButton icon="pi pi-credit-card" severity="success" size="small" text
-                                        pTooltip="Confirmar pago" (click)="confirmarPago(s)"></button>
+                                        pTooltip="Confirmar pago (manual)" (click)="confirmarPago(s)"></button>
                                 <button pButton icon="pi pi-times" severity="danger" size="small" text
                                         pTooltip="Rechazar" (click)="abrirAccion(s, 'rechazar')"></button>
+                            }
+                            @if (s.estado === 'PENDIENTE_PAGO') {
+                                <button pButton icon="pi pi-qrcode" severity="info" size="small" text
+                                        pTooltip="Ver QR de pago" (click)="verQr(s)"></button>
+                                <button pButton icon="pi pi-credit-card" severity="success" size="small" text
+                                        pTooltip="Confirmar pago (manual)" (click)="confirmarPago(s)"></button>
                             }
                             @if (s.estado === 'PAGADO') {
                                 <button pButton icon="pi pi-play" severity="success" size="small" text
@@ -184,6 +193,47 @@ type EstadoFiltro = '' | 'PENDIENTE_REVISION' | 'APROBADA' | 'PENDIENTE_PAGO' | 
                     [loading]="procesando()" (click)="ejecutarAccion()"></button>
         </ng-template>
     </p-dialog>
+
+    <!-- DIALOG QR DE PAGO -->
+    <p-dialog [(visible)]="qrVisible" header="Pago de suscripción (Vpay)" [modal]="true"
+              [style]="{ width: '440px' }" (onHide)="detenerPolling()">
+        @if (pago()) {
+            <div class="flex flex-col items-center text-center gap-3">
+                @if (pagoConfirmado()) {
+                    <div class="w-full p-4 bg-green-50 rounded text-green-800">
+                        <i class="pi pi-check-circle text-3xl block mb-2"></i>
+                        <p class="font-semibold">¡Pago confirmado!</p>
+                        <p class="text-sm">Ya puedes activar la institución.</p>
+                    </div>
+                } @else {
+                    @if (pago()!.qrBase64) {
+                        <img [src]="'data:image/png;base64,' + pago()!.qrBase64" alt="QR de pago"
+                             class="w-64 h-64 border rounded" />
+                    } @else {
+                        <div class="w-64 h-64 flex items-center justify-center border rounded text-gray-400">
+                            QR no disponible
+                        </div>
+                    }
+                    <div class="text-2xl font-bold text-emerald-600">
+                        {{ pago()!.moneda }} {{ pago()!.monto | number:'1.2-2' }}
+                    </div>
+                    <p class="text-sm text-gray-500">Escanea el QR desde tu app de banca móvil.</p>
+                    <div class="flex items-center gap-2 text-sm text-amber-600">
+                        <i class="pi pi-spin pi-spinner"></i>
+                        Esperando confirmación del pago...
+                    </div>
+                    @if (pago()!.proveedor === 'VPAY_DEMO') {
+                        <p class="text-xs text-gray-400">Modo DEMO: usa "Confirmar pago (manual)" para simular el pago.</p>
+                    }
+                }
+            </div>
+        }
+        <ng-template pTemplate="footer">
+            <button pButton label="Cerrar" severity="secondary" (click)="qrVisible = false"></button>
+            <button pButton label="Verificar ahora" icon="pi pi-refresh" severity="info"
+                    [loading]="verificando()" [disabled]="pagoConfirmado()" (click)="verificarPago()"></button>
+        </ng-template>
+    </p-dialog>
     `,
 })
 export class AdminSolicitudesComponent implements OnInit {
@@ -203,6 +253,13 @@ export class AdminSolicitudesComponent implements OnInit {
     accionVisible = false;
     accionTipo: 'aprobar' | 'rechazar' = 'aprobar';
     notasAdmin = '';
+
+    // Pago / QR
+    qrVisible = false;
+    pago = signal<PagoSuscripcionResponse | null>(null);
+    pagoConfirmado = signal(false);
+    verificando = signal(false);
+    private pollingId: ReturnType<typeof setInterval> | null = null;
 
     @ViewChild('dt') dt!: Table;
 
@@ -296,6 +353,96 @@ export class AdminSolicitudesComponent implements OnInit {
                 });
             },
         });
+    }
+
+    // ── Pago / QR (Vpay) ──────────────────────────────────────────────────────
+
+    generarQr(s: SolicitudOnboardingResponse): void {
+        this.seleccionada.set(s);
+        this.pago.set(null);
+        this.pagoConfirmado.set(false);
+        this.qrVisible = true;
+        this.service.generarQr(s.id).subscribe({
+            next: res => {
+                if (res.codigo === 200 || res.codigo === 201) {
+                    this.pago.set(res.data ?? null);
+                    this.messageService.add({ severity: 'success', summary: 'QR generado', detail: 'Se envió el QR al correo del contacto.' });
+                    this.iniciarPolling();
+                    this.cargar();
+                }
+            },
+            error: err => {
+                this.qrVisible = false;
+                this.messageService.add({ severity: 'error', summary: 'Error', detail: err?.error?.mensaje ?? 'No se pudo generar el QR' });
+            },
+        });
+    }
+
+    verQr(s: SolicitudOnboardingResponse): void {
+        this.seleccionada.set(s);
+        this.pago.set(null);
+        this.pagoConfirmado.set(false);
+        this.qrVisible = true;
+        this.service.obtenerPago(s.id).subscribe({
+            next: res => {
+                if (res.codigo === 200 && res.data) {
+                    this.pago.set(res.data);
+                    if (res.data.estado === 'PAGADO') {
+                        this.pagoConfirmado.set(true);
+                    } else {
+                        this.iniciarPolling();
+                    }
+                }
+            },
+            error: () => this.messageService.add({ severity: 'warn', summary: 'Sin pago', detail: 'No se encontró un pago para esta solicitud.' }),
+        });
+    }
+
+    verificarPago(): void {
+        const pago = this.pago();
+        if (!pago) return;
+        this.verificando.set(true);
+        this.service.estadoPago(pago.id).subscribe({
+            next: res => {
+                this.verificando.set(false);
+                if (res.codigo === 200 && res.data?.pagado) {
+                    this.onPagoConfirmado();
+                }
+            },
+            error: () => this.verificando.set(false),
+        });
+    }
+
+    private iniciarPolling(): void {
+        this.detenerPolling();
+        this.pollingId = setInterval(() => {
+            const pago = this.pago();
+            if (!pago || this.pagoConfirmado()) {
+                this.detenerPolling();
+                return;
+            }
+            this.service.estadoPago(pago.id).subscribe({
+                next: res => {
+                    if (res.codigo === 200 && res.data?.pagado) {
+                        this.onPagoConfirmado();
+                    }
+                },
+            });
+        }, 5000);
+    }
+
+    detenerPolling(): void {
+        if (this.pollingId) {
+            clearInterval(this.pollingId);
+            this.pollingId = null;
+        }
+    }
+
+    private onPagoConfirmado(): void {
+        this.pagoConfirmado.set(true);
+        this.detenerPolling();
+        this.messageService.add({ severity: 'success', summary: 'Pago confirmado', detail: 'La institución ya puede activarse.' });
+        this.cargar();
     }
 
     activar(s: SolicitudOnboardingResponse): void {

@@ -33,3 +33,28 @@ export interface SolicitudOnboardingResponse {
     creadoEn: string;
     actualizadoEn: string;
 }
+
+export interface PagoSuscripcionResponse {
+    id: string;
+    idSolicitud: string;
+    idPlan: string;
+    monto: number;
+    moneda: string;
+    metodoPago: string;
+    proveedor: string;
+    referenciaExterna?: string;
+    qrBase64?: string;
+    estado: string;
+    glosa?: string;
+    fechaExpiracion?: string;
+    pagadoEn?: string;
+    creadoEn: string;
+}
+
+export interface EstadoPagoResponse {
+    idPago: string;
+    idQr?: string;
+    estadoVpay: string;
+    pagado: boolean;
+    estadoPago: string;
+}
