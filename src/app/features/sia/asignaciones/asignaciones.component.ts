@@ -1,4 +1,4 @@
-import { Component, OnInit, inject, signal, ViewChild } from '@angular/core';
+import { Component, OnInit, inject, signal, computed, ViewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { forkJoin } from 'rxjs';
@@ -19,10 +19,20 @@ import { DocentesService } from '@/features/sia/docentes/services/docentes.servi
 import { MateriasService } from '@/features/sia/materias/services/materias.service';
 import { ParalelosService } from '@/features/sia/paralelos/services/paralelos.service';
 import { GestionesService } from '@/features/sia/gestiones/services/gestiones.service';
+import { CursosService } from '@/features/sia/cursos/services/cursos.service';
 import {
     AsignacionDocenteRequest, AsignacionDocenteResponse,
-    DocenteResponse, MateriaResponse, ParaleloResponse, GestionAcademicaResponse
+    CursoResponse, DocenteResponse, MateriaResponse, ParaleloResponse, GestionAcademicaResponse
 } from '@/core/models/sia.models';
+
+type AsignacionDocenteView = AsignacionDocenteResponse & {
+    idCurso: string;
+    nombreCurso: string;
+    nombreDocente: string;
+    nombreMateria: string;
+    nombreParalelo: string;
+    nombreGestion: string;
+};
 
 @Component({
     selector: 'app-asignaciones',
@@ -39,15 +49,34 @@ export class AsignacionesComponent implements OnInit {
     private materiasService = inject(MateriasService);
     private paralelosService = inject(ParalelosService);
     private gestionesService = inject(GestionesService);
+    private cursosService = inject(CursosService);
     private messageService = inject(MessageService);
     private confirmationService = inject(ConfirmationService);
 
     asignaciones = signal<AsignacionDocenteResponse[]>([]);
     docentes = signal<DocenteResponse[]>([]);
     materias = signal<MateriaResponse[]>([]);
+    cursos = signal<CursoResponse[]>([]);
     paralelos = signal<ParaleloResponse[]>([]);
     gestiones = signal<GestionAcademicaResponse[]>([]);
     paralelosFiltrados = signal<ParaleloResponse[]>([]);
+    idCursoSeleccionado = '';
+
+    asignacionesView = computed<AsignacionDocenteView[]>(() =>
+        this.asignaciones().map((asignacion) => {
+            const paralelo = this.getParalelo(asignacion.idParalelo);
+            const idCurso = paralelo?.idCurso ?? '';
+            return {
+                ...asignacion,
+                idCurso,
+                nombreDocente: this.getNombreDocente(asignacion.idDocente),
+                nombreMateria: this.getNombreMateria(asignacion.idMateria),
+                nombreCurso: idCurso ? this.getNombreCurso(idCurso) : 'Sin curso',
+                nombreParalelo: paralelo?.nombre ?? asignacion.idParalelo,
+                nombreGestion: this.getNombreGestion(asignacion.idGestion)
+            };
+        })
+    );
 
     loading = true;
     dialogVisible = false;
@@ -63,14 +92,16 @@ export class AsignacionesComponent implements OnInit {
             asignaciones: this.service.listarAsignaciones(),
             docentes: this.docentesService.listarDocentes(),
             materias: this.materiasService.listarMaterias(),
+            cursos: this.cursosService.listarCursos(),
             paralelos: this.paralelosService.listarParalelos(),
             gestiones: this.gestionesService.listarGestiones()
         }).subscribe({
-            next: ({ asignaciones, docentes, materias, paralelos, gestiones }) => {
+            next: ({ asignaciones, docentes, materias, cursos, paralelos, gestiones }) => {
                 this.loading = false;
                 if (asignaciones.codigo === 200) this.asignaciones.set(asignaciones.data ?? []);
                 if (docentes.codigo === 200) this.docentes.set(docentes.data ?? []);
                 if (materias.codigo === 200) this.materias.set(materias.data ?? []);
+                if (cursos.codigo === 200) this.cursos.set(cursos.data ?? []);
                 if (paralelos.codigo === 200) this.paralelos.set(paralelos.data ?? []);
                 if (gestiones.codigo === 200) this.gestiones.set(gestiones.data ?? []);
             },
@@ -80,21 +111,24 @@ export class AsignacionesComponent implements OnInit {
 
     nueva(): void {
         this.form = { idDocente: '', idMateria: '', idParalelo: '', idGestion: '' };
+        this.idCursoSeleccionado = '';
         this.paralelosFiltrados.set([]);
         this.dialogVisible = true;
     }
 
     onGestionChange(): void {
+        this.idCursoSeleccionado = '';
         this.form.idParalelo = '';
-        if (this.form.idGestion) {
-            this.paralelosFiltrados.set(this.paralelos().filter(p => p.idGestionAcademica === this.form.idGestion));
-        } else {
-            this.paralelosFiltrados.set([]);
-        }
+        this.actualizarParalelosFiltrados();
+    }
+
+    onCursoChange(): void {
+        this.form.idParalelo = '';
+        this.actualizarParalelosFiltrados();
     }
 
     guardar(): void {
-        if (!this.form.idDocente || !this.form.idMateria || !this.form.idParalelo || !this.form.idGestion) {
+        if (!this.form.idDocente || !this.form.idMateria || !this.idCursoSeleccionado || !this.form.idParalelo || !this.form.idGestion) {
             this.messageService.add({ severity: 'warn', summary: 'Atención', detail: 'Complete todos los campos', life: 3000 });
             return;
         }
@@ -127,7 +161,8 @@ export class AsignacionesComponent implements OnInit {
         return d ? `${d.apellidos}, ${d.nombres}` : id;
     }
     getNombreMateria(id: string): string { return this.materias().find(x => x.id === id)?.nombre ?? id; }
-    getNombreParalelo(id: string): string { return this.paralelos().find(x => x.id === id)?.nombre ?? id; }
+    getNombreCurso(id: string): string { return this.cursos().find(x => x.id === id)?.nombre ?? id; }
+    getNombreParalelo(id: string): string { return this.getParalelo(id)?.nombre ?? id; }
     getNombreGestion(id: string): string { return this.gestiones().find(x => x.id === id)?.nombre ?? id; }
 
     get docentesOptions() {
@@ -139,10 +174,28 @@ export class AsignacionesComponent implements OnInit {
     get gestionesOptions() {
         return this.gestiones().map(g => ({ label: g.nombre, value: g.id }));
     }
+    get cursosOptions() {
+        return this.cursos().map(c => ({ label: c.nombre, value: c.id }));
+    }
     get paralelosOptions() {
         return this.paralelosFiltrados().map(p => ({ label: p.nombre, value: p.id }));
     }
 
     onGlobalFilter(t: Table, e: Event): void { t.filterGlobal((e.target as HTMLInputElement).value, 'contains'); }
+
+    private actualizarParalelosFiltrados(): void {
+        if (!this.form.idGestion || !this.idCursoSeleccionado) {
+            this.paralelosFiltrados.set([]);
+            return;
+        }
+        this.paralelosFiltrados.set(this.paralelos().filter(p =>
+            p.idGestionAcademica === this.form.idGestion && p.idCurso === this.idCursoSeleccionado
+        ));
+    }
+
+    private getParalelo(id: string): ParaleloResponse | undefined {
+        return this.paralelos().find(x => x.id === id);
+    }
+
     private error(msg: string): void { this.messageService.add({ severity: 'error', summary: 'Error', detail: msg, life: 5000 }); }
 }

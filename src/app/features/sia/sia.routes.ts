@@ -30,7 +30,7 @@ export default [
         path: 'calificaciones',
         canActivate: [permissionOrRoleGuard(
             ['CALIFICACIONES_READ', 'CALIFICACIONES_WRITE', 'CALIFICACIONES_READ_ALL', 'MI_AREA_READ'],
-            ['ADMIN_INSTITUCION', 'SUPER_ADMIN', 'DIRECTOR', 'DOCENTE']
+            ['ADMIN_INSTITUCION', 'SUPER_ADMIN', 'DIRECTOR', 'DOCENTE', 'ESTUDIANTE']
         )],
         loadComponent: () => import('./calificaciones/calificaciones.component').then(m => m.CalificacionesComponent)
     },
@@ -38,7 +38,7 @@ export default [
         path: 'historial',
         canActivate: [permissionOrRoleGuard(
             [],
-            ['ADMIN_INSTITUCION', 'SUPER_ADMIN', 'DIRECTOR', 'SECRETARIO', 'DOCENTE']
+            ['ADMIN_INSTITUCION', 'SUPER_ADMIN', 'DIRECTOR', 'SECRETARIO', 'DOCENTE', 'ESTUDIANTE']
         )],
         loadComponent: () => import('./historial/historial.component').then(m => m.HistorialComponent)
     },

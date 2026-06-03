@@ -375,6 +375,10 @@ export class CalificacionService {
         return this.http.patch<ApiResponse<ActividadEvaluativaResponse>>(`${this.base}/calificaciones/trimestres/actividades/${id}/estado`, null, { params });
     }
 
+    eliminarActividadTrimestral(id: string): Observable<ApiResponse<void>> {
+        return this.http.delete<ApiResponse<void>>(`${this.base}/calificaciones/trimestres/actividades/${id}`);
+    }
+
     listarCalificacionesActividadTrimestral(idActividad: string): Observable<ApiResponse<CalificacionActividadResponse[]>> {
         return this.http.get<ApiResponse<CalificacionActividadResponse[]>>(`${this.base}/calificaciones/trimestres/actividades/${idActividad}/calificaciones`);
     }

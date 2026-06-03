@@ -59,6 +59,7 @@ export class MenuService {
         const hasRole = (role: string) => roles.includes(role);
 
         const isDocente = hasRole('DOCENTE');
+        const isEstudiante = hasRole('ESTUDIANTE');
         const isAdminInstitucion = hasRole('ADMIN_INSTITUCION');
         const isDirector = hasRole('DIRECTOR');
 
@@ -73,7 +74,7 @@ export class MenuService {
         const canOperacion = has('OPERACION_READ') || has('OPERACION_WRITE');
         const canOperacionAdministrativa = canOperacion && !isDocente;
 
-        const canMiArea = has('MI_AREA_READ') || isDocente;
+        const canMiArea = has('MI_AREA_READ') || isDocente || isEstudiante;
 
         const canBackups = isAdminInstitucion;
         const canReportes = has('REPORTES_READ') || has('REPORTES_EXPORT') || has('REPORTES_WRITE') || isAdminInstitucion || isDirector || hasRole('SECRETARIO');
@@ -215,9 +216,13 @@ export class MenuService {
         if (canMiArea) {
             menu.push({ separator: true });
 
-            const miAreaItems: MenuItem[] = [
-                { label: 'Mis asignaciones', icon: 'pi pi-fw pi-graduation-cap', routerLink: ['/asignaciones'] },
-            ];
+            const miAreaItems: MenuItem[] = [];
+
+            if (!isEstudiante) {
+                miAreaItems.push(
+                    { label: 'Mis asignaciones', icon: 'pi pi-fw pi-graduation-cap', routerLink: ['/asignaciones'] },
+                );
+            }
 
             if (canAsistencia) {
                 miAreaItems.push(
@@ -225,7 +230,7 @@ export class MenuService {
                 );
             }
 
-            if (canCalificaciones) {
+            if (canCalificaciones || isEstudiante) {
                 miAreaItems.push(
                     { label: 'Calificaciones', icon: 'pi pi-fw pi-file-edit', routerLink: ['/calificaciones'] },
                 );

@@ -28,7 +28,7 @@ export const oauth2Interceptor: HttpInterceptorFn = (req, next) => {
 
     return next(req).pipe(
         catchError((error: HttpErrorResponse) => {
-            if ((error.status === 401 || error.status === 403) && !isPublicRoute && !isQrRoute) {
+            if (error.status === 401 && !isPublicRoute && !isQrRoute) {
                 if (authService.clearSession()) {
                     const returnUrl = router.url;
                     messageService.add({
@@ -44,6 +44,13 @@ export const oauth2Interceptor: HttpInterceptorFn = (req, next) => {
                         });
                     }, 3000);
                 }
+            } else if (error.status === 403 && !isPublicRoute && !isQrRoute) {
+                messageService.add({
+                    severity: 'warn',
+                    summary: 'Acceso denegado',
+                    detail: 'No tienes permisos para realizar esta accion.',
+                    life: 3000
+                });
             }
             return throwError(() => error);
         })
