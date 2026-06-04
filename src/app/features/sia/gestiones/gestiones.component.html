@@ -8,12 +8,14 @@
             <h3 class="text-xl font-semibold text-surface-900 dark:text-surface-0 m-0">Gestiones Académicas</h3>
             <p class="text-surface-400 text-sm mt-1 mb-0">Administra los periodos académicos de la institución</p>
         </div>
-        <p-button label="Nueva Gestión" icon="pi pi-plus" (onClick)="nuevo()" />
+        <ng-container *appCanPerm="['GESTION_WRITE']">
+            <p-button label="Nueva Gestión" icon="pi pi-plus" (onClick)="nuevo()" />
+        </ng-container>
     </div>
 
     <!-- Table -->
     <p-table #dt [value]="gestiones()" [loading]="loading" dataKey="id"
-        [globalFilterFields]="['nombre','estado']"
+        [globalFilterFields]="['nombre','estado','tipoPeriodo']"
         [paginator]="true" [rows]="10" [rowsPerPageOptions]="[10,25,50]"
         sortField="nombre" [sortOrder]="1"
         styleClass="p-datatable-striped">
@@ -28,6 +30,8 @@
         <ng-template #header>
             <tr>
                 <th pSortableColumn="nombre">Nombre <p-sortIcon field="nombre" /></th>
+                <th pSortableColumn="tipoPeriodo">Evaluación <p-sortIcon field="tipoPeriodo" /></th>
+                <th>Periodos</th>
                 <th pSortableColumn="fechaInicio">Inicio <p-sortIcon field="fechaInicio" /></th>
                 <th pSortableColumn="fechaFin">Fin <p-sortIcon field="fechaFin" /></th>
                 <th>Activa</th>
@@ -39,6 +43,8 @@
         <ng-template #body let-g>
             <tr>
                 <td class="font-medium">{{ g.nombre }}</td>
+                <td>{{ periodoLabel(g.tipoPeriodo) }}</td>
+                <td>{{ g.cantidadPeriodos ?? '-' }}</td>
                 <td>{{ g.fechaInicio | date:'dd/MM/yyyy' }}</td>
                 <td>{{ g.fechaFin | date:'dd/MM/yyyy' }}</td>
                 <td>
@@ -53,18 +59,20 @@
                         [severity]="g.estado === 'ACTIVO' ? 'success' : 'danger'" />
                 </td>
                 <td>
-                    <div class="flex gap-2">
-                        <p-button icon="pi pi-pencil" [rounded]="true" [text]="true" severity="info"
-                            pTooltip="Editar" tooltipPosition="top" (onClick)="editar(g)" />
-                        <p-button icon="pi pi-trash" [rounded]="true" [text]="true" severity="danger"
-                            pTooltip="Eliminar" tooltipPosition="top" (onClick)="confirmarEliminar(g)" />
-                    </div>
+                    <ng-container *appCanPerm="['GESTION_WRITE']">
+                        <div class="flex gap-2">
+                            <p-button icon="pi pi-pencil" [rounded]="true" [text]="true" severity="info"
+                                pTooltip="Editar" tooltipPosition="top" (onClick)="editar(g)" />
+                            <p-button icon="pi pi-trash" [rounded]="true" [text]="true" severity="danger"
+                                pTooltip="Eliminar" tooltipPosition="top" (onClick)="confirmarEliminar(g)" />
+                        </div>
+                    </ng-container>
                 </td>
             </tr>
         </ng-template>
 
         <ng-template #emptymessage>
-            <tr><td colspan="6" class="text-center py-8 text-surface-400">No hay gestiones registradas</td></tr>
+            <tr><td colspan="8" class="text-center py-8 text-surface-400">No hay gestiones registradas</td></tr>
         </ng-template>
     </p-table>
 </div>
@@ -72,13 +80,44 @@
 <!-- Dialog -->
 <p-dialog [(visible)]="dialogVisible"
     [header]="editMode ? 'Editar Gestión' : 'Nueva Gestión'"
-    [modal]="true" [style]="{width: '480px'}" [draggable]="false">
+    [modal]="true" [style]="{width: '640px'}" [draggable]="false">
 
     <div class="flex flex-col gap-4 pt-2">
+        <div class="rounded-xl border border-blue-100 bg-blue-50 p-4 text-sm text-blue-900 dark:border-blue-900/40 dark:bg-blue-950/30 dark:text-blue-100">
+            Define la gestión escolar y el esquema de evaluación. Los periodos específicos y sus dimensiones se configurarán luego desde el módulo de periodos.
+        </div>
+
         <div class="flex flex-col gap-1">
             <label class="font-medium text-sm">Nombre <span class="text-red-500">*</span></label>
             <input pInputText [(ngModel)]="form.nombre" placeholder="Ej: 2025 - I" />
         </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div class="flex flex-col gap-1">
+                <label class="font-medium text-sm">Tipo de evaluación <span class="text-red-500">*</span></label>
+                <p-select
+                    [options]="tipoPeriodoOptions"
+                    [(ngModel)]="form.tipoPeriodo"
+                    optionLabel="label"
+                    optionValue="value"
+                    placeholder="Seleccionar tipo"
+                    appendTo="body"
+                    styleClass="w-full"
+                    (ngModelChange)="onTipoPeriodoChange($event)" />
+            </div>
+
+            <div class="flex flex-col gap-1">
+                <label class="font-medium text-sm">Cantidad de periodos <span class="text-red-500">*</span></label>
+                <p-inputnumber
+                    [(ngModel)]="form.cantidadPeriodos"
+                    [min]="1"
+                    [max]="12"
+                    [showButtons]="true"
+                    inputStyleClass="w-full"
+                    styleClass="w-full" />
+            </div>
+        </div>
+
         <div class="grid grid-cols-2 gap-4">
             <div class="flex flex-col gap-1">
                 <label class="font-medium text-sm">Fecha inicio <span class="text-red-500">*</span></label>
@@ -96,7 +135,9 @@
     </div>
 
     <ng-template #footer>
-        <p-button label="Cancelar" icon="pi pi-times" [text]="true" severity="secondary" (onClick)="dialogVisible = false" />
-        <p-button [label]="editMode ? 'Actualizar' : 'Guardar'" icon="pi pi-check" (onClick)="guardar()" />
+        <ng-container *appCanPerm="['GESTION_WRITE']">
+            <p-button label="Cancelar" icon="pi pi-times" [text]="true" severity="secondary" (onClick)="dialogVisible = false" />
+            <p-button [label]="editMode ? 'Actualizar' : 'Guardar'" icon="pi pi-check" (onClick)="guardar()" />
+        </ng-container>
     </ng-template>
 </p-dialog>

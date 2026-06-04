@@ -22,6 +22,12 @@ import {
     ConsolidadoTrimestralMateriaResponse,
     EvaluacionRequest,
     EvaluacionResponse,
+    PeriodoEvaluacionRequest,
+    PeriodoEvaluacionResponse,
+    ObservacionSerRequest,
+    ObservacionSerResponse,
+    ConsolidadoEstudianteResponse,
+    PeriodoCierreRequest,
 } from '@/core/models/sia.models';
 
 /**
@@ -447,5 +453,94 @@ export class CalificacionService {
         if (filtros?.tipoOperacion) params = params.set('tipoOperacion', filtros.tipoOperacion);
         if (filtros?.exito !== undefined) params = params.set('exito', filtros.exito);
         return this.http.get<ApiResponse<BitacoraAuditoriaResponse[]>>(`${this.base}/calificaciones/trimestres/bitacora`, { params });
+    }
+
+    // ─── Periodos Dinámicos ────────────────────────────────────────────────────
+
+    listarPeriodosGestion(idGestion: string): Observable<ApiResponse<PeriodoEvaluacionResponse[]>> {
+        return this.http.get<ApiResponse<PeriodoEvaluacionResponse[]>>(`${this.base}/gestiones/${idGestion}/periodos`);
+    }
+
+    crearPeriodosGestion(idGestion: string, body: PeriodoEvaluacionRequest[]): Observable<ApiResponse<PeriodoEvaluacionResponse[]>> {
+        return this.http.post<ApiResponse<PeriodoEvaluacionResponse[]>>(`${this.base}/gestiones/${idGestion}/periodos`, body);
+    }
+
+    actualizarFechasPeriodo(idGestion: string, idPeriodo: string, fechaInicio: string, fechaFin: string): Observable<ApiResponse<PeriodoEvaluacionResponse>> {
+        const params = new HttpParams().set('fechaInicio', fechaInicio).set('fechaFin', fechaFin);
+        return this.http.put<ApiResponse<PeriodoEvaluacionResponse>>(`${this.base}/gestiones/${idGestion}/periodos/${idPeriodo}`, null, { params });
+    }
+
+    // ─── Actividades por Periodo ──────────────────────────────────────────────
+
+    listarActividadesPorPeriodo(idPeriodo: string, dimension?: string): Observable<ApiResponse<ActividadEvaluativaResponse[]>> {
+        let params = new HttpParams();
+        if (dimension) params = params.set('dimension', dimension);
+        return this.http.get<ApiResponse<ActividadEvaluativaResponse[]>>(`${this.base}/calificaciones/periodos/${idPeriodo}/actividades`, { params });
+    }
+
+    crearActividadPeriodo(idPeriodo: string, body: ActividadEvaluativaRequest): Observable<ApiResponse<ActividadEvaluativaResponse>> {
+        return this.http.post<ApiResponse<ActividadEvaluativaResponse>>(`${this.base}/calificaciones/periodos/${idPeriodo}/actividades`, body);
+    }
+
+    actualizarActividadPeriodo(idPeriodo: string, idActividad: string, body: ActividadEvaluativaRequest): Observable<ApiResponse<ActividadEvaluativaResponse>> {
+        return this.http.put<ApiResponse<ActividadEvaluativaResponse>>(`${this.base}/calificaciones/periodos/${idPeriodo}/actividades/${idActividad}`, body);
+    }
+
+    eliminarActividadPeriodo(idPeriodo: string, idActividad: string): Observable<ApiResponse<void>> {
+        return this.http.delete<ApiResponse<void>>(`${this.base}/calificaciones/periodos/${idPeriodo}/actividades/${idActividad}`);
+    }
+
+    // ─── Calificaciones de Actividades ─────────────────────────────────────
+
+    listarCalificacionesActividad(idPeriodo: string, idActividad: string): Observable<ApiResponse<CalificacionActividadResponse[]>> {
+        return this.http.get<ApiResponse<CalificacionActividadResponse[]>>(`${this.base}/calificaciones/periodos/${idPeriodo}/actividades/${idActividad}/calificaciones`);
+    }
+
+    guardarCalificacionesActividad(idPeriodo: string, body: CalificacionActividadRegistroRequest): Observable<ApiResponse<CalificacionActividadResponse[]>> {
+        return this.http.post<ApiResponse<CalificacionActividadResponse[]>>(`${this.base}/calificaciones/periodos/${idPeriodo}/calificaciones-actividad`, body);
+    }
+
+    // ─── SER ────────────────────────────────────────────────────────────────
+
+    obtenerSerPeriodo(idPeriodo: string, idEstudiante: string, idMateria: string): Observable<ApiResponse<CalificacionSerResponse>> {
+        return this.http.get<ApiResponse<CalificacionSerResponse>>(`${this.base}/calificaciones/periodos/${idPeriodo}/ser/${idEstudiante}/${idMateria}`);
+    }
+
+    guardarSerPeriodo(idPeriodo: string, body: CalificacionSerRequest): Observable<ApiResponse<CalificacionSerResponse>> {
+        return this.http.post<ApiResponse<CalificacionSerResponse>>(`${this.base}/calificaciones/periodos/${idPeriodo}/ser`, body);
+    }
+
+    listarObservacionesSer(idPeriodo: string, idEstudiante: string, idMateria: string): Observable<ApiResponse<ObservacionSerResponse[]>> {
+        return this.http.get<ApiResponse<ObservacionSerResponse[]>>(`${this.base}/calificaciones/periodos/${idPeriodo}/ser/${idEstudiante}/${idMateria}/observaciones`);
+    }
+
+    agregarObservacionSer(idPeriodo: string, body: ObservacionSerRequest): Observable<ApiResponse<ObservacionSerResponse>> {
+        return this.http.post<ApiResponse<ObservacionSerResponse>>(`${this.base}/calificaciones/periodos/${idPeriodo}/ser/observaciones`, body);
+    }
+
+    // ─── Autoevaluacion ───────────────────────────────────────────────────────
+
+    obtenerAutoevaluacionPeriodo(idPeriodo: string, idEstudiante: string, idMateria: string): Observable<ApiResponse<AutoevaluacionTrimestralResponse>> {
+        return this.http.get<ApiResponse<AutoevaluacionTrimestralResponse>>(`${this.base}/calificaciones/periodos/${idPeriodo}/autoevaluacion/${idEstudiante}/${idMateria}`);
+    }
+
+    guardarAutoevaluacionPeriodo(idPeriodo: string, body: AutoevaluacionTrimestralRequest): Observable<ApiResponse<AutoevaluacionTrimestralResponse>> {
+        return this.http.post<ApiResponse<AutoevaluacionTrimestralResponse>>(`${this.base}/calificaciones/periodos/${idPeriodo}/autoevaluacion`, body);
+    }
+
+    // ─── Consolidado ─────────────────────────────────────────────────────────
+
+    obtenerConsolidadoEstudiante(idPeriodo: string, idEstudiante: string, idMateria: string): Observable<ApiResponse<ConsolidadoEstudianteResponse>> {
+        return this.http.get<ApiResponse<ConsolidadoEstudianteResponse>>(`${this.base}/calificaciones/periodos/${idPeriodo}/consolidado/${idEstudiante}/${idMateria}`);
+    }
+
+    // ─── Cierre/Reapertura ───────────────────────────────────────────────────
+
+    cerrarPeriodo(idPeriodo: string, body: PeriodoCierreRequest): Observable<ApiResponse<PeriodoEvaluacionResponse>> {
+        return this.http.post<ApiResponse<PeriodoEvaluacionResponse>>(`${this.base}/calificaciones/periodos/${idPeriodo}/cerrar`, body);
+    }
+
+    reopenPeriodo(idPeriodo: string, body: PeriodoCierreRequest): Observable<ApiResponse<PeriodoEvaluacionResponse>> {
+        return this.http.post<ApiResponse<PeriodoEvaluacionResponse>>(`${this.base}/calificaciones/periodos/${idPeriodo}/reabrir`, body);
     }
 }

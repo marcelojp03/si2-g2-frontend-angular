@@ -16,6 +16,7 @@ import { ConfirmDialogModule } from 'primeng/confirmdialog';
 import { InstitucionService } from '@/core/services/institucion.service';
 import { StorageService } from '@/core/services/storage.service';
 import { FileUploadComponent } from '@/shared/components/file-upload/file-upload.component';
+import { CanPermDirective } from '@/shared/directives/can-perm.directive';
 import {
     ConfiguracionInstitucionRequest,
     ConfiguracionParametroResponse,
@@ -27,7 +28,7 @@ import {
     standalone: true,
     imports: [CommonModule, FormsModule, TableModule, ButtonModule, ToastModule, TagModule,
         InputTextModule, DialogModule, TooltipModule, TextareaModule,
-        ToggleSwitchModule, ProgressSpinnerModule, FileUploadComponent, ConfirmDialogModule],
+        ToggleSwitchModule, ProgressSpinnerModule, FileUploadComponent, ConfirmDialogModule, CanPermDirective],
     providers: [MessageService, ConfirmationService],
     templateUrl: './configuracion.component.html'
 })

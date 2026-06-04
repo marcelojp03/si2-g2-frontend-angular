@@ -52,6 +52,14 @@ export const oauth2Interceptor: HttpInterceptorFn = (req, next) => {
                     life: 3000
                 });
             }
+            if (error.status === 403 && !isPublicRoute && !isQrRoute) {
+                messageService.add({
+                    severity: 'error',
+                    summary: 'Acceso denegado',
+                    detail: error.error?.mensaje || 'No tienes permisos para realizar esta acción.',
+                    life: 5000
+                });
+            }
             return throwError(() => error);
         })
     );

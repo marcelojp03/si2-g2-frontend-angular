@@ -98,54 +98,91 @@ export interface CalificacionResumenResponse {
     estudiantes: CalificacionResumenEstudianteResponse[];
 }
 
-// ─── Calificaciones Trimestrales ────────────────────────────────────────────
+// ─── Periodo Evaluacion (Dinámico) ─────────────────────────────────────────
 
-export interface PeriodoTrimestralResponse {
+export interface PeriodoEvaluacionRequest {
+    numeroPeriodo: number;
+    tipoPeriodo: string;
+    fechaInicio: string;
+    fechaFin: string;
+    pesoSer?: number;
+    pesoSaber?: number;
+    pesoHacer?: number;
+    pesoAuto?: number;
+}
+
+export interface PeriodoEvaluacionResponse {
     id: string;
     idInstitucion: string;
     idGestionAcademica: string;
-    numeroTrimestre: number;
+    numeroPeriodo: number;
+    tipoPeriodo: string;
+    fechaInicio: string;
+    fechaFin: string;
     estado: string;
+    pesoSer: number;
+    pesoSaber: number;
+    pesoHacer: number;
+    pesoAuto: number;
     fechaCierre?: string | null;
     justificacionCierre?: string | null;
-    idUsuarioCierre?: string | null;
     fechaReapertura?: string | null;
     justificacionReapertura?: string | null;
-    idUsuarioReapertura?: string | null;
     creadoEn: string;
     actualizadoEn: string;
 }
 
+export interface ObservacionSerRequest {
+    idEstudiante: string;
+    idMateria: string;
+    fechaObservacion: string;
+    comportamiento: string;
+    descripcion?: string | null;
+}
+
+export interface ObservacionSerResponse {
+    id: string;
+    idPeriodoEvaluacion: string;
+    idEstudiante: string;
+    idDocente: string;
+    idMateria: string;
+    fechaObservacion: string;
+    comportamiento: string;
+    descripcion?: string | null;
+    creadoEn: string;
+}
+
+// ─── Calificaciones Trimestrales Dinámico ──────────────────────────────────
+
 export interface ActividadEvaluativaRequest {
-    idGestionAcademica: string;
-    trimestre: number;
-    idCurso: string;
-    idParalelo: string;
+    idGestionAcademica?: string;
+    trimestre?: number;
+    idCurso?: string;
+    idParalelo?: string;
     idMateria: string;
     idDocente: string;
     nombreActividad: string;
-    tipoActividad: string;
+    tipoActividad?: string;
     dimension: string;
-    fechaActividad?: string | null;
-    descripcion?: string | null;
+    descripcion?: string;
+    fechaActividad?: string;
+    descripcionEvidencia?: string | null;
+    puntajeMaximo?: number;
     estado?: string | null;
 }
 
 export interface ActividadEvaluativaResponse {
     id: string;
-    idPeriodoTrimestral: string;
-    idGestionAcademica: string;
-    idCurso: string;
-    idParalelo: string;
+    idPeriodoEvaluacion: string;
     idMateria: string;
     idDocente: string;
     nombreActividad: string;
-    tipoActividad: string;
     dimension: string;
-    puntajeMaximo: number;
     fechaActividad: string;
-    descripcion?: string | null;
+    descripcionEvidencia?: string | null;
+    puntajeMaximo: number;
     estado: string;
+    publicadoEn?: string | null;
     creadoEn: string;
     actualizadoEn: string;
 }
@@ -175,28 +212,25 @@ export interface CalificacionActividadResponse {
 }
 
 export interface CalificacionSerRequest {
-    idGestionAcademica: string;
-    trimestre: number;
-    idCurso: string;
-    idParalelo: string;
-    idMateria: string;
-    idDocente: string;
+    idGestionAcademica?: string;
+    trimestre?: number;
+    idCurso?: string;
+    idParalelo?: string;
+    idMateria?: string;
+    idDocente?: string;
     idEstudiante: string;
     notaSer: number;
-    observacion?: string | null;
+    observacion?: string;
+    observacionFinal?: string | null;
 }
 
 export interface CalificacionSerResponse {
     id: string;
-    idGestionAcademica: string;
-    idTrimestre: string;
-    idCurso: string;
-    idParalelo: string;
-    idMateria: string;
-    idDocente: string;
+    idPeriodoEvaluacion: string;
     idEstudiante: string;
+    idMateria: string;
     notaSer: number;
-    observacion?: string | null;
+    observacionFinal?: string | null;
     estado: string;
     idUsuarioRegistro?: string | null;
     idUsuarioModificacion?: string | null;
@@ -205,25 +239,59 @@ export interface CalificacionSerResponse {
 }
 
 export interface AutoevaluacionTrimestralRequest {
-    idGestionAcademica: string;
-    trimestre: number;
-    idMateria: string;
+    idGestionAcademica?: string;
+    trimestre?: number;
     idEstudiante: string;
+    idMateria: string;
     notaAutoevaluacion: number;
     comentario?: string | null;
 }
 
 export interface AutoevaluacionTrimestralResponse {
     id: string;
-    idGestionAcademica: string;
-    idTrimestre: string;
-    idMateria: string;
+    idPeriodoEvaluacion: string;
     idEstudiante: string;
+    idMateria: string;
     notaAutoevaluacion: number;
     comentario?: string | null;
     estado: string;
     idUsuarioRegistro?: string | null;
     idUsuarioModificacion?: string | null;
+    creadoEn: string;
+    actualizadoEn: string;
+}
+
+export interface ConsolidadoEstudianteResponse {
+    idEstudiante: string;
+    nombreEstudiante: string;
+    saber: number;
+    hacer: number;
+    ser: number;
+    autoevaluacion: number;
+    total: number;
+    aprobado: boolean;
+    estado: string;
+}
+
+export interface PeriodoCierreRequest {
+    justificacion: string;
+    cerrar: boolean;
+}
+
+// ─── Legacy types (deprecated) ──────────────────────────────────────────────
+
+export interface PeriodoTrimestralResponse {
+    id: string;
+    idInstitucion: string;
+    idGestionAcademica: string;
+    numeroTrimestre: number;
+    estado: string;
+    fechaCierre?: string | null;
+    justificacionCierre?: string | null;
+    idUsuarioCierre?: string | null;
+    fechaReapertura?: string | null;
+    justificacionReapertura?: string | null;
+    idUsuarioReapertura?: string | null;
     creadoEn: string;
     actualizadoEn: string;
 }
@@ -266,3 +334,29 @@ export interface ConsolidadoTrimestralDirectorResponse {
     promedioGeneral: number;
     materias: ConsolidadoTrimestralMateriaResponse[];
 }
+
+export const TIPO_PERIODOS = ['BIMESTRAL', 'TRIMESTRAL', 'SEMESTRAL', 'ANUAL'] as const;
+export type TipoPeriodo = typeof TIPO_PERIODOS[number];
+
+export const DIMENSIONES = ['SABER', 'HACER'] as const;
+export type Dimension = typeof DIMENSIONES[number];
+
+export const COMPORTAMIENTOS_SER = [
+    'RESPETO',
+    'PUNTUALIDAD',
+    'SOLIDARIDAD',
+    'HONESTIDAD',
+    'PARTICIPACION',
+    'RESPONSABILIDAD',
+    'OTRO'
+] as const;
+export type ComportamientoSer = typeof COMPORTAMIENTOS_SER[number];
+
+export const PESOS_FIJOS = {
+    SER: 10,
+    SABER: 45,
+    HACER: 40,
+    AUTO: 5
+} as const;
+
+export const NOTA_APROBACION = 51;

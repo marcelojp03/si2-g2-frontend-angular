@@ -13,6 +13,7 @@ import { SelectModule } from 'primeng/select';
 import { DatePickerModule } from 'primeng/datepicker';
 import { InputTextModule } from 'primeng/inputtext';
 import { SaasService } from '@/core/services/saas.service';
+import { AuthService } from '@/core/services/auth.service';
 import { InstitucionService } from '@/core/services/institucion.service';
 import {
     InstitucionResponse,
@@ -36,9 +37,12 @@ interface SuscripcionRow {
 })
 export class AdminSuscripcionesComponent implements OnInit {
     private saasService = inject(SaasService);
+    private auth = inject(AuthService);
     private institucionService = inject(InstitucionService);
     private messageService = inject(MessageService);
     private confirmationService = inject(ConfirmationService);
+
+    get isSuperAdmin(): boolean { return this.auth.isSuperAdmin(); }
 
     rows = signal<SuscripcionRow[]>([]);
     planes = signal<PlanSuscripcionResponse[]>([]);

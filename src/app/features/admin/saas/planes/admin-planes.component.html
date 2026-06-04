@@ -7,7 +7,9 @@
             <h2 class="text-xl font-semibold text-surface-900 dark:text-surface-0">Planes de Suscripción</h2>
             <p class="text-surface-500 text-sm mt-1">Gestión de planes disponibles para las instituciones</p>
         </div>
-        <p-button label="Nuevo Plan" icon="pi pi-plus" (onClick)="nuevo()" />
+        @if (isSuperAdmin) {
+            <p-button label="Nuevo Plan" icon="pi pi-plus" (onClick)="nuevo()" />
+        }
     </div>
 
     <p-table
@@ -56,12 +58,14 @@
                     <p-tag [severity]="severityEstado(plan.estado)" [value]="plan.estado" />
                 </td>
                 <td>
-                    <div class="flex gap-1">
-                        <p-button icon="pi pi-pencil" [rounded]="true" [text]="true" severity="info" pTooltip="Editar" (onClick)="editar(plan)" />
-                        @if (plan.estado === 'ACTIVO') {
-                            <p-button icon="pi pi-ban" [rounded]="true" [text]="true" severity="danger" pTooltip="Desactivar" (onClick)="confirmarDesactivar(plan)" />
-                        }
-                    </div>
+                    @if (isSuperAdmin) {
+                        <div class="flex gap-1">
+                            <p-button icon="pi pi-pencil" [rounded]="true" [text]="true" severity="info" pTooltip="Editar" (onClick)="editar(plan)" />
+                            @if (plan.estado === 'ACTIVO') {
+                                <p-button icon="pi pi-ban" [rounded]="true" [text]="true" severity="danger" pTooltip="Desactivar" (onClick)="confirmarDesactivar(plan)" />
+                            }
+                        </div>
+                    }
                 </td>
             </tr>
         </ng-template>
@@ -127,7 +131,9 @@
     </div>
 
     <ng-template pTemplate="footer">
-        <p-button label="Cancelar" icon="pi pi-times" [text]="true" severity="secondary" (onClick)="dialogVisible = false" />
-        <p-button label="Guardar" icon="pi pi-check" (onClick)="guardar()" />
+        @if (isSuperAdmin) {
+            <p-button label="Cancelar" icon="pi pi-times" [text]="true" severity="secondary" (onClick)="dialogVisible = false" />
+            <p-button label="Guardar" icon="pi pi-check" (onClick)="guardar()" />
+        }
     </ng-template>
 </p-dialog>

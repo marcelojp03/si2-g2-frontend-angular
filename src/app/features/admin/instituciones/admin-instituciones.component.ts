@@ -14,6 +14,7 @@ import { TooltipModule } from 'primeng/tooltip';
 import { ConfirmDialogModule } from 'primeng/confirmdialog';
 import { SelectModule } from 'primeng/select';
 import { InstitucionService } from '@/core/services/institucion.service';
+import { AuthService } from '@/core/services/auth.service';
 import { InstitucionResponse, InstitucionRequest } from '@/core/models/sia.models';
 
 @Component({
@@ -27,8 +28,11 @@ import { InstitucionResponse, InstitucionRequest } from '@/core/models/sia.model
 })
 export class AdminInstitucionesComponent implements OnInit {
     private service = inject(InstitucionService);
+    private auth = inject(AuthService);
     private messageService = inject(MessageService);
     private confirmationService = inject(ConfirmationService);
+
+    get isSuperAdmin(): boolean { return this.auth.isSuperAdmin(); }
 
     readonly tiposInstitucion = [
         { label: 'Fiscal', value: 'FISCAL' },

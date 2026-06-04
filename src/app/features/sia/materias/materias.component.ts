@@ -14,6 +14,7 @@ import { TooltipModule } from 'primeng/tooltip';
 import { ConfirmDialogModule } from 'primeng/confirmdialog';
 import { InputNumberModule } from 'primeng/inputnumber';
 import { MateriasService } from '@/features/sia/materias/services/materias.service';
+import { CanPermDirective } from '@/shared/directives/can-perm.directive';
 import { MateriaResponse, MateriaRequest } from '@/core/models/sia.models';
 
 @Component({
@@ -21,7 +22,7 @@ import { MateriaResponse, MateriaRequest } from '@/core/models/sia.models';
     standalone: true,
     imports: [CommonModule, FormsModule, TableModule, ButtonModule, ToastModule, TagModule,
         InputTextModule, InputIconModule, IconFieldModule, DialogModule, TooltipModule,
-        ConfirmDialogModule, InputNumberModule],
+        ConfirmDialogModule, InputNumberModule, CanPermDirective],
     providers: [MessageService, ConfirmationService],
     templateUrl: './materias.component.html'
 })

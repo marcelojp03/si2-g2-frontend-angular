@@ -19,6 +19,7 @@ import { TutoresService } from '@/features/sia/tutores/services/tutores.service'
 import { EstudiantesService } from '@/features/sia/estudiantes/services/estudiantes.service';
 import { StorageService } from '@/core/services/storage.service';
 import { FileUploadComponent } from '@/shared/components/file-upload/file-upload.component';
+import { CanPermDirective } from '@/shared/directives/can-perm.directive';
 import {
     TutorRequest, TutorResponse,
     TutorEstudianteRequest, TutorEstudianteResponse,
@@ -30,7 +31,7 @@ import {
     standalone: true,
     imports: [CommonModule, FormsModule, TableModule, ButtonModule, ToastModule, TagModule,
         InputTextModule, InputIconModule, IconFieldModule, DialogModule, TooltipModule,
-        ConfirmDialogModule, CheckboxModule, SelectModule, FileUploadComponent],
+        ConfirmDialogModule, CheckboxModule, SelectModule, FileUploadComponent, CanPermDirective],
     providers: [MessageService, ConfirmationService],
     templateUrl: './tutores.component.html'
 })

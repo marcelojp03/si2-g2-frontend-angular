@@ -11,6 +11,7 @@ import { ToastModule } from 'primeng/toast';
 import { TooltipModule } from 'primeng/tooltip';
 import { AsistenciaService } from '@/features/sia/asistencia/services/asistencia.service';
 import { AuthService } from '@/core/services/auth.service';
+import { CanPermDirective } from '@/shared/directives/can-perm.directive';
 import {
     AsistenciaAsignacionResponse,
     AsistenciaDetalleRequest,
@@ -33,6 +34,7 @@ import {
         TagModule,
         ToastModule,
         TooltipModule,
+        CanPermDirective,
     ],
     providers: [MessageService],
     templateUrl: './asistencia.component.html',
@@ -234,7 +236,7 @@ export class AsistenciaComponent implements OnInit {
             || this.authService.hasRole('ADMIN_INSTITUCION')
             || this.authService.hasRole('DIRECTOR')
             || this.authService.hasRole('SUPER_ADMIN')
-            || this.authService.hasPermission('ASISTENCIA_WRITE');
+            || this.authService.hasPermission('ASISTENCIA_UPDATE');
     }
 
     puedeEditarFechaPasada(): boolean {

@@ -8,7 +8,9 @@
             <h3 class="text-xl font-semibold text-surface-900 dark:text-surface-0 m-0">Asignaciones Docentes</h3>
             <p class="text-surface-400 text-sm mt-1 mb-0">Asignación de docentes a materias y paralelos por gestión</p>
         </div>
-        <p-button label="Nueva Asignación" icon="pi pi-plus" (onClick)="nueva()" />
+        <ng-container *appCanPerm="['ASIGNACIONES_CREATE']">
+            <p-button label="Nueva Asignación" icon="pi pi-plus" (onClick)="nueva()" />
+        </ng-container>
     </div>
 
     <!-- Table -->
@@ -38,17 +40,26 @@
 
         <ng-template #body let-a>
             <tr>
+<<<<<<< HEAD
                 <td class="font-medium">{{ a.nombreDocente }}</td>
                 <td>{{ a.nombreMateria }}</td>
                 <td>{{ a.nombreCurso }}</td>
                 <td>{{ a.nombreParalelo }}</td>
                 <td>{{ a.nombreGestion }}</td>
+=======
+                <td class="font-medium">{{ getNombreDocente(a) }}</td>
+                <td>{{ getNombreMateria(a) }}</td>
+                <td>{{ getNombreParalelo(a) }}</td>
+                <td>{{ getNombreGestion(a) }}</td>
+>>>>>>> 2d3de50 (feat: periodos y dimensiones UI, permisos reactivos, roles fix, routes restore)
                 <td>
                     <p-tag [value]="a.estado" [severity]="a.estado === 'ACTIVO' ? 'success' : 'danger'" />
                 </td>
                 <td>
-                    <p-button icon="pi pi-trash" [rounded]="true" [text]="true" severity="danger"
-                        pTooltip="Eliminar" tooltipPosition="top" (onClick)="confirmarEliminar(a)" />
+                    <ng-container *appCanPerm="['ASIGNACIONES_DELETE']">
+                        <p-button icon="pi pi-trash" [rounded]="true" [text]="true" severity="danger"
+                            pTooltip="Eliminar" tooltipPosition="top" (onClick)="confirmarEliminar(a)" />
+                    </ng-container>
                 </td>
             </tr>
         </ng-template>

@@ -16,6 +16,7 @@ import { SelectModule } from 'primeng/select';
 import { EstudiantesService } from '@/features/sia/estudiantes/services/estudiantes.service';
 import { StorageService } from '@/core/services/storage.service';
 import { FileUploadComponent } from '@/shared/components/file-upload/file-upload.component';
+import { CanPermDirective } from '@/shared/directives/can-perm.directive';
 import { EstudianteResponse, EstudianteRequest } from '@/core/models/sia.models';
 
 @Component({
@@ -23,7 +24,7 @@ import { EstudianteResponse, EstudianteRequest } from '@/core/models/sia.models'
     standalone: true,
     imports: [CommonModule, FormsModule, TableModule, ButtonModule, ToastModule, TagModule,
         InputTextModule, InputIconModule, IconFieldModule, DialogModule, TooltipModule,
-        ConfirmDialogModule, SelectModule, FileUploadComponent],
+        ConfirmDialogModule, SelectModule, FileUploadComponent, CanPermDirective],
     providers: [MessageService, ConfirmationService],
     templateUrl: './estudiantes.component.html'
 })

@@ -17,6 +17,7 @@ import { MultiSelectModule } from 'primeng/multiselect';
 import { DocentesService } from '@/features/sia/docentes/services/docentes.service';
 import { StorageService } from '@/core/services/storage.service';
 import { FileUploadComponent } from '@/shared/components/file-upload/file-upload.component';
+import { CanPermDirective } from '@/shared/directives/can-perm.directive';
 import { DocenteResponse, DocenteRequest, MateriaResponse } from '@/core/models/sia.models';
 
 @Component({
@@ -24,7 +25,7 @@ import { DocenteResponse, DocenteRequest, MateriaResponse } from '@/core/models/
     standalone: true,
     imports: [CommonModule, FormsModule, TableModule, ButtonModule, ToastModule, TagModule,
         InputTextModule, InputIconModule, IconFieldModule, DialogModule, TooltipModule,
-        ConfirmDialogModule, MultiSelectModule, FileUploadComponent],
+        ConfirmDialogModule, MultiSelectModule, FileUploadComponent, CanPermDirective],
     providers: [MessageService, ConfirmationService],
     templateUrl: './docentes.component.html'
 })

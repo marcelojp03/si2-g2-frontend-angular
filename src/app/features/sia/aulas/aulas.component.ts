@@ -15,6 +15,7 @@ import { TagModule } from 'primeng/tag';
 import { ToastModule } from 'primeng/toast';
 import { TooltipModule } from 'primeng/tooltip';
 import { AuthService } from '@/core/services/auth.service';
+import { CanPermDirective } from '@/shared/directives/can-perm.directive';
 import { AulasService } from '@/features/sia/aulas/services/aulas.service';
 import { AulaRequest, AulaResponse } from '@/core/models/sia.models';
 
@@ -35,7 +36,8 @@ import { AulaRequest, AulaResponse } from '@/core/models/sia.models';
         TooltipModule,
         ConfirmDialogModule,
         SelectModule,
-        InputNumberModule
+        InputNumberModule,
+        CanPermDirective
     ],
     providers: [MessageService, ConfirmationService],
     templateUrl: './aulas.component.html'
@@ -73,7 +75,7 @@ export class AulasComponent implements OnInit {
     @ViewChild('dt') dt!: Table;
 
     get canWrite(): boolean {
-        return this.auth.hasPermission('GESTION_WRITE') ||
+        return this.auth.hasPermission('AULAS_UPDATE') ||
             this.auth.hasRole('ADMIN_INSTITUCION') ||
             this.auth.hasRole('DIRECTOR') ||
             this.auth.hasRole('SUPER_ADMIN');

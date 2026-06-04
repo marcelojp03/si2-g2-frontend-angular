@@ -14,6 +14,7 @@ import { TagModule } from 'primeng/tag';
 import { ToastModule } from 'primeng/toast';
 import { TooltipModule } from 'primeng/tooltip';
 import { AuthService } from '@/core/services/auth.service';
+import { CanPermDirective } from '@/shared/directives/can-perm.directive';
 import { HorarioService } from '@/features/sia/horarios/services/horario.service';
 import { AsignacionesService } from '@/features/sia/asignaciones/services/asignaciones.service';
 import { AulasService } from '@/features/sia/aulas/services/aulas.service';
@@ -43,6 +44,7 @@ import {
         TooltipModule,
         ConfirmDialogModule,
         SelectModule,
+        CanPermDirective,
     ],
     providers: [MessageService, ConfirmationService],
     templateUrl: './gestion-horarios.component.html'
@@ -98,7 +100,7 @@ export class GestionHorariosComponent implements OnInit {
     }
 
     get canWrite(): boolean {
-        return this.auth.hasPermission('GESTION_WRITE') ||
+        return this.auth.hasPermission('HORARIOS_UPDATE') ||
             this.auth.hasRole('ADMIN_INSTITUCION') ||
             this.auth.hasRole('DIRECTOR') ||
             this.auth.hasRole('SUPER_ADMIN');

@@ -27,6 +27,7 @@ import { GestionesService } from '@/features/sia/gestiones/services/gestiones.se
 import { ParalelosService } from '@/features/sia/paralelos/services/paralelos.service';
 import { CursosService } from '@/features/sia/cursos/services/cursos.service';
 import { ReporteService } from './services/reporte.service';
+import { CanPermDirective } from '@/shared/directives/can-perm.directive';
 
 type ReportMode = 'predefinido' | 'nl' | 'qbe';
 type ExportKind = 'predefinido' | 'nl' | 'qbe';
@@ -34,7 +35,7 @@ type ExportKind = 'predefinido' | 'nl' | 'qbe';
 @Component({
     selector: 'app-reportes',
     standalone: true,
-    imports: [CommonModule, FormsModule, ButtonModule, CardModule, InputNumberModule, InputTextModule, SelectModule, Select, TableModule, Tabs, Tab, TabList, TabPanels, TabPanel, TagModule, TextareaModule, ToastModule],
+    imports: [CommonModule, FormsModule, ButtonModule, CardModule, InputNumberModule, InputTextModule, SelectModule, Select, TableModule, Tabs, Tab, TabList, TabPanels, TabPanel, TagModule, TextareaModule, ToastModule, CanPermDirective],
     providers: [MessageService],
     templateUrl: './reportes.component.html'
 })

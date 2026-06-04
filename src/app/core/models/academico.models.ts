@@ -3,6 +3,8 @@ export interface GestionAcademicaRequest {
     fechaInicio: string;
     fechaFin: string;
     activa?: boolean;
+    tipoPeriodo?: string;
+    cantidadPeriodos?: number;
 }
 
 export interface GestionAcademicaResponse {
@@ -13,7 +15,10 @@ export interface GestionAcademicaResponse {
     fechaFin: string;
     activa: boolean;
     estado: string;
+    tipoPeriodo?: string;
+    cantidadPeriodos?: number;
     creadoEn: string;
+    actualizadoEn?: string;
 }
 
 export interface CursoRequest {
@@ -131,6 +136,10 @@ export interface AsignacionDocenteResponse {
     idMateria: string;
     idParalelo: string;
     idGestion: string;
+    nombreDocente?: string;
+    nombreMateria?: string;
+    nombreParalelo?: string;
+    nombreGestion?: string;
     estado: string;
     creadoEn: string;
 }

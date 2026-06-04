@@ -1,7 +1,7 @@
 import { Component, OnInit, inject, signal, computed, ViewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { forkJoin } from 'rxjs';
+import { catchError, forkJoin, of } from 'rxjs';
 import { MessageService, ConfirmationService } from 'primeng/api';
 import { Table, TableModule } from 'primeng/table';
 import { ButtonModule } from 'primeng/button';
@@ -19,7 +19,12 @@ import { DocentesService } from '@/features/sia/docentes/services/docentes.servi
 import { MateriasService } from '@/features/sia/materias/services/materias.service';
 import { ParalelosService } from '@/features/sia/paralelos/services/paralelos.service';
 import { GestionesService } from '@/features/sia/gestiones/services/gestiones.service';
+<<<<<<< HEAD
 import { CursosService } from '@/features/sia/cursos/services/cursos.service';
+=======
+import { CanPermDirective } from '@/shared/directives/can-perm.directive';
+import { AuthService } from '@/core/services/auth.service';
+>>>>>>> 2d3de50 (feat: periodos y dimensiones UI, permisos reactivos, roles fix, routes restore)
 import {
     AsignacionDocenteRequest, AsignacionDocenteResponse,
     CursoResponse, DocenteResponse, MateriaResponse, ParaleloResponse, GestionAcademicaResponse
@@ -39,7 +44,7 @@ type AsignacionDocenteView = AsignacionDocenteResponse & {
     standalone: true,
     imports: [CommonModule, FormsModule, TableModule, ButtonModule, ToastModule, TagModule,
         InputTextModule, InputIconModule, IconFieldModule, DialogModule, TooltipModule,
-        ConfirmDialogModule, SelectModule],
+        ConfirmDialogModule, SelectModule, CanPermDirective],
     providers: [MessageService, ConfirmationService],
     templateUrl: './asignaciones.component.html'
 })
@@ -49,7 +54,11 @@ export class AsignacionesComponent implements OnInit {
     private materiasService = inject(MateriasService);
     private paralelosService = inject(ParalelosService);
     private gestionesService = inject(GestionesService);
+<<<<<<< HEAD
     private cursosService = inject(CursosService);
+=======
+    private auth = inject(AuthService);
+>>>>>>> 2d3de50 (feat: periodos y dimensiones UI, permisos reactivos, roles fix, routes restore)
     private messageService = inject(MessageService);
     private confirmationService = inject(ConfirmationService);
 
@@ -90,11 +99,18 @@ export class AsignacionesComponent implements OnInit {
         this.loading = true;
         forkJoin({
             asignaciones: this.service.listarAsignaciones(),
+<<<<<<< HEAD
             docentes: this.docentesService.listarDocentes(),
             materias: this.materiasService.listarMaterias(),
             cursos: this.cursosService.listarCursos(),
             paralelos: this.paralelosService.listarParalelos(),
             gestiones: this.gestionesService.listarGestiones()
+=======
+            docentes: this.canRead('DOCENTES_READ') ? this.docentesService.listarDocentes().pipe(catchError(() => of({ codigo: 200, data: [] }))) : of({ codigo: 200, data: [] }),
+            materias: this.canRead('MATERIAS_READ') ? this.materiasService.listarMaterias().pipe(catchError(() => of({ codigo: 200, data: [] }))) : of({ codigo: 200, data: [] }),
+            paralelos: this.canRead('PARALELOS_READ') ? this.paralelosService.listarParalelos().pipe(catchError(() => of({ codigo: 200, data: [] }))) : of({ codigo: 200, data: [] }),
+            gestiones: this.canRead('GESTIONES_READ') ? this.gestionesService.listarGestiones().pipe(catchError(() => of({ codigo: 200, data: [] }))) : of({ codigo: 200, data: [] })
+>>>>>>> 2d3de50 (feat: periodos y dimensiones UI, permisos reactivos, roles fix, routes restore)
         }).subscribe({
             next: ({ asignaciones, docentes, materias, cursos, paralelos, gestiones }) => {
                 this.loading = false;
@@ -143,8 +159,8 @@ export class AsignacionesComponent implements OnInit {
     }
 
     confirmarEliminar(a: AsignacionDocenteResponse): void {
-        const docente = this.getNombreDocente(a.idDocente);
-        const materia = this.getNombreMateria(a.idMateria);
+        const docente = this.getNombreDocente(a);
+        const materia = this.getNombreMateria(a);
         this.confirmationService.confirm({
             message: `¿Eliminar la asignación de "${docente}" en "${materia}"?`,
             header: 'Confirmar eliminación',
@@ -156,14 +172,22 @@ export class AsignacionesComponent implements OnInit {
         });
     }
 
-    getNombreDocente(id: string): string {
+    getNombreDocente(a: AsignacionDocenteResponse): string {
+        if (a.nombreDocente) return a.nombreDocente;
+        const id = a.idDocente;
         const d = this.docentes().find(x => x.id === id);
         return d ? `${d.apellidos}, ${d.nombres}` : id;
     }
+<<<<<<< HEAD
     getNombreMateria(id: string): string { return this.materias().find(x => x.id === id)?.nombre ?? id; }
     getNombreCurso(id: string): string { return this.cursos().find(x => x.id === id)?.nombre ?? id; }
     getNombreParalelo(id: string): string { return this.getParalelo(id)?.nombre ?? id; }
     getNombreGestion(id: string): string { return this.gestiones().find(x => x.id === id)?.nombre ?? id; }
+=======
+    getNombreMateria(a: AsignacionDocenteResponse): string { return a.nombreMateria ?? this.materias().find(x => x.id === a.idMateria)?.nombre ?? a.idMateria; }
+    getNombreParalelo(a: AsignacionDocenteResponse): string { return a.nombreParalelo ?? this.paralelos().find(x => x.id === a.idParalelo)?.nombre ?? a.idParalelo; }
+    getNombreGestion(a: AsignacionDocenteResponse): string { return a.nombreGestion ?? this.gestiones().find(x => x.id === a.idGestion)?.nombre ?? a.idGestion; }
+>>>>>>> 2d3de50 (feat: periodos y dimensiones UI, permisos reactivos, roles fix, routes restore)
 
     get docentesOptions() {
         return this.docentes().map(d => ({ label: `${d.apellidos}, ${d.nombres}`, value: d.id }));
@@ -179,6 +203,10 @@ export class AsignacionesComponent implements OnInit {
     }
     get paralelosOptions() {
         return this.paralelosFiltrados().map(p => ({ label: p.nombre, value: p.id }));
+    }
+
+    private canRead(permission: string): boolean {
+        return this.auth.hasPermission(permission) || this.auth.hasRole('ADMIN_INSTITUCION') || this.auth.hasRole('DIRECTOR') || this.auth.hasRole('SUPER_ADMIN');
     }
 
     onGlobalFilter(t: Table, e: Event): void { t.filterGlobal((e.target as HTMLInputElement).value, 'contains'); }

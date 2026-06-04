@@ -18,9 +18,11 @@
                 (onChange)="seleccionarCurso()" appendTo="body" />
         </div>
         @if (cursoSeleccionado) {
-            <p-button label="Asignar Materia" icon="pi pi-plus"
-                [disabled]="materiasDisponibles.length === 0"
-                (onClick)="dialogVisible = true" />
+            <ng-container *appCanPerm="['GESTION_WRITE']">
+                <p-button label="Asignar Materia" icon="pi pi-plus"
+                    [disabled]="materiasDisponibles.length === 0"
+                    (onClick)="dialogVisible = true" />
+            </ng-container>
         }
     </div>
 
@@ -50,9 +52,11 @@
                         <p-tag [value]="mc.estado" [severity]="mc.estado === 'ACTIVO' ? 'success' : 'danger'" />
                     </td>
                     <td>
-                        <p-button icon="pi pi-minus" [rounded]="true" [text]="true" severity="danger"
-                            pTooltip="Quitar materia" tooltipPosition="top"
-                            (onClick)="confirmarDesasignar(mc)" />
+                        <ng-container *appCanPerm="['GESTION_WRITE']">
+                            <p-button icon="pi pi-minus" [rounded]="true" [text]="true" severity="danger"
+                                pTooltip="Quitar materia" tooltipPosition="top"
+                                (onClick)="confirmarDesasignar(mc)" />
+                        </ng-container>
                     </td>
                 </tr>
             </ng-template>
@@ -85,9 +89,11 @@
     </div>
 
     <ng-template #footer>
-        <p-button label="Cancelar" icon="pi pi-times" [text]="true" severity="secondary"
-            (onClick)="dialogVisible = false; idMateriaAgregar = ''" />
-        <p-button label="Asignar" icon="pi pi-check"
-            [disabled]="!idMateriaAgregar" (onClick)="asignarMateria()" />
+        <ng-container *appCanPerm="['GESTION_WRITE']">
+            <p-button label="Cancelar" icon="pi pi-times" [text]="true" severity="secondary"
+                (onClick)="dialogVisible = false; idMateriaAgregar = ''" />
+            <p-button label="Asignar" icon="pi pi-check"
+                [disabled]="!idMateriaAgregar" (onClick)="asignarMateria()" />
+        </ng-container>
     </ng-template>
 </p-dialog>

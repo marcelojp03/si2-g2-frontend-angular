@@ -59,9 +59,11 @@
                 </td>
                 <td>
                     <div class="flex gap-1">
-                        <p-button icon="pi pi-plus" [rounded]="true" [text]="true" severity="success" pTooltip="Asignar plan" (onClick)="abrirDialog(row)" />
-                        @if (row.suscripcion?.estado === 'ACTIVA') {
-                            <p-button icon="pi pi-times" [rounded]="true" [text]="true" severity="danger" pTooltip="Cancelar suscripción" (onClick)="confirmarCancelar(row)" />
+                        @if (isSuperAdmin) {
+                            <p-button icon="pi pi-plus" [rounded]="true" [text]="true" severity="success" pTooltip="Asignar plan" (onClick)="abrirDialog(row)" />
+                            @if (row.suscripcion?.estado === 'ACTIVA') {
+                                <p-button icon="pi pi-times" [rounded]="true" [text]="true" severity="danger" pTooltip="Cancelar suscripción" (onClick)="confirmarCancelar(row)" />
+                            }
                         }
                     </div>
                 </td>
@@ -113,7 +115,9 @@
     </div>
 
     <ng-template pTemplate="footer">
-        <p-button label="Cancelar" icon="pi pi-times" [text]="true" severity="secondary" (onClick)="dialogVisible = false" />
-        <p-button label="Asignar" icon="pi pi-check" (onClick)="guardar()" />
+        @if (isSuperAdmin) {
+            <p-button label="Cancelar" icon="pi pi-times" [text]="true" severity="secondary" (onClick)="dialogVisible = false" />
+            <p-button label="Asignar" icon="pi pi-check" (onClick)="guardar()" />
+        }
     </ng-template>
 </p-dialog>
