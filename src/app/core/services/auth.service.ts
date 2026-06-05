@@ -14,11 +14,13 @@ import {
     UsuarioSIA,
 } from '../models/auth.model';
 import { ApiResponse } from '../models/api-response.model';
+import { AuthzService } from './authz.service';
 
 @Injectable({ providedIn: 'root' })
 export class AuthService {
     private http = inject(HttpClient);
     private router = inject(Router);
+    private authzService = inject(AuthzService);
     private apiUrl = environment.api.baseUrl;
 
     private currentUserSubject = new BehaviorSubject<UsuarioSIA | null>(this.getUserFromStorage());
@@ -42,6 +44,7 @@ export class AuthService {
                         this.saveUser(user);
                         this.currentUserSubject.next(user);
                         this._userSignal.set(user);
+                        this.authzService.cargarMapa();
                     }
                 }
             }),
@@ -87,6 +90,7 @@ export class AuthService {
         localStorage.removeItem(this.USER_KEY);
         this.currentUserSubject.next(null);
         this._userSignal.set(null);
+        this.authzService.limpiarMapa();
         this.router.navigate(['/auth/login']);
     }
 

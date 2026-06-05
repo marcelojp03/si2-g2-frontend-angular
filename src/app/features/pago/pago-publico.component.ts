@@ -66,6 +66,9 @@ import { PagoPublicoService, PagoPublicoDto } from './pago-publico.service';
                 <img [src]="'data:image/png;base64,' + pago()!.qrBase64"
                      alt="QR de pago" class="w-56 h-56 border border-gray-200 rounded-lg" />
                 <p class="text-sm text-gray-500">Escanea con tu app bancaria</p>
+                @if (pago()!.idQr) {
+                  <p class="text-xs text-gray-500">ID QR: <span class="font-mono">{{ pago()!.idQr }}</span></p>
+                }
               </div>
             } @else {
               <div class="flex flex-col items-center gap-2 py-4">

@@ -11,7 +11,7 @@ export const oauth2Interceptor: HttpInterceptorFn = (req, next) => {
     const router = inject(Router);
     const messageService = inject(MessageService);
 
-    const publicRoutes = ['/auth/login'];
+    const publicRoutes = ['/auth/login', '/api/saas/planes', '/api/public/solicitudes'];
     const isPublicRoute = publicRoutes.some((route) => req.url.includes(route));
 
     // Las rutas del proxy QR manejan su propio header Authorization

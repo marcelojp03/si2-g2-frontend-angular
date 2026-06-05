@@ -11,6 +11,7 @@ export interface PagoPublicoDto {
   estado: string;
   fechaExpiracion: string | null;
   proveedor: string | null;
+  idQr: string | null;
   qrBase64: string | null;
 }
 

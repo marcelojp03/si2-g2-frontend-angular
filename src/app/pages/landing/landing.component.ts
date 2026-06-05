@@ -1,5 +1,5 @@
 import { Component, inject, signal, OnInit } from '@angular/core';
-import { CommonModule, CurrencyPipe } from '@angular/common';
+import { CommonModule, DecimalPipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterModule } from '@angular/router';
 import { ButtonModule } from 'primeng/button';
@@ -18,7 +18,7 @@ import { PlanSuscripcionResponse } from '@/core/models/sia.models';
     selector: 'app-landing',
     standalone: true,
     imports: [
-        CommonModule, CurrencyPipe, FormsModule, RouterModule,
+        CommonModule, DecimalPipe, FormsModule, RouterModule,
         ButtonModule, InputTextModule, TextareaModule, SelectModule,
         CardModule, TagModule, ToastModule,
     ],
@@ -72,7 +72,7 @@ import { PlanSuscripcionResponse } from '@/core/models/sia.models';
                             <div class="p-6">
                                 <h3 class="text-xl font-bold text-gray-800 mb-2">{{ plan.nombre }}</h3>
                                 <p class="text-3xl font-extrabold text-blue-600 mb-1">
-                                    {{ plan.precioMensual | currency:'USD':'symbol':'1.0-0' }}
+                                    Bs {{ plan.precioMensual | number:'1.0-0' }}
                                     <span class="text-base font-normal text-gray-500">/mes</span>
                                 </p>
                                 <p class="text-gray-500 text-sm mb-4">{{ plan.descripcion }}</p>
