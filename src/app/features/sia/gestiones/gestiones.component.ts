@@ -13,7 +13,10 @@ import { DialogModule } from 'primeng/dialog';
 import { TooltipModule } from 'primeng/tooltip';
 import { ConfirmDialogModule } from 'primeng/confirmdialog';
 import { CheckboxModule } from 'primeng/checkbox';
+import { SelectModule } from 'primeng/select';
+import { InputNumberModule } from 'primeng/inputnumber';
 import { GestionesService } from '@/features/sia/gestiones/services/gestiones.service';
+import { CanPermDirective } from '@/shared/directives/can-perm.directive';
 import { GestionAcademicaResponse, GestionAcademicaRequest } from '@/core/models/sia.models';
 
 @Component({
@@ -21,7 +24,7 @@ import { GestionAcademicaResponse, GestionAcademicaRequest } from '@/core/models
     standalone: true,
     imports: [CommonModule, FormsModule, TableModule, ButtonModule, ToastModule, TagModule,
         InputTextModule, InputIconModule, IconFieldModule, DialogModule, TooltipModule,
-        ConfirmDialogModule, CheckboxModule],
+        ConfirmDialogModule, CheckboxModule, SelectModule, InputNumberModule, CanPermDirective],
     providers: [MessageService, ConfirmationService],
     templateUrl: './gestiones.component.html'
 })
@@ -36,7 +39,15 @@ export class GestionesComponent implements OnInit {
     editMode = false;
     selectedId = '';
 
-    form: GestionAcademicaRequest = { nombre: '', fechaInicio: '', fechaFin: '', activa: false };
+    tipoPeriodoOptions = [
+        { label: 'Anual (1 periodo)', value: 'ANUAL', cantidad: 1 },
+        { label: 'Semestral (2 periodos)', value: 'SEMESTRAL', cantidad: 2 },
+        { label: 'Trimestral (3 periodos)', value: 'TRIMESTRAL', cantidad: 3 },
+        { label: 'Bimestral (4 periodos)', value: 'BIMESTRAL', cantidad: 4 },
+        { label: 'Personalizado', value: 'PERSONALIZADO', cantidad: 4 }
+    ];
+
+    form: GestionAcademicaRequest = this.defaultForm();
 
     @ViewChild('dt') dt!: Table;
 
@@ -51,23 +62,41 @@ export class GestionesComponent implements OnInit {
     }
 
     nuevo(): void {
-        this.form = { nombre: '', fechaInicio: '', fechaFin: '', activa: false };
+        this.form = this.defaultForm();
         this.editMode = false;
         this.dialogVisible = true;
     }
 
     editar(g: GestionAcademicaResponse): void {
-        this.form = { nombre: g.nombre, fechaInicio: g.fechaInicio, fechaFin: g.fechaFin, activa: g.activa };
+        this.form = {
+            nombre: g.nombre,
+            fechaInicio: g.fechaInicio,
+            fechaFin: g.fechaFin,
+            activa: g.activa,
+            tipoPeriodo: g.tipoPeriodo ?? 'BIMESTRAL',
+            cantidadPeriodos: g.cantidadPeriodos ?? 4
+        };
         this.selectedId = g.id;
         this.editMode = true;
         this.dialogVisible = true;
     }
 
     guardar(): void {
-        if (!this.form.nombre || !this.form.fechaInicio || !this.form.fechaFin) {
+        if (!this.form.nombre || !this.form.fechaInicio || !this.form.fechaFin || !this.form.tipoPeriodo || !this.form.cantidadPeriodos) {
             this.messageService.add({ severity: 'warn', summary: 'Atención', detail: 'Complete todos los campos requeridos', life: 3000 });
             return;
         }
+
+        if (this.form.fechaFin <= this.form.fechaInicio) {
+            this.messageService.add({ severity: 'warn', summary: 'Atención', detail: 'La fecha fin debe ser posterior a la fecha inicio', life: 3000 });
+            return;
+        }
+
+        if (this.form.cantidadPeriodos < 1 || this.form.cantidadPeriodos > 12) {
+            this.messageService.add({ severity: 'warn', summary: 'Atención', detail: 'La cantidad de periodos debe estar entre 1 y 12', life: 3000 });
+            return;
+        }
+
         const obs = this.editMode
             ? this.service.actualizarGestion(this.selectedId, this.form)
             : this.service.crearGestion(this.form);
@@ -75,6 +104,15 @@ export class GestionesComponent implements OnInit {
             next: () => { this.dialogVisible = false; this.messageService.add({ severity: 'success', summary: 'Éxito', detail: this.editMode ? 'Gestión actualizada' : 'Gestión creada', life: 3000 }); this.load(); },
             error: (e) => this.error(e.error?.mensaje ?? 'Error al guardar la gestión')
         });
+    }
+
+    onTipoPeriodoChange(tipo: string): void {
+        const option = this.tipoPeriodoOptions.find(o => o.value === tipo);
+        if (option && tipo !== 'PERSONALIZADO') this.form.cantidadPeriodos = option.cantidad;
+    }
+
+    periodoLabel(tipo?: string): string {
+        return this.tipoPeriodoOptions.find(o => o.value === tipo)?.label ?? tipo ?? 'No definido';
     }
 
     confirmarEliminar(g: GestionAcademicaResponse): void {
@@ -90,5 +128,6 @@ export class GestionesComponent implements OnInit {
     }
 
     onGlobalFilter(t: Table, e: Event): void { t.filterGlobal((e.target as HTMLInputElement).value, 'contains'); }
+    private defaultForm(): GestionAcademicaRequest { return { nombre: '', fechaInicio: '', fechaFin: '', activa: false, tipoPeriodo: 'BIMESTRAL', cantidadPeriodos: 4 }; }
     private error(msg: string): void { this.messageService.add({ severity: 'error', summary: 'Error', detail: msg, life: 4000 }); }
 }

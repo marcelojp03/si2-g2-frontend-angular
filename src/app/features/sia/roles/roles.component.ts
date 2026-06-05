@@ -1,4 +1,4 @@
-import { Component, OnInit, inject, signal } from '@angular/core';
+import { Component, OnInit, computed, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { MessageService, ConfirmationService } from 'primeng/api';
@@ -13,13 +13,14 @@ import { CheckboxModule } from 'primeng/checkbox';
 import { TagModule } from 'primeng/tag';
 import { AuthService } from '@/core/services/auth.service';
 import { RoleService } from '@/core/services/role.service';
+import { CanPermDirective } from '@/shared/directives/can-perm.directive';
 import { PermisoResponse, RolRequest, RolResponse } from '@/core/models/sia.models';
 
 @Component({
     selector: 'app-roles',
     standalone: true,
     imports: [CommonModule, FormsModule, TableModule, ButtonModule, ToastModule, DialogModule,
-        InputTextModule, TextareaModule, ConfirmDialogModule, CheckboxModule, TagModule],
+        InputTextModule, TextareaModule, ConfirmDialogModule, CheckboxModule, TagModule, CanPermDirective],
     providers: [MessageService, ConfirmationService],
     templateUrl: './roles.component.html'
 })
@@ -31,6 +32,7 @@ export class RolesComponent implements OnInit {
 
     roles = signal<RolResponse[]>([]);
     permisos = signal<PermisoResponse[]>([]);
+    searchTerm = signal('');
     loading = true;
     dialogVisible = false;
     editId: string | null = null;
@@ -41,6 +43,28 @@ export class RolesComponent implements OnInit {
     get isSuperAdmin(): boolean {
         return this.authService.isSuperAdmin();
     }
+
+    filteredRoles = computed(() => {
+        const term = this.searchTerm().trim().toLowerCase();
+        if (!term) return this.roles();
+
+        return this.roles().filter(rol => {
+            const searchable = [
+                rol.nombre,
+                rol.descripcion ?? '',
+                rol.codigo,
+                rol.esGlobal ? 'global' : 'institucional',
+                ...rol.permisos.map(permiso => permiso.codigo),
+                ...rol.permisos.map(permiso => permiso.modulo)
+            ].join(' ').toLowerCase();
+
+            return searchable.includes(term);
+        });
+    });
+
+    globalRoles = computed(() => this.roles().filter(rol => rol.esGlobal).length);
+    institutionalRoles = computed(() => this.roles().filter(rol => !rol.esGlobal).length);
+    editableRoles = computed(() => this.roles().filter(rol => this.canEditRole(rol)).length);
 
     canEditRole(rol: RolResponse): boolean {
         if (this.isSuperAdmin) {
@@ -85,6 +109,7 @@ export class RolesComponent implements OnInit {
             return;
         }
         this.editId = null;
+        this.editingGlobalRole = false;
         this.form = { nombre: '', descripcion: '', idsPermiso: [] };
         this.dialogVisible = true;
     }
@@ -163,6 +188,26 @@ export class RolesComponent implements OnInit {
 
     hasPermiso(idPermiso: string): boolean {
         return this.form.idsPermiso.includes(idPermiso);
+    }
+
+    updateSearch(value: string): void {
+        this.searchTerm.set(value);
+    }
+
+    visiblePermisos(rol: RolResponse): PermisoResponse[] {
+        return rol.permisos.slice(0, 8);
+    }
+
+    hiddenPermisosCount(rol: RolResponse): number {
+        return Math.max(rol.permisos.length - this.visiblePermisos(rol).length, 0);
+    }
+
+    moduleSummary(rol: RolResponse): string {
+        const modules = Array.from(new Set(rol.permisos.map(permiso => permiso.modulo))).filter(Boolean);
+        if (!modules.length) return 'Sin modulos';
+        const visible = modules.slice(0, 3).join(', ');
+        const hidden = modules.length - 3;
+        return hidden > 0 ? `${visible} +${hidden}` : visible;
     }
 
     private error(msg: string): void {

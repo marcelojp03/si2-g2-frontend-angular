@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, OnInit, ViewChild, inject, signal, computed } from '@angular/core';
+import { Component, OnInit, ViewChild, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { ConfirmationService, MessageService } from 'primeng/api';
 import { ButtonModule } from 'primeng/button';
@@ -14,10 +14,18 @@ import { TagModule } from 'primeng/tag';
 import { ToastModule } from 'primeng/toast';
 import { TooltipModule } from 'primeng/tooltip';
 import { AuthService } from '@/core/services/auth.service';
+import { CanPermDirective } from '@/shared/directives/can-perm.directive';
 import { HorarioService } from '@/features/sia/horarios/services/horario.service';
 import { AsignacionesService } from '@/features/sia/asignaciones/services/asignaciones.service';
 import { AulasService } from '@/features/sia/aulas/services/aulas.service';
-import { HorarioClaseResponse, HorarioClaseRequest, AsignacionDocenteResponse, AulaResponse } from '@/core/models/sia.models';
+import { CursosService } from '@/features/sia/cursos/services/cursos.service';
+import { DocentesService } from '@/features/sia/docentes/services/docentes.service';
+import { MateriasService } from '@/features/sia/materias/services/materias.service';
+import { ParalelosService } from '@/features/sia/paralelos/services/paralelos.service';
+import {
+    HorarioClaseResponse, HorarioClaseRequest, AsignacionDocenteResponse, AulaResponse,
+    CursoResponse, DocenteResponse, MateriaResponse, ParaleloResponse
+} from '@/core/models/sia.models';
 
 @Component({
     selector: 'app-gestion-horarios',
@@ -36,6 +44,7 @@ import { HorarioClaseResponse, HorarioClaseRequest, AsignacionDocenteResponse, A
         TooltipModule,
         ConfirmDialogModule,
         SelectModule,
+        CanPermDirective,
     ],
     providers: [MessageService, ConfirmationService],
     templateUrl: './gestion-horarios.component.html'
@@ -44,6 +53,10 @@ export class GestionHorariosComponent implements OnInit {
     private horarioService = inject(HorarioService);
     private asignacionesService = inject(AsignacionesService);
     private aulasService = inject(AulasService);
+    private cursosService = inject(CursosService);
+    private docentesService = inject(DocentesService);
+    private materiasService = inject(MateriasService);
+    private paralelosService = inject(ParalelosService);
     private auth = inject(AuthService);
     private messageService = inject(MessageService);
     private confirmationService = inject(ConfirmationService);
@@ -51,6 +64,10 @@ export class GestionHorariosComponent implements OnInit {
     horarios = signal<HorarioClaseResponse[]>([]);
     asignaciones = signal<AsignacionDocenteResponse[]>([]);
     aulas = signal<AulaResponse[]>([]);
+    cursos = signal<CursoResponse[]>([]);
+    docentes = signal<DocenteResponse[]>([]);
+    materias = signal<MateriaResponse[]>([]);
+    paralelos = signal<ParaleloResponse[]>([]);
 
     loading = true;
     dialogVisible = false;
@@ -83,7 +100,7 @@ export class GestionHorariosComponent implements OnInit {
     }
 
     get canWrite(): boolean {
-        return this.auth.hasPermission('GESTION_WRITE') ||
+        return this.auth.hasPermission('HORARIOS_UPDATE') ||
             this.auth.hasRole('ADMIN_INSTITUCION') ||
             this.auth.hasRole('DIRECTOR') ||
             this.auth.hasRole('SUPER_ADMIN');
@@ -103,8 +120,16 @@ export class GestionHorariosComponent implements OnInit {
     }
 
     get asignacionesOptions() {
+        return this.asignaciones().map(a => ({
+            label: this.getAsignacionLabel(a.id),
+            value: a.id
+        }));
+    }
+
+    get asignacionesOptionsLegacy() {
         return this.asignaciones().map(a => {
             const aula = this.aulas().find(au => au.id === this.form.idAula);
+            void aula;
             return {
                 label: `Asignación #${a.id.substring(0, 8)}`,
                 value: a.id
@@ -128,8 +153,12 @@ export class GestionHorariosComponent implements OnInit {
         Promise.all([
             this.horarioService.listarPorInstitucion(this.idInstitucion).toPromise(),
             this.asignacionesService.listarAsignaciones().toPromise(),
-            this.aulasService.listarAulas().toPromise()
-        ]).then(([horariosResp, asignacionesResp, aulasResp]) => {
+            this.aulasService.listarAulas().toPromise(),
+            this.docentesService.listarDocentes().toPromise(),
+            this.materiasService.listarMaterias().toPromise(),
+            this.cursosService.listarCursos().toPromise(),
+            this.paralelosService.listarParalelos().toPromise()
+        ]).then(([horariosResp, asignacionesResp, aulasResp, docentesResp, materiasResp, cursosResp, paralelosResp]) => {
             this.loading = false;
 
             if (horariosResp?.codigo === 200) {
@@ -145,6 +174,11 @@ export class GestionHorariosComponent implements OnInit {
             if (aulasResp?.codigo === 200) {
                 this.aulas.set(aulasResp.data ?? []);
             }
+
+            if (docentesResp?.codigo === 200) this.docentes.set(docentesResp.data ?? []);
+            if (materiasResp?.codigo === 200) this.materias.set(materiasResp.data ?? []);
+            if (cursosResp?.codigo === 200) this.cursos.set(cursosResp.data ?? []);
+            if (paralelosResp?.codigo === 200) this.paralelos.set(paralelosResp.data ?? []);
         }).catch(() => {
             this.loading = false;
             this.error('No se pudieron cargar los datos');
@@ -327,6 +361,23 @@ export class GestionHorariosComponent implements OnInit {
     }
 
     getAsignacionLabel(idAsignacion: string): string {
+        const asignacion = this.asignaciones().find(a => a.id === idAsignacion);
+        if (!asignacion) return `Asignacion #${idAsignacion.substring(0, 8)}`;
+
+        const docente = this.docentes().find(d => d.id === asignacion.idDocente);
+        const materia = this.materias().find(m => m.id === asignacion.idMateria);
+        const paralelo = this.paralelos().find(p => p.id === asignacion.idParalelo);
+        const curso = paralelo ? this.cursos().find(c => c.id === paralelo.idCurso) : null;
+
+        const nombreDocente = docente ? `${docente.apellidos}, ${docente.nombres}` : 'Docente';
+        const nombreMateria = materia?.nombre ?? 'Materia';
+        const nombreCurso = curso?.nombre ?? 'Curso';
+        const nombreParalelo = paralelo?.nombre ?? 'Paralelo';
+
+        return `${nombreDocente} - ${nombreMateria} - ${nombreCurso} ${nombreParalelo}`;
+    }
+
+    getAsignacionLabelLegacy(idAsignacion: string): string {
         return `Asignación #${idAsignacion.substring(0, 8)}`;
     }
 }

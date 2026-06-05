@@ -7,7 +7,9 @@
             <h3 class="text-xl font-semibold text-surface-900 dark:text-surface-0 m-0">Usuarios</h3>
             <p class="text-surface-400 text-sm mt-1 mb-0">Gestiona los usuarios del sistema</p>
         </div>
-        <p-button label="Nuevo Usuario" icon="pi pi-plus" (onClick)="nuevo()" />
+        <ng-container *appCanPerm="['USUARIOS_WRITE']">
+            <p-button label="Nuevo Usuario" icon="pi pi-plus" (onClick)="nuevo()" />
+        </ng-container>
     </div>
 
     <p-table #dt [value]="usuarios()" [loading]="loading" dataKey="id"
@@ -54,12 +56,14 @@
                 </td>
                 <td>
                     <div class="flex gap-1">
-                        <p-button icon="pi pi-pencil" [rounded]="true" [text]="true" severity="secondary"
-                            pTooltip="Editar" tooltipPosition="top" (onClick)="abrirEditar(u)" />
-                        <p-button icon="pi pi-shield" [rounded]="true" [text]="true" severity="info"
-                            pTooltip="Gestionar roles" tooltipPosition="top" (onClick)="abrirRoles(u)" />
-                        <p-button icon="pi pi-trash" [rounded]="true" [text]="true" severity="danger"
-                            pTooltip="Eliminar" tooltipPosition="top" (onClick)="confirmarEliminar(u)" />
+                        <ng-container *appCanPerm="['USUARIOS_WRITE']">
+                            <p-button icon="pi pi-pencil" [rounded]="true" [text]="true" severity="secondary"
+                                pTooltip="Editar" tooltipPosition="top" (onClick)="abrirEditar(u)" />
+                            <p-button icon="pi pi-shield" [rounded]="true" [text]="true" severity="info"
+                                pTooltip="Gestionar roles" tooltipPosition="top" (onClick)="abrirRoles(u)" />
+                            <p-button icon="pi pi-trash" [rounded]="true" [text]="true" severity="danger"
+                                pTooltip="Eliminar" tooltipPosition="top" (onClick)="confirmarEliminar(u)" />
+                        </ng-container>
                     </div>
                 </td>
             </tr>
@@ -111,8 +115,10 @@
     </div>
 
     <ng-template #footer>
-        <p-button label="Cancelar" icon="pi pi-times" [text]="true" severity="secondary" (onClick)="dialogVisible = false" />
-        <p-button label="Crear Usuario" icon="pi pi-check" (onClick)="guardar()" />
+        <ng-container *appCanPerm="['USUARIOS_WRITE']">
+            <p-button label="Cancelar" icon="pi pi-times" [text]="true" severity="secondary" (onClick)="dialogVisible = false" />
+            <p-button label="Crear Usuario" icon="pi pi-check" (onClick)="guardar()" />
+        </ng-container>
     </ng-template>
 </p-dialog>
 
@@ -138,8 +144,10 @@
     </div>
 
     <ng-template #footer>
-        <p-button label="Cancelar" icon="pi pi-times" [text]="true" severity="secondary" (onClick)="editarVisible = false" />
-        <p-button label="Guardar cambios" icon="pi pi-check" (onClick)="guardarEdicion()" />
+        <ng-container *appCanPerm="['USUARIOS_WRITE']">
+            <p-button label="Cancelar" icon="pi pi-times" [text]="true" severity="secondary" (onClick)="editarVisible = false" />
+            <p-button label="Guardar cambios" icon="pi pi-check" (onClick)="guardarEdicion()" />
+        </ng-container>
     </ng-template>
 </p-dialog>
 
@@ -160,7 +168,9 @@
     </div>
 
     <ng-template #footer>
-        <p-button label="Cancelar" icon="pi pi-times" [text]="true" severity="secondary" (onClick)="rolesVisible = false" />
-        <p-button label="Asignar Rol" icon="pi pi-check" (onClick)="guardarRoles()" />
+        <ng-container *appCanPerm="['USUARIOS_WRITE']">
+            <p-button label="Cancelar" icon="pi pi-times" [text]="true" severity="secondary" (onClick)="rolesVisible = false" />
+            <p-button label="Asignar Rol" icon="pi pi-check" (onClick)="guardarRoles()" />
+        </ng-container>
     </ng-template>
 </p-dialog>

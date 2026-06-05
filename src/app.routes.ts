@@ -20,7 +20,7 @@ export const appRoutes: Routes = [
         component: AppLayout,
         canActivate: [authGuard],
         children: [
-            { path: 'roles', canActivate: [permissionGuard('ROLES_READ', 'ROLES_WRITE')], loadComponent: () => import('./app/features/sia/roles/roles.component').then(m => m.RolesComponent) },
+            { path: 'roles', canActivate: [permissionGuard('ROLES_READ')], loadComponent: () => import('./app/features/sia/roles/roles.component').then(m => m.RolesComponent) },
             { path: '', loadChildren: () => import('./app/features/sia/sia.routes') },
         ]
     },

@@ -20,6 +20,7 @@ import { UsuarioService } from '@/core/services/usuario.service';
 import { InstitucionService } from '@/core/services/institucion.service';
 import { AuthService } from '@/core/services/auth.service';
 import { RoleService } from '@/core/services/role.service';
+import { CanPermDirective } from '@/shared/directives/can-perm.directive';
 import {
     UsuarioResponse, CrearUsuarioRequest, ActualizarUsuarioRequest,
     AsignarRolRequest, InstitucionResponse, RolResponse
@@ -30,7 +31,7 @@ import {
     standalone: true,
     imports: [CommonModule, FormsModule, TableModule, ButtonModule, ToastModule, TagModule,
         InputTextModule, InputIconModule, IconFieldModule, DialogModule, TooltipModule,
-        ConfirmDialogModule, SelectModule, PasswordModule],
+        ConfirmDialogModule, SelectModule, PasswordModule, CanPermDirective],
     providers: [MessageService, ConfirmationService],
     templateUrl: './admin-usuarios.component.html'
 })

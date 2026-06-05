@@ -68,9 +68,11 @@
                             </div>
 
                             <div class="flex gap-2">
-                                <p-button label="Editar" icon="pi pi-pencil" size="small" (onClick)="abrirEdicionDesdeTarjeta(config)" />
-                                <p-button label="Restablecer" icon="pi pi-refresh" size="small" severity="secondary" [outlined]="true"
-                                    [disabled]="config.usaValorPorDefecto" (onClick)="restaurarDefault(config)" />
+                                <ng-container *appCanPerm="['CONFIGURACION_WRITE']">
+                                    <p-button label="Editar" icon="pi pi-pencil" size="small" (onClick)="abrirEdicionDesdeTarjeta(config)" />
+                                    <p-button label="Restablecer" icon="pi pi-refresh" size="small" severity="secondary" [outlined]="true"
+                                        [disabled]="config.usaValorPorDefecto" (onClick)="restaurarDefault(config)" />
+                                </ng-container>
                             </div>
                         </div>
                     }
@@ -118,9 +120,11 @@
     </div>
 
     <ng-template #footer>
-        <p-button label="Cancelar" icon="pi pi-times" [text]="true" severity="secondary"
-            (onClick)="dialogVisible = false; configSeleccionada = null" />
-        <p-button label="Guardar" icon="pi pi-check"
-            [disabled]="uploading" (onClick)="guardar()" />
+        <ng-container *appCanPerm="['CONFIGURACION_WRITE']">
+            <p-button label="Cancelar" icon="pi pi-times" [text]="true" severity="secondary"
+                (onClick)="dialogVisible = false; configSeleccionada = null" />
+            <p-button label="Guardar" icon="pi pi-check"
+                [disabled]="uploading" (onClick)="guardar()" />
+        </ng-container>
     </ng-template>
 </p-dialog>

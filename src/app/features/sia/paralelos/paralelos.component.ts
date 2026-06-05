@@ -16,6 +16,7 @@ import { SelectModule } from 'primeng/select';
 import { InputNumberModule } from 'primeng/inputnumber';
 import { forkJoin } from 'rxjs';
 import { ParalelosService } from '@/features/sia/paralelos/services/paralelos.service';
+import { CanPermDirective } from '@/shared/directives/can-perm.directive';
 import { CursosService } from '@/features/sia/cursos/services/cursos.service';
 import { GestionesService } from '@/features/sia/gestiones/services/gestiones.service';
 import {
@@ -28,7 +29,7 @@ import {
     standalone: true,
     imports: [CommonModule, FormsModule, TableModule, ButtonModule, ToastModule, TagModule,
         InputTextModule, InputIconModule, IconFieldModule, DialogModule, TooltipModule,
-        ConfirmDialogModule, SelectModule, InputNumberModule],
+        ConfirmDialogModule, SelectModule, InputNumberModule, CanPermDirective],
     providers: [MessageService, ConfirmationService],
     templateUrl: './paralelos.component.html'
 })

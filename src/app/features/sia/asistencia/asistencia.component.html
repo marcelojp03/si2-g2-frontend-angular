@@ -49,14 +49,16 @@
                 [loading]="loadingPlantilla"
                 (onClick)="cargarPlantilla()"
             />
-            <p-button
-                label="Guardar"
-                icon="pi pi-save"
-                severity="success"
-                [disabled]="!plantilla() || !puedeEditar()"
-                [loading]="guardando"
-                (onClick)="guardar()"
-            />
+            <ng-container *appCanPerm="['ASISTENCIA_WRITE']">
+                <p-button
+                    label="Guardar"
+                    icon="pi pi-save"
+                    severity="success"
+                    [disabled]="!plantilla() || !puedeEditar()"
+                    [loading]="guardando"
+                    (onClick)="guardar()"
+                />
+            </ng-container>
         </div>
     </div>
 
@@ -108,23 +110,25 @@
             </div>
 
             <div class="flex flex-wrap gap-2">
-                <p-button
-                    label="Todos presentes"
-                    icon="pi pi-check-circle"
-                    size="small"
-                    severity="success"
-                    [disabled]="!puedeEditar()"
-                    (onClick)="marcarTodos('PRESENTE')"
-                />
-                <p-button
-                    label="Todos ausentes"
-                    icon="pi pi-times-circle"
-                    size="small"
-                    severity="danger"
-                    [outlined]="true"
-                    [disabled]="!puedeEditar()"
-                    (onClick)="marcarTodos('AUSENTE')"
-                />
+                <ng-container *appCanPerm="['ASISTENCIA_WRITE']">
+                    <p-button
+                        label="Todos presentes"
+                        icon="pi pi-check-circle"
+                        size="small"
+                        severity="success"
+                        [disabled]="!puedeEditar()"
+                        (onClick)="marcarTodos('PRESENTE')"
+                    />
+                    <p-button
+                        label="Todos ausentes"
+                        icon="pi pi-times-circle"
+                        size="small"
+                        severity="danger"
+                        [outlined]="true"
+                        [disabled]="!puedeEditar()"
+                        (onClick)="marcarTodos('AUSENTE')"
+                    />
+                </ng-container>
             </div>
         </div>
 

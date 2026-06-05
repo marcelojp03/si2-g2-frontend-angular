@@ -14,6 +14,7 @@ import { TooltipModule } from 'primeng/tooltip';
 import { ConfirmDialogModule } from 'primeng/confirmdialog';
 import { SelectModule } from 'primeng/select';
 import { CursosService } from '@/features/sia/cursos/services/cursos.service';
+import { CanPermDirective } from '@/shared/directives/can-perm.directive';
 import { CursoResponse, CursoRequest } from '@/core/models/sia.models';
 
 @Component({
@@ -21,7 +22,7 @@ import { CursoResponse, CursoRequest } from '@/core/models/sia.models';
     standalone: true,
     imports: [CommonModule, FormsModule, TableModule, ButtonModule, ToastModule, TagModule,
         InputTextModule, InputIconModule, IconFieldModule, DialogModule, TooltipModule,
-        ConfirmDialogModule, SelectModule],
+        ConfirmDialogModule, SelectModule, CanPermDirective],
     providers: [MessageService, ConfirmationService],
     templateUrl: './cursos.component.html'
 })

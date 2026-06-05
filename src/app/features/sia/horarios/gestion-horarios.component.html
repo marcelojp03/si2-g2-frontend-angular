@@ -7,9 +7,9 @@
             <h3 class="m-0 text-xl font-semibold text-surface-900 dark:text-surface-0">Horarios de Clases</h3>
             <p class="mb-0 mt-1 text-sm text-surface-400">Gestión de horarios de clases por aula y asignación docente</p>
         </div>
-        @if (canWrite) {
+        <ng-container *appCanPerm="['GESTION_WRITE']">
             <p-button label="Nuevo Horario" icon="pi pi-plus" (onClick)="nuevo()" />
-        }
+        </ng-container>
     </div>
 
     <section class="mb-5 overflow-hidden rounded-xl border border-surface-200 bg-surface-0 shadow-sm dark:border-surface-700 dark:bg-surface-900">
@@ -130,7 +130,9 @@
     </div>
 
     <ng-template pTemplate="footer">
-        <p-button label="Cancelar" severity="secondary" (onClick)="dialogVisible = false" />
-        <p-button label="Guardar" (onClick)="guardar()" />
+        <ng-container *appCanPerm="['GESTION_WRITE']">
+            <p-button label="Cancelar" severity="secondary" (onClick)="dialogVisible = false" />
+            <p-button label="Guardar" (onClick)="guardar()" />
+        </ng-container>
     </ng-template>
 </p-dialog>

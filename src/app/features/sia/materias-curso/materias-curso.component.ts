@@ -13,6 +13,7 @@ import { SelectModule } from 'primeng/select';
 import { DividerModule } from 'primeng/divider';
 import { forkJoin } from 'rxjs';
 import { MateriasCursoService } from '@/features/sia/materias-curso/services/materias-curso.service';
+import { CanPermDirective } from '@/shared/directives/can-perm.directive';
 import { CursosService } from '@/features/sia/cursos/services/cursos.service';
 import { MateriasService } from '@/features/sia/materias/services/materias.service';
 import { CursoResponse, MateriaResponse, CursoMateriaResponse } from '@/core/models/sia.models';
@@ -21,7 +22,7 @@ import { CursoResponse, MateriaResponse, CursoMateriaResponse } from '@/core/mod
     selector: 'app-materias-curso',
     standalone: true,
     imports: [CommonModule, FormsModule, TableModule, ButtonModule, ToastModule, TagModule,
-        DialogModule, TooltipModule, ConfirmDialogModule, SelectModule, DividerModule],
+        DialogModule, TooltipModule, ConfirmDialogModule, SelectModule, DividerModule, CanPermDirective],
     providers: [MessageService, ConfirmationService],
     templateUrl: './materias-curso.component.html'
 })

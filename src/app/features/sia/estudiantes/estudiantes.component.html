@@ -7,7 +7,9 @@
             <h3 class="text-xl font-semibold text-surface-900 dark:text-surface-0 m-0">Estudiantes</h3>
             <p class="text-surface-400 text-sm mt-1 mb-0">Alumnos matriculados en la institución</p>
         </div>
-        <p-button label="Nuevo Estudiante" icon="pi pi-plus" (onClick)="nuevo()" />
+        <ng-container *appCanPerm="['PERSONAS_WRITE']">
+            <p-button label="Nuevo Estudiante" icon="pi pi-plus" (onClick)="nuevo()" />
+        </ng-container>
     </div>
 
     <p-table #dt [value]="estudiantes()" [loading]="loading" dataKey="id"
@@ -47,12 +49,14 @@
                         [severity]="e.estado === 'ACTIVO' ? 'success' : 'danger'" />
                 </td>
                 <td>
-                    <div class="flex gap-2">
-                        <p-button icon="pi pi-pencil" [rounded]="true" [text]="true" severity="info"
-                            pTooltip="Editar" tooltipPosition="top" (onClick)="editar(e)" />
-                        <p-button icon="pi pi-trash" [rounded]="true" [text]="true" severity="danger"
-                            pTooltip="Eliminar" tooltipPosition="top" (onClick)="confirmarEliminar(e)" />
-                    </div>
+                    <ng-container *appCanPerm="['PERSONAS_WRITE']">
+                        <div class="flex gap-2">
+                            <p-button icon="pi pi-pencil" [rounded]="true" [text]="true" severity="info"
+                                pTooltip="Editar" tooltipPosition="top" (onClick)="editar(e)" />
+                            <p-button icon="pi pi-trash" [rounded]="true" [text]="true" severity="danger"
+                                pTooltip="Eliminar" tooltipPosition="top" (onClick)="confirmarEliminar(e)" />
+                        </div>
+                    </ng-container>
                 </td>
             </tr>
         </ng-template>
@@ -127,7 +131,9 @@
     </div>
 
     <ng-template #footer>
-        <p-button label="Cancelar" icon="pi pi-times" [text]="true" severity="secondary" (onClick)="dialogVisible = false" />
-        <p-button [label]="editMode ? 'Actualizar' : 'Guardar'" icon="pi pi-check" (onClick)="guardar()" />
+        <ng-container *appCanPerm="['PERSONAS_WRITE']">
+            <p-button label="Cancelar" icon="pi pi-times" [text]="true" severity="secondary" (onClick)="dialogVisible = false" />
+            <p-button [label]="editMode ? 'Actualizar' : 'Guardar'" icon="pi pi-check" (onClick)="guardar()" />
+        </ng-container>
     </ng-template>
 </p-dialog>

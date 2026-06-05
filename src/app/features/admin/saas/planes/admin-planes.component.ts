@@ -15,6 +15,7 @@ import { ConfirmDialogModule } from 'primeng/confirmdialog';
 import { MultiSelectModule } from 'primeng/multiselect';
 import { InputNumberModule } from 'primeng/inputnumber';
 import { SaasService } from '@/core/services/saas.service';
+import { AuthService } from '@/core/services/auth.service';
 import {
     ModuloSistemaResponse,
     PlanSuscripcionRequest,
@@ -32,8 +33,11 @@ import {
 })
 export class AdminPlanesComponent implements OnInit {
     private service = inject(SaasService);
+    private auth = inject(AuthService);
     private messageService = inject(MessageService);
     private confirmationService = inject(ConfirmationService);
+
+    get isSuperAdmin(): boolean { return this.auth.isSuperAdmin(); }
 
     planes = signal<PlanSuscripcionResponse[]>([]);
     modulos = signal<ModuloSistemaResponse[]>([]);

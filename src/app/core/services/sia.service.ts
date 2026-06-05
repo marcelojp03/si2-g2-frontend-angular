@@ -135,6 +135,10 @@ export class SiaService {
     listarEstudiantes(): Observable<ApiResponse<EstudianteResponse[]>> {
         return this.http.get<ApiResponse<EstudianteResponse[]>>(`${this.base}/estudiantes`);
     }
+    listarEstudiantesPorCursoParalelo(idCurso: string, idParalelo: string): Observable<ApiResponse<EstudianteResponse[]>> {
+        const params = new HttpParams().set('idCurso', idCurso).set('idParalelo', idParalelo);
+        return this.http.get<ApiResponse<EstudianteResponse[]>>(`${this.base}/estudiantes`, { params });
+    }
     crearEstudiante(body: EstudianteRequest): Observable<ApiResponse<EstudianteResponse>> {
         return this.http.post<ApiResponse<EstudianteResponse>>(`${this.base}/estudiantes`, body);
     }

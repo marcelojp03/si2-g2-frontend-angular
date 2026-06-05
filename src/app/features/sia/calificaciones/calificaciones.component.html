@@ -1,360 +1,514 @@
 <p-toast />
 
-<div class="card space-y-6">
-    <div class="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+<div class="space-y-5">
+    <div class="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
         <div>
-            <h3 class="text-2xl font-semibold m-0">Calificaciones trimestrales</h3>
-            <p class="text-surface-500 text-sm mt-1 mb-0">Modelo por trimestre con SER, SABER, HACER y autoevaluación.</p>
+            <h3 class="m-0 text-2xl font-semibold text-surface-900 dark:text-surface-0">Gestion de calificaciones</h3>
+            <p class="mb-0 mt-1 text-sm text-surface-500">Modelo trimestral con SER, SABER, HACER y autoevaluacion.</p>
         </div>
         <div class="flex flex-wrap gap-2">
-            <p-button label="Cargar consolidado" icon="pi pi-chart-bar" severity="secondary" (onClick)="cargarConsolidado()" />
-            <p-button label="Ver bitácora" icon="pi pi-history" severity="secondary" (onClick)="cargarBitacora()" />
-        </div>
-
-    </div>
-
-    <div class="grid grid-cols-12 gap-4">
-        <div class="col-span-12 md:col-span-3">
-            <label class="font-medium text-sm block mb-2">Gestión</label>
-            <p-select [options]="gestionesOptions()" [(ngModel)]="filtroGestion" appendTo="body" class="w-full" (ngModelChange)="onGestionChange()" />
-        </div>
-        <div class="col-span-12 md:col-span-2">
-            <label class="font-medium text-sm block mb-2">Trimestre</label>
-            <p-select [options]="trimestres" [(ngModel)]="filtroTrimestre" appendTo="body" class="w-full" (ngModelChange)="onFiltroChange()" />
-        </div>
-        <div class="col-span-12 md:col-span-3">
-            <label class="font-medium text-sm block mb-2">Curso</label>
-            <p-select [options]="cursosOptions()" [(ngModel)]="filtroCurso" appendTo="body" class="w-full" (ngModelChange)="onFiltroChange()" />
-        </div>
-        <div class="col-span-12 md:col-span-2">
-            <label class="font-medium text-sm block mb-2">Paralelo</label>
-            <p-select [options]="paralelosFiltrados.map(p => ({ label: p.nombre, value: p.id }))" [(ngModel)]="filtroParalelo" appendTo="body" class="w-full" (ngModelChange)="onFiltroChange()" />
-        </div>
-        <div class="col-span-12 md:col-span-2">
-            <label class="font-medium text-sm block mb-2">Materia</label>
-            <p-select [options]="materiasOptions()" [(ngModel)]="filtroMateria" appendTo="body" class="w-full" (ngModelChange)="onFiltroChange()" />
+            <p-button label="Actualizar consolidado" icon="pi pi-refresh" (onClick)="cargarConsolidado()" />
+            <p-button label="Bitacora de cambios" icon="pi pi-history" severity="secondary" [outlined]="true" (onClick)="activeTab = 'bitacora'; cargarBitacora()" />
         </div>
     </div>
+
+    <section class="rounded-lg border border-surface-200 bg-surface-0 p-4 dark:border-surface-700 dark:bg-surface-900">
+        <div class="grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-5">
+            <div class="flex flex-col gap-1">
+                <label class="text-xs font-semibold uppercase text-surface-500">Gestion</label>
+                <p-select [options]="gestionesOptions()" [(ngModel)]="filtroGestion" appendTo="body" class="w-full" (ngModelChange)="onGestionChange()" />
+            </div>
+            <div class="flex flex-col gap-1">
+                <label class="text-xs font-semibold uppercase text-surface-500">Trimestre</label>
+                <p-select [options]="trimestres" [(ngModel)]="filtroTrimestre" appendTo="body" class="w-full" (ngModelChange)="onFiltroChange()" />
+            </div>
+            <div class="flex flex-col gap-1">
+                <label class="text-xs font-semibold uppercase text-surface-500">Curso</label>
+                <p-select [options]="cursosOptions()" [(ngModel)]="filtroCurso" appendTo="body" class="w-full" (ngModelChange)="onCursoChange()" />
+            </div>
+            <div class="flex flex-col gap-1">
+                <label class="text-xs font-semibold uppercase text-surface-500">Paralelo</label>
+                <p-select [options]="paralelosFiltrados.map(p => ({ label: p.nombre, value: p.id }))" [(ngModel)]="filtroParalelo" appendTo="body" class="w-full" (ngModelChange)="onFiltroChange()" />
+            </div>
+            <div class="flex flex-col gap-1">
+                <label class="text-xs font-semibold uppercase text-surface-500">Materia</label>
+                <p-select [options]="materiasOptions()" [(ngModel)]="filtroMateria" appendTo="body" class="w-full" (ngModelChange)="onFiltroChange()" />
+            </div>
+        </div>
+
+        @if (esDirector()) {
+            <div class="mt-3 grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-5">
+                <div class="flex flex-col gap-1 xl:col-span-2">
+                    <label class="text-xs font-semibold uppercase text-surface-500">Docente</label>
+                    <p-select [options]="docentesOptions()" [(ngModel)]="filtroDocente" appendTo="body" class="w-full" [showClear]="true" (ngModelChange)="onFiltroChange()" />
+                </div>
+            </div>
+        }
+
+        @if (esEstudiante()) {
+            <div class="mt-3 grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-5">
+                <div class="flex flex-col gap-1 xl:col-span-2">
+                    <label class="text-xs font-semibold uppercase text-surface-500">Estudiante</label>
+                    <p-select [options]="estudiantesOptions()" [(ngModel)]="filtroEstudiante" appendTo="body" class="w-full" (ngModelChange)="onFiltroChange()" />
+                </div>
+            </div>
+        }
+    </section>
 
     @if (esEstudiante()) {
-        <div class="grid grid-cols-12 gap-4">
-            <div class="col-span-12 md:col-span-6">
-                <label class="font-medium text-sm block mb-2">Estudiante</label>
-                <p-select [options]="estudiantesOptions()" [(ngModel)]="filtroEstudiante" appendTo="body" class="w-full" (ngModelChange)="onFiltroChange()" />
-            </div>
-        </div>
-    }
-
-    <div class="grid grid-cols-12 gap-4">
-        <div class="col-span-12 md:col-span-4">
-            <div class="p-4 rounded-border border border-surface bg-surface-0 dark:bg-surface-900">
-                <span class="block text-surface-500 text-sm mb-2">Actividades</span>
-                <div class="text-2xl font-semibold">{{ actividades().length }}</div>
-            </div>
-        </div>
-        <div class="col-span-12 md:col-span-4">
-            <div class="p-4 rounded-border border border-surface bg-surface-0 dark:bg-surface-900">
-                <span class="block text-surface-500 text-sm mb-2">SER registrados</span>
-                <div class="text-2xl font-semibold">{{ ser().length }}</div>
-            </div>
-        </div>
-        <div class="col-span-12 md:col-span-4">
-            <div class="p-4 rounded-border border border-surface bg-surface-0 dark:bg-surface-900">
-                <span class="block text-surface-500 text-sm mb-2">Autoevaluaciones</span>
-                <div class="text-2xl font-semibold">{{ autoevaluaciones().length }}</div>
-            </div>
-        </div>
-    </div>
-
-    <div class="grid grid-cols-12 gap-6">
-        <div class="col-span-12 xl:col-span-6 space-y-6">
-            <div class="p-4 rounded-border border border-surface bg-surface-0 dark:bg-surface-900 space-y-4">
-                <div class="flex items-center justify-between gap-3">
-                    <div>
-                        <h4 class="text-lg font-semibold m-0">Actividad evaluativa</h4>
-                        <p class="text-surface-500 text-sm mt-1 mb-0">SABER y HACER se calculan por promedio de actividades.</p>
-                    </div>
-                    <p-button label="Guardar actividad" icon="pi pi-save" [loading]="guardandoActividad" (onClick)="guardarActividad()" />
+        <section class="rounded-lg border border-surface-200 bg-surface-0 p-4 dark:border-surface-700 dark:bg-surface-900">
+            <div class="mb-4 flex items-center justify-between gap-3">
+                <div>
+                    <h4 class="m-0 text-lg font-semibold">Mis calificaciones</h4>
+                    <p class="mb-0 mt-1 text-sm text-surface-500">Resumen trimestral por materia y detalle de actividades.</p>
                 </div>
-
-                <div class="grid grid-cols-12 gap-3">
-                    <div class="col-span-12 md:col-span-6">
-                        <label class="font-medium text-sm block mb-2">Docente</label>
-                        <p-select [options]="docentesOptions()" [(ngModel)]="actividadForm.idDocente" appendTo="body" class="w-full" />
-                    </div>
-                    <div class="col-span-12 md:col-span-6">
-                        <label class="font-medium text-sm block mb-2">Dimensión</label>
-                        <p-select [options]="dimensiones" [(ngModel)]="actividadForm.dimension" appendTo="body" class="w-full" />
-                    </div>
-                    <div class="col-span-12 md:col-span-6">
-                        <label class="font-medium text-sm block mb-2">Nombre</label>
-                        <input pInputText [(ngModel)]="actividadForm.nombreActividad" class="w-full" placeholder="Ej: Práctica de laboratorio" />
-                    </div>
-                    <div class="col-span-12 md:col-span-6">
-                        <label class="font-medium text-sm block mb-2">Tipo</label>
-                        <input pInputText [(ngModel)]="actividadForm.tipoActividad" class="w-full" placeholder="Ej: PRACTICA, EXPOSICION" />
-                    </div>
-                    <div class="col-span-12 md:col-span-4">
-                        <label class="font-medium text-sm block mb-2">Curso</label>
-                        <p-select [options]="cursosOptions()" [(ngModel)]="actividadForm.idCurso" appendTo="body" class="w-full" />
-                    </div>
-                    <div class="col-span-12 md:col-span-4">
-                        <label class="font-medium text-sm block mb-2">Paralelo</label>
-                        <p-select [options]="paralelosFiltrados.map(p => ({ label: p.nombre, value: p.id }))" [(ngModel)]="actividadForm.idParalelo" appendTo="body" class="w-full" />
-                    </div>
-                    <div class="col-span-12 md:col-span-4">
-                        <label class="font-medium text-sm block mb-2">Materia</label>
-                        <p-select [options]="materiasOptions()" [(ngModel)]="actividadForm.idMateria" appendTo="body" class="w-full" />
-                    </div>
-                    <div class="col-span-12 md:col-span-6">
-                        <label class="font-medium text-sm block mb-2">Estado</label>
-                        <p-select [options]="estadosActividad" [(ngModel)]="actividadForm.estado" appendTo="body" class="w-full" />
-                    </div>
-                    <div class="col-span-12 md:col-span-6">
-                        <label class="font-medium text-sm block mb-2">Trimestre</label>
-                        <p-inputnumber [(ngModel)]="actividadForm.trimestre" [min]="1" [max]="3" [showButtons]="false" class="w-full" inputStyleClass="w-full" />
-                    </div>
-                    <div class="col-span-12">
-                        <label class="font-medium text-sm block mb-2">Descripción</label>
-                        <textarea pTextarea [(ngModel)]="actividadForm.descripcion" rows="3" class="w-full"></textarea>
-                    </div>
-                </div>
-
-                <p-table [value]="actividades()" dataKey="id" responsiveLayout="scroll" styleClass="p-datatable-sm">
-                    <ng-template #header>
-                        <tr>
-                            <th>Actividad</th>
-                            <th>Dimensión</th>
-                            <th>Estado</th>
-                            <th style="width: 120px">Puntaje</th>
-                        </tr>
-                    </ng-template>
-                    <ng-template #body let-item>
-                        <tr>
-                            <td>{{ item.nombreActividad }}</td>
-                            <td><p-tag [value]="item.dimension" severity="info" /></td>
-                            <td><p-tag [value]="item.estado" [severity]="item.estado === 'ACTIVA' ? 'success' : 'secondary'" /></td>
-                            <td>{{ item.puntajeMaximo }}</td>
-                        </tr>
-                    </ng-template>
-                    <ng-template #emptymessage>
-                        <tr><td colspan="4" class="text-center py-5 text-surface-400">No hay actividades para el filtro seleccionado.</td></tr>
-                    </ng-template>
-                </p-table>
-            </div>
-        </div>
-
-        <div class="col-span-12 xl:col-span-6 space-y-6">
-            <div class="p-4 rounded-border border border-surface bg-surface-0 dark:bg-surface-900 space-y-4">
-                <div class="flex items-center justify-between gap-3">
-                    <div>
-                        <h4 class="text-lg font-semibold m-0">SER</h4>
-                        <p class="text-surface-500 text-sm mt-1 mb-0">Calificación directa de 0 a 10 por docente.</p>
-                    </div>
-                    <p-button label="Guardar SER" icon="pi pi-save" [loading]="guardandoSer" (onClick)="guardarSer()" />
-                </div>
-                <div class="grid grid-cols-12 gap-3">
-                    <div class="col-span-12 md:col-span-6">
-                        <label class="font-medium text-sm block mb-2">Docente</label>
-                        <p-select [options]="docentesOptions()" [(ngModel)]="serForm.idDocente" appendTo="body" class="w-full" />
-                    </div>
-                    <div class="col-span-12 md:col-span-6">
-                        <label class="font-medium text-sm block mb-2">Estudiante</label>
-                        <p-select [options]="estudiantesOptions()" [(ngModel)]="serForm.idEstudiante" appendTo="body" class="w-full" />
-                    </div>
-                    <div class="col-span-12 md:col-span-4">
-                        <label class="font-medium text-sm block mb-2">Nota SER</label>
-                        <p-inputnumber [(ngModel)]="serForm.notaSer" [min]="0" [max]="10" [maxFractionDigits]="2" [showButtons]="false" class="w-full" inputStyleClass="w-full" />
-                    </div>
-                    <div class="col-span-12 md:col-span-8">
-                        <label class="font-medium text-sm block mb-2">Observación</label>
-                        <input pInputText [(ngModel)]="serForm.observacion" class="w-full" placeholder="Opcional" />
-                    </div>
-                </div>
-
-                <p-table [value]="ser()" dataKey="id" responsiveLayout="scroll" styleClass="p-datatable-sm">
-                    <ng-template #header>
-                        <tr>
-                            <th>Estudiante</th>
-                            <th style="width: 90px">SER</th>
-                            <th>Estado</th>
-                        </tr>
-                    </ng-template>
-                    <ng-template #body let-item>
-                        <tr>
-                            <td>{{ item.idEstudiante }}</td>
-                            <td>{{ item.notaSer }}</td>
-                            <td><p-tag [value]="item.estado" severity="success" /></td>
-                        </tr>
-                    </ng-template>
-                    <ng-template #emptymessage>
-                        <tr><td colspan="3" class="text-center py-5 text-surface-400">Sin calificaciones SER todavía.</td></tr>
-                    </ng-template>
-                </p-table>
+                <p-button label="Actualizar" icon="pi pi-refresh" severity="secondary" [outlined]="true" (onClick)="recargarContexto()" />
             </div>
 
-            <div class="p-4 rounded-border border border-surface bg-surface-0 dark:bg-surface-900 space-y-4">
-                <div class="flex items-center justify-between gap-3">
-                    <div>
-                        <h4 class="text-lg font-semibold m-0">Autoevaluación</h4>
-                        <p class="text-surface-500 text-sm mt-1 mb-0">Editable mientras el trimestre esté abierto.</p>
-                    </div>
-                    <p-button label="Guardar autoevaluación" icon="pi pi-save" [loading]="guardandoAutoevaluacion" (onClick)="guardarAutoevaluacion()" />
-                </div>
-                <div class="grid grid-cols-12 gap-3">
-                    <div class="col-span-12 md:col-span-6">
-                        <label class="font-medium text-sm block mb-2">Estudiante</label>
-                        <p-select [options]="estudiantesOptions()" [(ngModel)]="autoevaluacionForm.idEstudiante" appendTo="body" class="w-full" />
-                    </div>
-                    <div class="col-span-12 md:col-span-6">
-                        <label class="font-medium text-sm block mb-2">Nota autoevaluación</label>
-                        <p-inputnumber [(ngModel)]="autoevaluacionForm.notaAutoevaluacion" [min]="0" [max]="5" [maxFractionDigits]="2" [showButtons]="false" class="w-full" inputStyleClass="w-full" />
-                    </div>
-                    <div class="col-span-12">
-                        <label class="font-medium text-sm block mb-2">Comentario</label>
-                        <textarea pTextarea [(ngModel)]="autoevaluacionForm.comentario" rows="3" class="w-full"></textarea>
-                    </div>
-                </div>
+            <p-table [value]="consolidadoEstudiante()" responsiveLayout="scroll" styleClass="p-datatable-sm">
+                <ng-template #header>
+                    <tr>
+                        <th>Materia</th>
+                        <th>SER</th>
+                        <th>SABER</th>
+                        <th>HACER</th>
+                        <th>Autoevaluacion</th>
+                        <th>Total</th>
+                        <th>Estado</th>
+                    </tr>
+                </ng-template>
+                <ng-template #body let-row>
+                    <tr>
+                        <td>{{ filtroMateria }}</td>
+                        <td>{{ row.ser ?? '-' }}</td>
+                        <td>{{ row.promedioSaber ?? '-' }}</td>
+                        <td>{{ row.promedioHacer ?? '-' }}</td>
+                        <td>{{ row.autoevaluacion ?? 'Pendiente' }}</td>
+                        <td>{{ row.totalFinal ?? row.totalParcial }}</td>
+                        <td><p-tag [value]="estadoConsolidado(row)" [severity]="severityEstado(estadoConsolidado(row))" /></td>
+                    </tr>
+                </ng-template>
+                <ng-template #emptymessage>
+                    <tr><td colspan="7" class="py-5 text-center text-surface-500">No hay consolidado disponible.</td></tr>
+                </ng-template>
+            </p-table>
 
-                <p-table [value]="autoevaluaciones()" dataKey="id" responsiveLayout="scroll" styleClass="p-datatable-sm">
-                    <ng-template #header>
-                        <tr>
-                            <th>Estudiante</th>
-                            <th style="width: 120px">Auto</th>
-                            <th>Estado</th>
-                        </tr>
-                    </ng-template>
-                    <ng-template #body let-item>
-                        <tr>
-                            <td>{{ item.idEstudiante }}</td>
-                            <td>{{ item.notaAutoevaluacion }}</td>
-                            <td><p-tag [value]="item.estado" severity="info" /></td>
-                        </tr>
-                    </ng-template>
-                    <ng-template #emptymessage>
-                        <tr><td colspan="3" class="text-center py-5 text-surface-400">Sin autoevaluaciones registradas.</td></tr>
-                    </ng-template>
-                </p-table>
-            </div>
-        </div>
-    </div>
-
-    <div class="grid grid-cols-12 gap-6">
-        <div class="col-span-12 xl:col-span-4">
-            <div class="p-4 rounded-border border border-surface bg-surface-0 dark:bg-surface-900 space-y-4">
-                <div class="flex items-center justify-between">
-                    <h4 class="text-lg font-semibold m-0">Cierre de trimestre</h4>
-                    <p-button label="Cerrar" severity="danger" [outlined]="true" (onClick)="cerrarTrimestre()" />
-                </div>
-                <textarea pTextarea [(ngModel)]="justificacionCierre" rows="3" class="w-full" placeholder="Justificación del cierre"></textarea>
-                <p-button label="Reabrir trimestre" icon="pi pi-refresh" severity="secondary" [outlined]="true" (onClick)="reabrirTrimestre()" />
-                <textarea pTextarea [(ngModel)]="justificacionReapertura" rows="3" class="w-full" placeholder="Justificación de reapertura"></textarea>
-            </div>
-        </div>
-
-        <div class="col-span-12 xl:col-span-8">
-            <div class="p-4 rounded-border border border-surface bg-surface-0 dark:bg-surface-900 space-y-4">
-                <div class="flex items-center justify-between">
-                    <h4 class="text-lg font-semibold m-0">Consolidado</h4>
-                    <p-button label="Actualizar" icon="pi pi-refresh" severity="secondary" [outlined]="true" (onClick)="cargarConsolidado()" />
-                </div>
-
-                @if (consolidadoDirector()) {
-                    <div class="grid grid-cols-12 gap-3 text-sm">
-                        <div class="col-span-6 md:col-span-3">Materias: {{ consolidadoDirector()!.totalMaterias }}</div>
-                        <div class="col-span-6 md:col-span-3">Completas: {{ consolidadoDirector()!.materiasCompletas }}</div>
-                        <div class="col-span-6 md:col-span-3">Pendientes: {{ consolidadoDirector()!.materiasConPendientes }}</div>
-                        <div class="col-span-6 md:col-span-3">Promedio: {{ consolidadoDirector()!.promedioGeneral }}</div>
-                    </div>
-                }
-
-                @if (consolidadoDocente().length) {
-                    <p-table [value]="consolidadoDocente()" dataKey="idMateria" responsiveLayout="scroll" styleClass="p-datatable-sm">
+            <div class="mt-5 grid grid-cols-1 gap-4 lg:grid-cols-2">
+                <div>
+                    <h5 class="mb-3 mt-0 text-base font-semibold">Detalle de actividades</h5>
+                    <p-table [value]="actividades()" responsiveLayout="scroll" styleClass="p-datatable-sm">
                         <ng-template #header>
                             <tr>
-                                <th>Materia</th>
-                                <th>Docente</th>
-                                <th>Saber</th>
-                                <th>Hacer</th>
-                                <th>Pendientes auto</th>
-                                <th>Promedio</th>
-                            </tr>
-                        </ng-template>
-                        <ng-template #body let-row>
-                            <tr>
-                                <td>{{ row.nombreMateria }}</td>
-                                <td>{{ row.nombreDocente }}</td>
-                                <td>{{ row.actividadesSaber }}</td>
-                                <td>{{ row.actividadesHacer }}</td>
-                                <td>{{ row.estudiantesPendientesAutoevaluacion }}</td>
-                                <td>{{ row.promedioGeneral }}</td>
-                            </tr>
-                        </ng-template>
-                    </p-table>
-                }
-
-                @if (consolidadoEstudiante().length) {
-                    <p-table [value]="consolidadoEstudiante()" dataKey="idEstudiante" responsiveLayout="scroll" styleClass="p-datatable-sm">
-                        <ng-template #header>
-                            <tr>
-                                <th>Estudiante</th>
-                                <th>Ser</th>
-                                <th>Saber</th>
-                                <th>Hacer</th>
-                                <th>Auto</th>
-                                <th>Total</th>
+                                <th>Actividad</th>
+                                <th>Tipo</th>
+                                <th>Dimension</th>
+                                <th>Fecha</th>
+                                <th>Maximo</th>
                                 <th>Estado</th>
                             </tr>
                         </ng-template>
-                        <ng-template #body let-row>
+                        <ng-template #body let-actividad>
                             <tr>
-                                <td>{{ row.nombreCompleto }}</td>
-                                <td>{{ row.ser }}</td>
-                                <td>{{ row.promedioSaber }}</td>
-                                <td>{{ row.promedioHacer }}</td>
-                                <td>{{ row.autoevaluacion }}</td>
-                                <td>{{ row.totalFinal }}</td>
-                                <td><p-tag [value]="row.estado" [severity]="row.estado === 'APROBADO' ? 'success' : (row.estado === 'EN_RIESGO' ? 'warn' : 'secondary')" /></td>
+                                <td>{{ actividad.nombreActividad }}</td>
+                                <td>{{ actividad.tipoActividad }}</td>
+                                <td><p-tag [value]="actividad.dimension" severity="info" /></td>
+                                <td>{{ getFecha(actividad.fechaActividad) }}</td>
+                                <td>{{ actividad.puntajeMaximo }}</td>
+                                <td><p-tag [value]="actividad.estado" [severity]="severityEstado(actividad.estado)" /></td>
                             </tr>
                         </ng-template>
+                        <ng-template #emptymessage>
+                            <tr><td colspan="6" class="py-5 text-center text-surface-500">No hay actividades registradas.</td></tr>
+                        </ng-template>
                     </p-table>
-                }
+                </div>
 
-                @if (!consolidadoDirector() && !consolidadoDocente().length && !consolidadoEstudiante().length) {
-                    <div class="text-surface-500 text-sm">Todavía no se ha cargado un consolidado para este filtro.</div>
-                }
+                <div>
+                    <h5 class="mb-3 mt-0 text-base font-semibold">Registrar autoevaluacion</h5>
+                    <div class="space-y-3 rounded-lg border border-surface-200 p-4 dark:border-surface-700">
+                        <div class="flex flex-col gap-1">
+                            <label class="text-sm font-medium">Autoevaluacion /5</label>
+                            <p-inputnumber [(ngModel)]="autoevaluacionForm.notaAutoevaluacion" [min]="0" [max]="5" [maxFractionDigits]="2" inputStyleClass="w-full" class="w-full" />
+                        </div>
+                        <div class="flex flex-col gap-1">
+                            <label class="text-sm font-medium">Comentario</label>
+                            <textarea pTextarea [(ngModel)]="autoevaluacionForm.comentario" rows="4" class="w-full"></textarea>
+                        </div>
+                        <p-button label="Guardar autoevaluacion" icon="pi pi-save" [loading]="guardandoAutoevaluacion" (onClick)="guardarAutoevaluacion()" />
+                    </div>
+                </div>
+            </div>
+        </section>
+    } @else {
+        <div class="grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-5">
+            <div class="rounded-lg border border-surface-200 bg-surface-0 p-4 dark:border-surface-700 dark:bg-surface-900">
+                <span class="text-sm text-surface-500">Actividades SABER</span>
+                <div class="mt-2 text-2xl font-semibold">{{ indicadores().saber }}</div>
+            </div>
+            <div class="rounded-lg border border-surface-200 bg-surface-0 p-4 dark:border-surface-700 dark:bg-surface-900">
+                <span class="text-sm text-surface-500">Actividades HACER</span>
+                <div class="mt-2 text-2xl font-semibold">{{ indicadores().hacer }}</div>
+            </div>
+            <div class="rounded-lg border border-surface-200 bg-surface-0 p-4 dark:border-surface-700 dark:bg-surface-900">
+                <span class="text-sm text-surface-500">SER registrados</span>
+                <div class="mt-2 text-2xl font-semibold">{{ indicadores().serRegistrados }}/{{ indicadores().total || 0 }}</div>
+            </div>
+            <div class="rounded-lg border border-surface-200 bg-surface-0 p-4 dark:border-surface-700 dark:bg-surface-900">
+                <span class="text-sm text-surface-500">Autoevaluaciones pendientes</span>
+                <div class="mt-2 text-2xl font-semibold">{{ indicadores().autosPendientes }}</div>
+            </div>
+            <div class="rounded-lg border border-surface-200 bg-surface-0 p-4 dark:border-surface-700 dark:bg-surface-900">
+                <span class="text-sm text-surface-500">Consolidados completos</span>
+                <div class="mt-2 text-2xl font-semibold">{{ indicadores().consolidadosCompletos }}/{{ indicadores().total || 0 }}</div>
             </div>
         </div>
-    </div>
 
-    <div class="p-4 rounded-border border border-surface bg-surface-0 dark:bg-surface-900 space-y-4">
-        <div class="flex items-center justify-between">
-            <h4 class="text-lg font-semibold m-0">Bitácora</h4>
-            <p-button label="Recargar bitácora" icon="pi pi-history" severity="secondary" [outlined]="true" (onClick)="cargarBitacora()" />
-        </div>
+        <section class="rounded-lg border border-surface-200 bg-surface-0 p-4 dark:border-surface-700 dark:bg-surface-900">
+            <p-tabs [(value)]="activeTab">
+                <p-tablist>
+                    <p-tab value="actividades">Actividades</p-tab>
+                    <p-tab value="notas">Notas por actividad</p-tab>
+                    <p-tab value="ser">SER</p-tab>
+                    <p-tab value="autoevaluacion">Autoevaluacion</p-tab>
+                    <p-tab value="consolidado">Consolidado</p-tab>
+                    <p-tab value="bitacora">Bitacora</p-tab>
+                </p-tablist>
 
-        <p-table [value]="bitacora()" dataKey="id" responsiveLayout="scroll" styleClass="p-datatable-sm">
-            <ng-template #header>
-                <tr>
-                    <th>Fecha</th>
-                    <th>Módulo</th>
-                    <th>Operación</th>
-                    <th>Entidad</th>
-                    <th>Resultado</th>
-                </tr>
-            </ng-template>
-            <ng-template #body let-item>
-                <tr>
-                    <td>{{ item.fechaEvento }}</td>
-                    <td>{{ item.nombreModulo }}</td>
-                    <td>{{ item.tipoOperacion }}</td>
-                    <td>{{ item.nombreEntidad }}</td>
-                    <td><p-tag [value]="item.exito ? 'OK' : 'ERROR'" [severity]="item.exito ? 'success' : 'danger'" /></td>
-                </tr>
-            </ng-template>
-            <ng-template #emptymessage>
-                <tr><td colspan="5" class="text-center py-5 text-surface-400">Sin registros de bitácora cargados.</td></tr>
-            </ng-template>
-        </p-table>
-    </div>
+                <p-tabpanels>
+                    <p-tabpanel value="actividades">
+                        <div class="grid grid-cols-1 gap-5 xl:grid-cols-12">
+                            <div class="xl:col-span-4">
+                                <div class="space-y-4">
+                                    <div>
+                                        <h4 class="m-0 text-lg font-semibold">Nueva actividad evaluativa</h4>
+                                        <p class="mb-0 mt-1 text-sm text-surface-500">Los filtros superiores definen gestion, trimestre, curso, paralelo, materia y docente.</p>
+                                    </div>
+                                    <div class="grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-1">
+                                        <div class="flex flex-col gap-1">
+                                            <label class="text-sm font-medium">Nombre</label>
+                                            <input pInputText [(ngModel)]="actividadForm.nombreActividad" placeholder="Practico Fracciones" />
+                                        </div>
+                                        <div class="flex flex-col gap-1">
+                                            <label class="text-sm font-medium">Tipo</label>
+                                            <p-select [options]="tiposActividad" [(ngModel)]="actividadForm.tipoActividad" appendTo="body" class="w-full" [editable]="true" />
+                                        </div>
+                                        <div class="flex flex-col gap-1">
+                                            <label class="text-sm font-medium">Dimension</label>
+                                            <p-select [options]="dimensionesActividad" [(ngModel)]="actividadForm.dimension" appendTo="body" class="w-full" (ngModelChange)="onDimensionChange()" />
+                                        </div>
+                                        <div class="flex flex-col gap-1">
+                                            <label class="text-sm font-medium">Puntaje maximo</label>
+                                            <input pInputText [value]="puntajeActividad" disabled />
+                                        </div>
+                                        <div class="flex flex-col gap-1">
+                                            <label class="text-sm font-medium">Fecha</label>
+                                            <input pInputText type="date" [(ngModel)]="actividadForm.fechaActividad" />
+                                        </div>
+                                        <div class="flex flex-col gap-1">
+                                            <label class="text-sm font-medium">Estado</label>
+                                            <p-select [options]="estadosActividad" [(ngModel)]="actividadForm.estado" appendTo="body" class="w-full" />
+                                        </div>
+                                        <div class="flex flex-col gap-1 md:col-span-2 xl:col-span-1">
+                                            <label class="text-sm font-medium">Descripcion</label>
+                                            <textarea pTextarea [(ngModel)]="actividadForm.descripcion" rows="4" class="w-full"></textarea>
+                                        </div>
+                                    </div>
+                                    <p-button label="Guardar actividad" icon="pi pi-save" [loading]="guardandoActividad" (onClick)="guardarActividad()" />
+                                </div>
+                            </div>
+
+                            <div class="xl:col-span-8">
+                                <div class="mb-3 flex items-center justify-between">
+                                    <h4 class="m-0 text-lg font-semibold">Actividades registradas</h4>
+                                    <p-button icon="pi pi-refresh" [rounded]="true" [text]="true" severity="secondary" (onClick)="cargarVista()" />
+                                </div>
+                                <p-table [value]="actividades()" dataKey="id" responsiveLayout="scroll" styleClass="p-datatable-sm">
+                                    <ng-template #header>
+                                        <tr>
+                                            <th>Actividad</th>
+                                            <th>Tipo</th>
+                                            <th>Dimension</th>
+                                            <th>Fecha</th>
+                                            <th>Puntaje</th>
+                                            <th>Estado</th>
+                                            <th>Acciones</th>
+                                        </tr>
+                                    </ng-template>
+                                    <ng-template #body let-actividad>
+                                        <tr>
+                                            <td class="font-medium">{{ actividad.nombreActividad }}</td>
+                                            <td>{{ actividad.tipoActividad }}</td>
+                                            <td><p-tag [value]="actividad.dimension" severity="info" /></td>
+                                            <td>{{ getFecha(actividad.fechaActividad) }}</td>
+                                            <td>{{ actividad.puntajeMaximo }}</td>
+                                            <td><p-tag [value]="actividad.estado" [severity]="severityEstado(actividad.estado)" /></td>
+                                            <td>
+                                                <div class="flex flex-wrap gap-2">
+                                                    <p-button label="Calificar" size="small" (onClick)="selectedActividadId = actividad.id; activeTab = 'notas'; cargarNotasActividad()" />
+                                                    <p-button label="Ver" size="small" severity="secondary" [outlined]="true" (onClick)="selectedActividadId = actividad.id; activeTab = 'notas'; cargarNotasActividad()" />
+                                                    @if (actividad.estado !== 'CERRADO' && actividad.estado !== 'CERRADA') {
+                                                        <p-button label="Cerrar" size="small" severity="danger" [outlined]="true" (onClick)="cerrarActividad(actividad)" />
+                                                    }
+                                                    <p-button label="Eliminar" icon="pi pi-trash" size="small" severity="danger" [text]="true" (onClick)="eliminarActividad(actividad)" />
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    </ng-template>
+                                    <ng-template #emptymessage>
+                                        <tr><td colspan="7" class="py-6 text-center text-surface-500">No hay actividades registradas.</td></tr>
+                                    </ng-template>
+                                </p-table>
+                            </div>
+                        </div>
+                    </p-tabpanel>
+
+                    <p-tabpanel value="notas">
+                        <div class="space-y-4">
+                            <div class="grid grid-cols-1 gap-3 lg:grid-cols-3">
+                                <div class="flex flex-col gap-1 lg:col-span-1">
+                                    <label class="text-sm font-medium">Actividad evaluativa</label>
+                                    <p-select [options]="actividadesOptions()" [(ngModel)]="selectedActividadId" appendTo="body" class="w-full" (ngModelChange)="cargarNotasActividad()" />
+                                </div>
+                                @if (selectedActividad()) {
+                                    <div class="rounded-lg border border-surface-200 p-3 text-sm dark:border-surface-700 lg:col-span-2">
+                                        <div class="grid grid-cols-2 gap-2 md:grid-cols-5">
+                                            <span><strong>Actividad:</strong> {{ selectedActividad()!.nombreActividad }}</span>
+                                            <span><strong>Dimension:</strong> {{ selectedActividad()!.dimension }}</span>
+                                            <span><strong>Maximo:</strong> {{ selectedActividad()!.puntajeMaximo }}</span>
+                                            <span><strong>Fecha:</strong> {{ getFecha(selectedActividad()!.fechaActividad) }}</span>
+                                            <span><strong>Estado:</strong> {{ selectedActividad()!.estado }}</span>
+                                        </div>
+                                    </div>
+                                }
+                            </div>
+
+                            <p-table [value]="calificacionesActividad()" dataKey="idEstudiante" responsiveLayout="scroll" styleClass="p-datatable-sm">
+                                <ng-template #header>
+                                    <tr>
+                                        <th>Estudiante</th>
+                                        <th>Nota obtenida</th>
+                                        <th>Maximo</th>
+                                        <th>Observacion</th>
+                                        <th>Estado</th>
+                                    </tr>
+                                </ng-template>
+                                <ng-template #body let-row>
+                                    <tr>
+                                        <td class="font-medium">{{ getNombreEstudiante(row.idEstudiante) }}</td>
+                                        <td>
+                                            <p-inputnumber [(ngModel)]="row.notaObtenida" [min]="0" [max]="selectedActividad()?.puntajeMaximo ?? 100" [maxFractionDigits]="2" inputStyleClass="w-24" />
+                                        </td>
+                                        <td>{{ selectedActividad()?.puntajeMaximo ?? '-' }}</td>
+                                        <td><input pInputText [(ngModel)]="row.observacion" class="w-full" /></td>
+                                        <td><p-tag [value]="row.estado" [severity]="severityEstado(row.estado)" /></td>
+                                    </tr>
+                                </ng-template>
+                                <ng-template #emptymessage>
+                                    <tr><td colspan="5" class="py-6 text-center text-surface-500">No hay notas registradas.</td></tr>
+                                </ng-template>
+                            </p-table>
+
+                            <p-button label="Guardar notas" icon="pi pi-save" [loading]="guardandoNotas" [disabled]="!selectedActividadId || !calificacionesActividad().length" (onClick)="guardarNotasActividad()" />
+                        </div>
+                    </p-tabpanel>
+
+                    <p-tabpanel value="ser">
+                        <div class="space-y-4">
+                            <div>
+                                <h4 class="m-0 text-lg font-semibold">Registro masivo SER</h4>
+                                <p class="mb-0 mt-1 text-sm text-surface-500">Nota directa del docente sobre 10 puntos.</p>
+                            </div>
+                            <p-table [value]="serRows()" dataKey="idEstudiante" responsiveLayout="scroll" styleClass="p-datatable-sm">
+                                <ng-template #header>
+                                    <tr>
+                                        <th>Estudiante</th>
+                                        <th>Nota SER /10</th>
+                                        <th>Observacion</th>
+                                        <th>Estado</th>
+                                    </tr>
+                                </ng-template>
+                                <ng-template #body let-row>
+                                    <tr>
+                                        <td class="font-medium">{{ row.nombreCompleto }}</td>
+                                        <td><p-inputnumber [(ngModel)]="row.notaSer" [min]="0" [max]="10" [maxFractionDigits]="2" inputStyleClass="w-24" /></td>
+                                        <td><input pInputText [(ngModel)]="row.observacion" class="w-full" /></td>
+                                        <td><p-tag [value]="row.estado" [severity]="severityEstado(row.estado)" /></td>
+                                    </tr>
+                                </ng-template>
+                                <ng-template #emptymessage>
+                                    <tr><td colspan="4" class="py-6 text-center text-surface-500">No hay SER registrado.</td></tr>
+                                </ng-template>
+                            </p-table>
+                            <p-button label="Guardar SER" icon="pi pi-save" [loading]="guardandoSer" [disabled]="!serRows().length" (onClick)="guardarSerMasivo()" />
+                        </div>
+                    </p-tabpanel>
+
+                    <p-tabpanel value="autoevaluacion">
+                        <div class="mb-4 grid grid-cols-1 gap-3 md:grid-cols-2">
+                            <div class="rounded-lg border border-surface-200 p-4 dark:border-surface-700">
+                                <span class="text-sm text-surface-500">Autoevaluaciones registradas</span>
+                                <div class="mt-2 text-2xl font-semibold">{{ autoevaluaciones().length }}</div>
+                            </div>
+                            <div class="rounded-lg border border-surface-200 p-4 dark:border-surface-700">
+                                <span class="text-sm text-surface-500">Autoevaluaciones pendientes</span>
+                                <div class="mt-2 text-2xl font-semibold">{{ indicadores().autosPendientes }}</div>
+                            </div>
+                        </div>
+                        <p-table [value]="autoevaluaciones()" dataKey="idEstudiante" responsiveLayout="scroll" styleClass="p-datatable-sm">
+                            <ng-template #header>
+                                <tr>
+                                    <th>Estudiante</th>
+                                    <th>Autoevaluacion /5</th>
+                                    <th>Comentario</th>
+                                    <th>Estado</th>
+                                    <th>Fecha</th>
+                                </tr>
+                            </ng-template>
+                            <ng-template #body let-row>
+                                <tr>
+                                    <td class="font-medium">{{ getNombreEstudiante(row.idEstudiante) }}</td>
+                                    <td>{{ row.notaAutoevaluacion ?? 'Pendiente' }}</td>
+                                    <td>{{ row.comentario || 'Sin comentario' }}</td>
+                                    <td><p-tag [value]="row.estado" [severity]="severityEstado(row.estado)" /></td>
+                                    <td>{{ getFecha(row.creadoEn) }}</td>
+                                </tr>
+                            </ng-template>
+                            <ng-template #emptymessage>
+                                <tr><td colspan="5" class="py-6 text-center text-surface-500">No hay autoevaluaciones registradas.</td></tr>
+                            </ng-template>
+                        </p-table>
+                    </p-tabpanel>
+
+                    <p-tabpanel value="consolidado">
+                        <div class="mb-3 flex flex-wrap items-center justify-between gap-2">
+                            <h4 class="m-0 text-lg font-semibold">Consolidado trimestral</h4>
+                            <div class="flex flex-wrap gap-2">
+                                <p-button label="Ver consolidado completo" icon="pi pi-table" severity="secondary" [outlined]="true" (onClick)="cargarConsolidado()" />
+                                <p-button label="Actualizar consolidado" icon="pi pi-refresh" (onClick)="cargarConsolidado()" />
+                            </div>
+                        </div>
+
+                        @if (consolidadoDirector()) {
+                            <div class="mb-4 grid grid-cols-2 gap-3 md:grid-cols-3 xl:grid-cols-6">
+                                <div class="rounded-lg border border-surface-200 p-3 dark:border-surface-700">Promedio<br /><strong>{{ consolidadoDirector()!.promedioGeneral }}</strong></div>
+                                <div class="rounded-lg border border-surface-200 p-3 dark:border-surface-700">Completas<br /><strong>{{ consolidadoDirector()!.materiasCompletas }}</strong></div>
+                                <div class="rounded-lg border border-surface-200 p-3 dark:border-surface-700">Incompletas<br /><strong>{{ consolidadoDirector()!.materiasConPendientes }}</strong></div>
+                                <div class="rounded-lg border border-surface-200 p-3 dark:border-surface-700">Docentes pendientes<br /><strong>{{ consolidadoDirector()!.docentesConSerPendiente }}</strong></div>
+                                <div class="rounded-lg border border-surface-200 p-3 dark:border-surface-700">Autos pendientes<br /><strong>{{ consolidadoDirector()!.estudiantesSinAutoevaluacion }}</strong></div>
+                                <div class="rounded-lg border border-surface-200 p-3 dark:border-surface-700">En riesgo<br /><strong>{{ consolidadoDirector()!.estudiantesEnRiesgo }}</strong></div>
+                            </div>
+                        }
+
+                        <p-table [value]="estudiantesConsolidado()" responsiveLayout="scroll" styleClass="p-datatable-sm">
+                            <ng-template #header>
+                                <tr>
+                                    <th>Estudiante</th>
+                                    <th>SER /10</th>
+                                    <th>SABER /45</th>
+                                    <th>HACER /40</th>
+                                    <th>Auto /5</th>
+                                    <th>Total /100</th>
+                                    <th>Estado</th>
+                                </tr>
+                            </ng-template>
+                            <ng-template #body let-row>
+                                <tr>
+                                    <td class="font-medium">{{ row.nombreCompleto }}</td>
+                                    <td>{{ row.ser ?? '-' }}</td>
+                                    <td>{{ row.promedioSaber ?? '-' }}</td>
+                                    <td>{{ row.promedioHacer ?? '-' }}</td>
+                                    <td>{{ row.autoevaluacion ?? 'Pendiente' }}</td>
+                                    <td>{{ estadoConsolidado(row) === 'Falta autoevaluacion' ? (row.totalParcial + '/95') : (row.totalFinal ?? row.totalParcial) }}</td>
+                                    <td><p-tag [value]="estadoConsolidado(row)" [severity]="severityEstado(estadoConsolidado(row))" /></td>
+                                </tr>
+                            </ng-template>
+                            <ng-template #emptymessage>
+                                <tr><td colspan="7" class="py-6 text-center text-surface-500">No hay consolidado disponible.</td></tr>
+                            </ng-template>
+                        </p-table>
+
+                        @if (esDirector()) {
+                            <div class="mt-5">
+                                <h5 class="mb-3 mt-0 text-base font-semibold">Control por materia</h5>
+                                <p-table [value]="consolidadoDocente()" responsiveLayout="scroll" styleClass="p-datatable-sm">
+                                    <ng-template #header>
+                                        <tr>
+                                            <th>Curso</th>
+                                            <th>Paralelo</th>
+                                            <th>Materia</th>
+                                            <th>Docente</th>
+                                            <th>SABER</th>
+                                            <th>HACER</th>
+                                            <th>Auto pendientes</th>
+                                            <th>Promedio</th>
+                                            <th>Estado</th>
+                                        </tr>
+                                    </ng-template>
+                                    <ng-template #body let-row>
+                                        <tr>
+                                            <td>{{ filtroCurso }}</td>
+                                            <td>{{ filtroParalelo }}</td>
+                                            <td>{{ row.nombreMateria }}</td>
+                                            <td>{{ row.nombreDocente }}</td>
+                                            <td>{{ row.actividadesSaber }}</td>
+                                            <td>{{ row.actividadesHacer }}</td>
+                                            <td>{{ row.estudiantesPendientesAutoevaluacion }}</td>
+                                            <td>{{ row.promedioGeneral }}</td>
+                                            <td><p-tag [value]="row.estado" [severity]="severityEstado(row.estado)" /></td>
+                                        </tr>
+                                    </ng-template>
+                                    <ng-template #emptymessage>
+                                        <tr><td colspan="9" class="py-6 text-center text-surface-500">No hay materias para supervisar.</td></tr>
+                                    </ng-template>
+                                </p-table>
+                            </div>
+                        }
+                    </p-tabpanel>
+
+                    <p-tabpanel value="bitacora">
+                        <div class="mb-3 flex items-center justify-between gap-2">
+                            <h4 class="m-0 text-lg font-semibold">Bitacora de cambios</h4>
+                            <p-button label="Recargar bitacora" icon="pi pi-history" severity="secondary" [outlined]="true" (onClick)="cargarBitacora()" />
+                        </div>
+                        <p-table [value]="bitacora()" dataKey="id" responsiveLayout="scroll" styleClass="p-datatable-sm">
+                            <ng-template #header>
+                                <tr>
+                                    <th>Fecha</th>
+                                    <th>Usuario</th>
+                                    <th>Rol</th>
+                                    <th>Operacion</th>
+                                    <th>Entidad</th>
+                                    <th>Detalle</th>
+                                    <th>Resultado</th>
+                                </tr>
+                            </ng-template>
+                            <ng-template #body let-item>
+                                <tr>
+                                    <td>{{ getFechaHora(item.fechaEvento) }}</td>
+                                    <td>{{ item.idUsuario || '-' }}</td>
+                                    <td>{{ item.nombreModulo }}</td>
+                                    <td>{{ item.tipoOperacion }}</td>
+                                    <td>{{ item.nombreEntidad || '-' }}</td>
+                                    <td>{{ item.mensaje || item.nombreFuncion || '-' }}</td>
+                                    <td><p-tag [value]="item.exito ? 'Correcto' : 'Error'" [severity]="item.exito ? 'success' : 'danger'" /></td>
+                                </tr>
+                            </ng-template>
+                            <ng-template #emptymessage>
+                                <tr><td colspan="7" class="py-6 text-center text-surface-500">No hay registros de bitacora.</td></tr>
+                            </ng-template>
+                        </p-table>
+                    </p-tabpanel>
+                </p-tabpanels>
+            </p-tabs>
+        </section>
+
+        @if (esDocente()) {
+            <section class="rounded-lg border border-surface-200 bg-surface-0 p-4 dark:border-surface-700 dark:bg-surface-900">
+                <div class="flex flex-col gap-1">
+                    <span class="text-sm font-semibold text-surface-900 dark:text-surface-0">Estado del trimestre: Abierto</span>
+                    <span class="text-sm text-surface-500">El cierre de trimestre esta disponible solo para Director o Coordinacion.</span>
+                </div>
+            </section>
+        }
+    }
 </div>

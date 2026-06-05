@@ -19,6 +19,7 @@ import { EstudiantesService } from '@/features/sia/estudiantes/services/estudian
 import { GestionesService } from '@/features/sia/gestiones/services/gestiones.service';
 import { CursosService } from '@/features/sia/cursos/services/cursos.service';
 import { ParalelosService } from '@/features/sia/paralelos/services/paralelos.service';
+import { CanPermDirective } from '@/shared/directives/can-perm.directive';
 import {
     InscripcionRequest, InscripcionResponse,
     EstudianteResponse, GestionAcademicaResponse, CursoResponse, ParaleloResponse
@@ -29,7 +30,7 @@ import {
     standalone: true,
     imports: [CommonModule, FormsModule, TableModule, ButtonModule, ToastModule, TagModule,
         InputTextModule, InputIconModule, IconFieldModule, DialogModule, TooltipModule,
-        ConfirmDialogModule, SelectModule],
+        ConfirmDialogModule, SelectModule, CanPermDirective],
     providers: [MessageService, ConfirmationService],
     templateUrl: './inscripciones.component.html'
 })
