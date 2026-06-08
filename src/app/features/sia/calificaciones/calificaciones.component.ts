@@ -657,7 +657,7 @@ export class CalificacionesComponent implements OnInit {
                 idEstudiante,
                 nombreCompleto: this.getNombreEstudiante(idEstudiante),
                 notaSer: ser?.notaSer ?? null,
-                observacion: ser?.observacion ?? '',
+                observacion: ser?.observacionFinal ?? '',
                 estado: ser?.estado ?? 'PENDIENTE',
             };
         });
@@ -680,8 +680,6 @@ export class CalificacionesComponent implements OnInit {
 
     private filtrarPorContexto(items: CalificacionSerResponse[]): CalificacionSerResponse[] {
         return items.filter((item) =>
-            (!this.filtroCurso || item.idCurso === this.filtroCurso) &&
-            (!this.filtroParalelo || item.idParalelo === this.filtroParalelo) &&
             (!this.filtroMateria || item.idMateria === this.filtroMateria)
         );
     }
@@ -777,8 +775,8 @@ export class CalificacionesComponent implements OnInit {
         };
     }
 
-    private normalizarFechaActividadParaApi(fecha?: string | null): string | null {
-        if (!fecha) return null;
+    private normalizarFechaActividadParaApi(fecha?: string | null): string | undefined {
+        if (!fecha) return undefined;
         if (fecha.includes('T')) return fecha;
         return `${fecha}T12:00:00.000Z`;
     }

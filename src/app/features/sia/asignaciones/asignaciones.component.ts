@@ -19,12 +19,9 @@ import { DocentesService } from '@/features/sia/docentes/services/docentes.servi
 import { MateriasService } from '@/features/sia/materias/services/materias.service';
 import { ParalelosService } from '@/features/sia/paralelos/services/paralelos.service';
 import { GestionesService } from '@/features/sia/gestiones/services/gestiones.service';
-<<<<<<< HEAD
 import { CursosService } from '@/features/sia/cursos/services/cursos.service';
-=======
 import { CanPermDirective } from '@/shared/directives/can-perm.directive';
 import { AuthService } from '@/core/services/auth.service';
->>>>>>> 2d3de50 (feat: periodos y dimensiones UI, permisos reactivos, roles fix, routes restore)
 import {
     AsignacionDocenteRequest, AsignacionDocenteResponse,
     CursoResponse, DocenteResponse, MateriaResponse, ParaleloResponse, GestionAcademicaResponse
@@ -54,11 +51,8 @@ export class AsignacionesComponent implements OnInit {
     private materiasService = inject(MateriasService);
     private paralelosService = inject(ParalelosService);
     private gestionesService = inject(GestionesService);
-<<<<<<< HEAD
     private cursosService = inject(CursosService);
-=======
     private auth = inject(AuthService);
->>>>>>> 2d3de50 (feat: periodos y dimensiones UI, permisos reactivos, roles fix, routes restore)
     private messageService = inject(MessageService);
     private confirmationService = inject(ConfirmationService);
 
@@ -78,11 +72,11 @@ export class AsignacionesComponent implements OnInit {
             return {
                 ...asignacion,
                 idCurso,
-                nombreDocente: this.getNombreDocente(asignacion.idDocente),
-                nombreMateria: this.getNombreMateria(asignacion.idMateria),
+                nombreDocente: this.getNombreDocente(asignacion),
+                nombreMateria: this.getNombreMateria(asignacion),
                 nombreCurso: idCurso ? this.getNombreCurso(idCurso) : 'Sin curso',
                 nombreParalelo: paralelo?.nombre ?? asignacion.idParalelo,
-                nombreGestion: this.getNombreGestion(asignacion.idGestion)
+                nombreGestion: this.getNombreGestion(asignacion)
             };
         })
     );
@@ -99,18 +93,11 @@ export class AsignacionesComponent implements OnInit {
         this.loading = true;
         forkJoin({
             asignaciones: this.service.listarAsignaciones(),
-<<<<<<< HEAD
-            docentes: this.docentesService.listarDocentes(),
-            materias: this.materiasService.listarMaterias(),
-            cursos: this.cursosService.listarCursos(),
-            paralelos: this.paralelosService.listarParalelos(),
-            gestiones: this.gestionesService.listarGestiones()
-=======
             docentes: this.canRead('DOCENTES_READ') ? this.docentesService.listarDocentes().pipe(catchError(() => of({ codigo: 200, data: [] }))) : of({ codigo: 200, data: [] }),
             materias: this.canRead('MATERIAS_READ') ? this.materiasService.listarMaterias().pipe(catchError(() => of({ codigo: 200, data: [] }))) : of({ codigo: 200, data: [] }),
+            cursos: this.canRead('CURSOS_READ') ? this.cursosService.listarCursos().pipe(catchError(() => of({ codigo: 200, data: [] }))) : of({ codigo: 200, data: [] }),
             paralelos: this.canRead('PARALELOS_READ') ? this.paralelosService.listarParalelos().pipe(catchError(() => of({ codigo: 200, data: [] }))) : of({ codigo: 200, data: [] }),
             gestiones: this.canRead('GESTIONES_READ') ? this.gestionesService.listarGestiones().pipe(catchError(() => of({ codigo: 200, data: [] }))) : of({ codigo: 200, data: [] })
->>>>>>> 2d3de50 (feat: periodos y dimensiones UI, permisos reactivos, roles fix, routes restore)
         }).subscribe({
             next: ({ asignaciones, docentes, materias, cursos, paralelos, gestiones }) => {
                 this.loading = false;
@@ -178,16 +165,10 @@ export class AsignacionesComponent implements OnInit {
         const d = this.docentes().find(x => x.id === id);
         return d ? `${d.apellidos}, ${d.nombres}` : id;
     }
-<<<<<<< HEAD
-    getNombreMateria(id: string): string { return this.materias().find(x => x.id === id)?.nombre ?? id; }
-    getNombreCurso(id: string): string { return this.cursos().find(x => x.id === id)?.nombre ?? id; }
-    getNombreParalelo(id: string): string { return this.getParalelo(id)?.nombre ?? id; }
-    getNombreGestion(id: string): string { return this.gestiones().find(x => x.id === id)?.nombre ?? id; }
-=======
     getNombreMateria(a: AsignacionDocenteResponse): string { return a.nombreMateria ?? this.materias().find(x => x.id === a.idMateria)?.nombre ?? a.idMateria; }
     getNombreParalelo(a: AsignacionDocenteResponse): string { return a.nombreParalelo ?? this.paralelos().find(x => x.id === a.idParalelo)?.nombre ?? a.idParalelo; }
     getNombreGestion(a: AsignacionDocenteResponse): string { return a.nombreGestion ?? this.gestiones().find(x => x.id === a.idGestion)?.nombre ?? a.idGestion; }
->>>>>>> 2d3de50 (feat: periodos y dimensiones UI, permisos reactivos, roles fix, routes restore)
+    getNombreCurso(idCurso: string): string { return this.cursos().find(x => x.id === idCurso)?.nombre ?? idCurso; }
 
     get docentesOptions() {
         return this.docentes().map(d => ({ label: `${d.apellidos}, ${d.nombres}`, value: d.id }));
