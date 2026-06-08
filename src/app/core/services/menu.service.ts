@@ -19,7 +19,7 @@ export class MenuService {
             return this.menuSuperAdmin();
         }
 
-        return this.menuInstitucion(user.roles ?? [], user.permisos ?? []);
+        return this.menuInstitucion(user.roles ?? [], user.permisos ?? [], user.modulosActivos ?? []);
     });
 
     private menuSuperAdmin(): MenuItem[] {
@@ -54,57 +54,77 @@ export class MenuService {
         ];
     }
 
-    private menuInstitucion(roles: string[], permisos: string[]): MenuItem[] {
+    private menuInstitucion(roles: string[], permisos: string[], modulosActivos: string[]): MenuItem[] {
         const has = (permiso: string) => permisos.includes(permiso);
         const hasRole = (role: string) => roles.includes(role);
+        const hasModulo = (modulo: string) => modulosActivos.includes(modulo);
+        const hasAnyModulo = (...modulos: string[]) => modulos.some((m) => hasModulo(m));
 
         const isDocente = hasRole('DOCENTE');
         const isEstudiante = hasRole('ESTUDIANTE');
         const isAdminInstitucion = hasRole('ADMIN_INSTITUCION');
         const isDirector = hasRole('DIRECTOR');
 
-        const canUsuarios = has('USUARIOS_READ');
-        const canConfiguracion = has('CONFIGURACION_READ');
-        const canRoles = has('ROLES_READ');
-        const canAuditoria = has('AUDITORIA_READ') || isAdminInstitucion || isDirector;
+        // Mapeo compatible: módulos reales en BD + módulos canónicos futuros
+        const hasIdentidad = hasAnyModulo('IDENTIDAD', 'ACADEMICO_BASE');
+        const hasEstructura = hasAnyModulo('ESTRUCTURA', 'ACADEMICO_BASE');
+        const hasOperacion = hasAnyModulo('OPERACION', 'ACADEMICO_BASE');
 
-        const canGestiones = has('GESTIONES_READ');
-        const canCursos = has('CURSOS_READ');
-        const canParalelos = has('PARALELOS_READ');
-        const canAulas = has('AULAS_READ');
-        const canMaterias = has('MATERIAS_READ');
+        const hasAulas = hasAnyModulo('AULAS', 'ESTRUCTURA', 'OPERACION');
+        const hasHorarios = hasAnyModulo('HORARIOS');
+        const hasAsistencia = hasAnyModulo('ASISTENCIA');
+        const hasCalificaciones = hasAnyModulo('CALIFICACIONES');
+        const hasReportes = hasAnyModulo('REPORTES');
+        const hasSaasGestion = hasAnyModulo('SAAS_GESTION');
+        const hasSeguridad = hasAnyModulo('SEGURIDAD');
+        const hasRespaldo = hasAnyModulo('RESPALDO');
+
+        // Identidad y usuarios
+        const canUsuarios = has('USUARIOS_READ') && hasIdentidad;
+        const canConfiguracion = has('CONFIGURACION_READ') && hasIdentidad;
+        const canRoles = has('ROLES_READ') && hasIdentidad;
+        const canAuditoria = (has('AUDITORIA_READ') || isAdminInstitucion || isDirector) && hasSeguridad;
+
+        // Estructura académica
+        const canGestiones = has('GESTIONES_READ') && hasEstructura;
+        const canCursos = has('CURSOS_READ') && hasEstructura;
+        const canParalelos = has('PARALELOS_READ') && hasEstructura;
+        const canAulas = has('AULAS_READ') && hasAulas;
+        const canMaterias = has('MATERIAS_READ') && hasEstructura;
         const canGestionAcademica = canGestiones || canCursos || canParalelos || canAulas || canMaterias;
 
-        const canDocentes = has('DOCENTES_READ');
-        const canEstudiantes = has('ESTUDIANTES_READ');
-        const canTutores = has('TUTORES_READ');
+        // Operación académica (personas + inscripciones)
+        const canDocentes = has('DOCENTES_READ') && hasOperacion;
+        const canEstudiantes = has('ESTUDIANTES_READ') && hasOperacion;
+        const canTutores = has('TUTORES_READ') && hasOperacion;
         const canPersonas = canDocentes || canEstudiantes || canTutores;
 
-        const canInscripciones = has('INSCRIPCIONES_READ');
-        const canAsignaciones = has('ASIGNACIONES_READ');
-        const canHorarios = has('HORARIOS_READ');
+        const canInscripciones = has('INSCRIPCIONES_READ') && hasOperacion;
+        const canAsignaciones = has('ASIGNACIONES_READ') && hasOperacion;
+        const canHorarios = has('HORARIOS_READ') && hasHorarios;
         const canOperacion = canInscripciones || canAsignaciones || canHorarios;
         const canOperacionAdministrativa = canOperacion && !isDocente;
 
         const canMiArea = has('MI_AREA_READ') || isDocente || isEstudiante;
 
-        const canBackups = isAdminInstitucion;
-        const canReportes = has('REPORTES_READ') || has('REPORTES_EXPORT') || has('REPORTES_WRITE') || isAdminInstitucion || isDirector || hasRole('SECRETARIO');
-        const canAlertas = isAdminInstitucion || isDirector || hasRole('SECRETARIO');
+        const canBackups = isAdminInstitucion && hasRespaldo;
+        const canReportes = (has('REPORTES_READ') || has('REPORTES_EXPORT') || has('REPORTES_WRITE') || isAdminInstitucion || isDirector || hasRole('SECRETARIO')) && hasReportes;
+        // TODO: Definir módulo real para alertas en el seed backend
+        const canAlertas = false;
 
         const canAsistencia =
-            has('ASISTENCIA_READ') ||
+            (has('ASISTENCIA_READ') ||
             has('ASISTENCIA_READ_ALL') ||
             isDocente ||
             isAdminInstitucion ||
-            isDirector;
+            isDirector) && hasAsistencia;
 
         const canCalificaciones =
-            has('CALIFICACIONES_READ') ||
+            (has('CALIFICACIONES_READ') ||
             has('CALIFICACIONES_READ_ALL') ||
             isDocente ||
             isAdminInstitucion ||
-            isDirector;
+            isDirector) && hasCalificaciones;
 
         const menu: MenuItem[] = [
             {
@@ -138,6 +158,9 @@ export class MenuService {
 
             if (isAdminInstitucion || isDirector) {
                 items.push({ label: 'Mi Plan', icon: 'pi pi-fw pi-credit-card', routerLink: ['/suscripcion'] });
+            }
+
+            if ((isAdminInstitucion || isDirector) && hasSeguridad) {
                 items.push({ label: 'Seguridad', icon: 'pi pi-fw pi-lock', routerLink: ['/seguridad'] });
             }
 
@@ -223,7 +246,7 @@ export class MenuService {
                 );
             }
 
-            if (canEstudiantes) {
+            if (canEstudiantes && hasOperacion) {
                 operacionItems.push(
                     { label: 'Historial Académico', icon: 'pi pi-fw pi-book', routerLink: ['/historial'] },
                 );
@@ -252,7 +275,7 @@ export class MenuService {
 
             const miAreaItems: MenuItem[] = [];
 
-            if (!isEstudiante) {
+            if ((isDocente || has('ASIGNACIONES_READ')) && hasOperacion) {
                 miAreaItems.push(
                     { label: 'Mis asignaciones', icon: 'pi pi-fw pi-graduation-cap', routerLink: ['/asignaciones'] },
                 );
@@ -270,9 +293,11 @@ export class MenuService {
                 );
             }
 
-            miAreaItems.push(
-                { label: 'Historial Académico', icon: 'pi pi-fw pi-book', routerLink: ['/historial'] },
-            );
+            if ((isEstudiante || has('ESTUDIANTES_READ') || isDocente || isDirector) && hasOperacion) {
+                miAreaItems.push(
+                    { label: 'Historial Académico', icon: 'pi pi-fw pi-book', routerLink: ['/historial'] },
+                );
+            }
 
             menu.push({
                 label: 'Mi área',
