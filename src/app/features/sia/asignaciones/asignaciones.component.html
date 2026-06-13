@@ -40,18 +40,10 @@
 
         <ng-template #body let-a>
             <tr>
-<<<<<<< HEAD
-                <td class="font-medium">{{ a.nombreDocente }}</td>
-                <td>{{ a.nombreMateria }}</td>
-                <td>{{ a.nombreCurso }}</td>
-                <td>{{ a.nombreParalelo }}</td>
-                <td>{{ a.nombreGestion }}</td>
-=======
                 <td class="font-medium">{{ getNombreDocente(a) }}</td>
                 <td>{{ getNombreMateria(a) }}</td>
                 <td>{{ getNombreParalelo(a) }}</td>
                 <td>{{ getNombreGestion(a) }}</td>
->>>>>>> 2d3de50 (feat: periodos y dimensiones UI, permisos reactivos, roles fix, routes restore)
                 <td>
                     <p-tag [value]="a.estado" [severity]="a.estado === 'ACTIVO' ? 'success' : 'danger'" />
                 </td>

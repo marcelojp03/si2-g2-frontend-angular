@@ -1,0 +1,70 @@
+<p-toast />
+
+<div class="card">
+    <div class="mb-6 flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+        <div>
+            <h3 class="m-0 text-xl font-semibold text-surface-900 dark:text-surface-0">Mis Cuotas</h3>
+            <p class="mb-0 mt-1 text-sm text-surface-400">Pension escolar - cuotas pendientes e historial de pagos</p>
+        </div>
+    </div>
+
+    @if (!gestionId) {
+        <div class="py-8 text-center text-surface-400">Cargando gestion activa...</div>
+    } @else {
+        <p-table [value]="cuotas()" [loading]="loading" dataKey="id"
+            [paginator]="true" [rows]="10" styleClass="p-datatable-striped">
+
+            <ng-template #caption>
+                <span class="font-semibold">Cuotas pendientes</span>
+            </ng-template>
+
+            <ng-template #header>
+                <tr>
+                    <th>Cuota</th>
+                    <th>Plan</th>
+                    <th pSortableColumn="monto">Monto <p-sortIcon field="monto" /></th>
+                    <th pSortableColumn="fechaVencimiento">Vencimiento <p-sortIcon field="fechaVencimiento" /></th>
+                    <th pSortableColumn="estado">Estado <p-sortIcon field="estado" /></th>
+                </tr>
+            </ng-template>
+
+            <ng-template #body let-c>
+                <tr>
+                    <td class="font-medium">Cuota {{ c.numeroCuota }}</td>
+                    <td>{{ c.nombrePlan }}</td>
+                    <td>{{ c.monto | currency:'BOB' }}</td>
+                    <td>{{ c.fechaVencimiento | date:'dd/MM/yyyy' }}</td>
+                    <td><p-tag [value]="c.estado" [severity]="estadoSeveridad(c.estado)" /></td>
+                </tr>
+            </ng-template>
+
+            <ng-template #emptymessage>
+                <tr><td colspan="5" class="py-8 text-center text-surface-400">No hay cuotas registradas</td></tr>
+            </ng-template>
+        </p-table>
+
+        @if (pagos().length > 0) {
+            <p-table [value]="pagos()" dataKey="id" class="mt-6" styleClass="p-datatable-striped">
+                <ng-template #caption>
+                    <span class="font-semibold">Historial de pagos</span>
+                </ng-template>
+                <ng-template #header>
+                    <tr>
+                        <th>Monto</th>
+                        <th>Metodo</th>
+                        <th>Estado</th>
+                        <th>Pagado</th>
+                    </tr>
+                </ng-template>
+                <ng-template #body let-p>
+                    <tr>
+                        <td>{{ p.monto | currency:'BOB' }}</td>
+                        <td>{{ p.metodoPago }}</td>
+                        <td><p-tag [value]="p.estado" [severity]="p.estado === 'COMPLETADO' ? 'success' : 'warn'" /></td>
+                        <td>{{ p.pagadoEn | date:'dd/MM/yyyy HH:mm' }}</td>
+                    </tr>
+                </ng-template>
+            </p-table>
+        }
+    }
+</div>

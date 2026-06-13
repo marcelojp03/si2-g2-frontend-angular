@@ -19,6 +19,8 @@ import { EstudiantesService } from '@/features/sia/estudiantes/services/estudian
 import { GestionesService } from '@/features/sia/gestiones/services/gestiones.service';
 import { CursosService } from '@/features/sia/cursos/services/cursos.service';
 import { ParalelosService } from '@/features/sia/paralelos/services/paralelos.service';
+import { PlanPagoService } from '@/features/sia/planes-pago/services/plan-pago.service';
+import { PlanPagoResponse } from '@/features/sia/planes-pago/models/plan-pago.models';
 import { CanPermDirective } from '@/shared/directives/can-perm.directive';
 import {
     InscripcionRequest, InscripcionResponse,
@@ -40,6 +42,7 @@ export class InscripcionesComponent implements OnInit {
     private gestionesService = inject(GestionesService);
     private cursosService = inject(CursosService);
     private paralelosService = inject(ParalelosService);
+    private planPagoService = inject(PlanPagoService);
     private messageService = inject(MessageService);
     private confirmationService = inject(ConfirmationService);
 
@@ -49,6 +52,7 @@ export class InscripcionesComponent implements OnInit {
     cursos = signal<CursoResponse[]>([]);
     paralelos = signal<ParaleloResponse[]>([]);
     paralelosFiltrados = signal<ParaleloResponse[]>([]);
+    planes = signal<PlanPagoResponse[]>([]);
 
     loading = true;
     dialogVisible = false;
@@ -65,22 +69,24 @@ export class InscripcionesComponent implements OnInit {
             estudiantes: this.estudiantesService.listarEstudiantes(),
             gestiones: this.gestionesService.listarGestiones(),
             cursos: this.cursosService.listarCursos(),
-            paralelos: this.paralelosService.listarParalelos()
+            paralelos: this.paralelosService.listarParalelos(),
+            planes: this.planPagoService.listar(true)
         }).subscribe({
-            next: ({ inscripciones, estudiantes, gestiones, cursos, paralelos }) => {
+            next: ({ inscripciones, estudiantes, gestiones, cursos, paralelos, planes }) => {
                 this.loading = false;
                 if (inscripciones.codigo === 200) this.inscripciones.set(inscripciones.data ?? []);
                 if (estudiantes.codigo === 200) this.estudiantes.set(estudiantes.data ?? []);
                 if (gestiones.codigo === 200) this.gestiones.set(gestiones.data ?? []);
                 if (cursos.codigo === 200) this.cursos.set(cursos.data ?? []);
                 if (paralelos.codigo === 200) this.paralelos.set(paralelos.data ?? []);
+                if (planes.codigo === 200) this.planes.set(planes.data ?? []);
             },
             error: () => { this.loading = false; this.error('No se pudo cargar la información'); }
         });
     }
 
     nueva(): void {
-        this.form = { idEstudiante: '', idGestion: '', idCurso: '', idParalelo: '' };
+        this.form = { idEstudiante: '', idGestion: '', idCurso: '', idParalelo: '', idPlanPago: '' };
         this.paralelosFiltrados.set([]);
         this.dialogVisible = true;
     }
@@ -144,6 +150,9 @@ export class InscripcionesComponent implements OnInit {
     }
     get paralelosOptions() {
         return this.paralelosFiltrados().map(p => ({ label: p.nombre, value: p.id }));
+    }
+    get planesOptions() {
+        return this.planes().map(p => ({ label: `${p.nombre} - Bs ${p.monto}/mes (${p.cantidadCuotas}x)`, value: p.id }));
     }
 
     onGlobalFilter(t: Table, e: Event): void { t.filterGlobal((e.target as HTMLInputElement).value, 'contains'); }

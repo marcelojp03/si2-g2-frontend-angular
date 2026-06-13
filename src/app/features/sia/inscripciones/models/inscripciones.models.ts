@@ -3,6 +3,7 @@ export interface InscripcionRequest {
     idGestion: string;
     idCurso: string;
     idParalelo: string;
+    idPlanPago?: string;
 }
 
 export interface InscripcionResponse {

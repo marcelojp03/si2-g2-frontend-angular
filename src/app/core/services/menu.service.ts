@@ -73,11 +73,11 @@ export class MenuService {
         const hasAulas = hasAnyModulo('AULAS', 'ESTRUCTURA', 'OPERACION');
         const hasHorarios = hasAnyModulo('HORARIOS');
         const hasAsistencia = hasAnyModulo('ASISTENCIA');
-        const hasCalificaciones = hasAnyModulo('CALIFICACIONES');
+        const hasCalificaciones = hasAnyModulo('CALIFICACIONES', 'CALIFICACION');
         const hasReportes = hasAnyModulo('REPORTES');
         const hasSaasGestion = hasAnyModulo('SAAS_GESTION');
-        const hasSeguridad = hasAnyModulo('SEGURIDAD');
-        const hasRespaldo = hasAnyModulo('RESPALDO');
+        const hasSeguridad = hasAnyModulo('SEGURIDAD', 'AUDITORIA');
+        const hasRespaldo = hasAnyModulo('RESPALDO', 'RESPALDOS');
 
         // Identidad y usuarios
         const canUsuarios = has('USUARIOS_READ') && hasIdentidad;
@@ -111,6 +111,8 @@ export class MenuService {
         const canReportes = (has('REPORTES_READ') || has('REPORTES_EXPORT') || has('REPORTES_WRITE') || isAdminInstitucion || isDirector || hasRole('SECRETARIO')) && hasReportes;
         // TODO: Definir módulo real para alertas en el seed backend
         const canAlertas = false;
+        const canComunicados = isAdminInstitucion || isDirector || hasRole('SECRETARIO') || hasRole('DOCENTE');
+        const canPlanesPago = isAdminInstitucion || isDirector;
 
         const canAsistencia =
             (has('ASISTENCIA_READ') ||
@@ -305,10 +307,14 @@ export class MenuService {
             });
         }
 
-        if (canBackups || canReportes || canAlertas) {
+        if (canBackups || canReportes || canAlertas || canComunicados || canPlanesPago) {
             menu.push({ separator: true });
 
             const herramientasItems: MenuItem[] = [];
+
+            if (canComunicados) {
+                herramientasItems.push({ label: 'Comunicados', icon: 'pi pi-fw pi-megaphone', routerLink: ['/comunicados'] });
+            }
 
             if (canReportes) {
                 herramientasItems.push({ label: 'Reportes', icon: 'pi pi-fw pi-chart-bar', routerLink: ['/reportes'] });
@@ -316,6 +322,10 @@ export class MenuService {
 
             if (canAlertas) {
                 herramientasItems.push({ label: 'Alertas de Riesgo', icon: 'pi pi-fw pi-exclamation-triangle', routerLink: ['/alertas'] });
+            }
+
+            if (canPlanesPago) {
+                herramientasItems.push({ label: 'Planes de Pago', icon: 'pi pi-fw pi-credit-card', routerLink: ['/planes-pago'] });
             }
 
             if (canBackups) {

@@ -89,6 +89,12 @@
                 placeholder="Seleccionar paralelo"
                 [disabled]="!form.idCurso || !form.idGestion" appendTo="body" />
         </div>
+        <div class="flex flex-col gap-1">
+            <label class="font-medium text-sm">Plan de pago</label>
+            <p-select [options]="planesOptions" [(ngModel)]="form.idPlanPago"
+                placeholder="Seleccionar plan (opcional)" [filter]="true" appendTo="body" />
+            <span class="text-xs text-surface-400">Al seleccionar un plan se generarán las cuotas automáticamente</span>
+        </div>
     </div>
 
     <ng-template #footer>

@@ -71,4 +71,26 @@ export class ReporteService {
     exportarQbe(formato: string, request: QbePreviewRequest): Observable<Blob> {
         return this.http.post(`${this.base}/qbe/export/${formato.toLowerCase()}`, request, { responseType: 'blob' });
     }
+
+    rendimientoEstudiante(idEstudiante: string, idGestion: string): Observable<ApiResponse<Record<string, unknown>[]>> {
+        const params = new HttpParams().set('idEstudiante', idEstudiante).set('idGestion', idGestion);
+        return this.http.get<ApiResponse<Record<string, unknown>[]>>(`${this.base}/rendimiento-estudiante`, { params });
+    }
+
+    exportarRendimientoEstudiante(formato: string, idEstudiante: string, idGestion: string): Observable<Blob> {
+        const params = new HttpParams().set('idEstudiante', idEstudiante).set('idGestion', idGestion);
+        return this.http.get(`${this.base}/rendimiento-estudiante/export/${formato.toLowerCase()}`, { params, responseType: 'blob' });
+    }
+
+    rankingParalelo(idParalelo: string, idGestion: string): Observable<ApiResponse<Record<string, unknown>[]>> {
+        const params = new HttpParams().set('idParalelo', idParalelo).set('idGestion', idGestion);
+        return this.http.get<ApiResponse<Record<string, unknown>[]>>(`${this.base}/ranking-paralelo`, { params });
+    }
+
+    riesgoAcademico(idGestion: string, umbralAsistencia?: number, umbralPromedio?: number): Observable<ApiResponse<Record<string, unknown>[]>> {
+        let params = new HttpParams().set('idGestion', idGestion);
+        if (umbralAsistencia != null) params = params.set('umbralAsistencia', umbralAsistencia);
+        if (umbralPromedio != null) params = params.set('umbralPromedio', umbralPromedio);
+        return this.http.get<ApiResponse<Record<string, unknown>[]>>(`${this.base}/riesgo-academico`, { params });
+    }
 }

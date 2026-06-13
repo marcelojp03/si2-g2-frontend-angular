@@ -24,8 +24,11 @@ export default [
     { path: 'horarios', canActivate: [permissionGuard('HORARIOS_READ')], loadComponent: () => import('./horarios/gestion-horarios.component').then(m => m.GestionHorariosComponent) },
     { path: 'historial', canActivate: [permissionOrRoleGuard(['ESTUDIANTES_READ', 'MI_AREA_READ'], ['ADMIN_INSTITUCION', 'DIRECTOR', 'DOCENTE'])], loadComponent: () => import('./historial/historial.component').then(m => m.HistorialComponent) },
     { path: 'reportes', canActivate: [permissionOrRoleGuard(['REPORTES_READ', 'REPORTES_EXPORT', 'REPORTES_WRITE'], ['ADMIN_INSTITUCION', 'DIRECTOR', 'SECRETARIO'])], loadComponent: () => import('./reportes/reportes.component').then(m => m.ReportesComponent) },
+    { path: 'comunicados', canActivate: [permissionOrRoleGuard([], ['ADMIN_INSTITUCION', 'DIRECTOR', 'SECRETARIO', 'DOCENTE'])], loadComponent: () => import('./comunicados/comunicados.component').then(m => m.ComunicadosComponent) },
     { path: 'alertas', canActivate: [permissionOrRoleGuard([], ['ADMIN_INSTITUCION', 'DIRECTOR', 'SECRETARIO'])], loadComponent: () => import('./alertas/alertas-riesgo.component').then(m => m.AlertasRiesgoComponent) },
     { path: 'backups', canActivate: [permissionOrRoleGuard([], ['ADMIN_INSTITUCION'])], loadComponent: () => import('./backups/backups.component').then(m => m.BackupsComponent) },
+    { path: 'planes-pago', canActivate: [permissionOrRoleGuard([], ['ADMIN_INSTITUCION', 'DIRECTOR'])], loadComponent: () => import('./planes-pago/planes-pago.component').then(m => m.PlanesPagoComponent) },
+    { path: 'cuotas', canActivate: [permissionOrRoleGuard([], ['ADMIN_INSTITUCION', 'DIRECTOR', 'DOCENTE', 'ESTUDIANTE', 'TUTOR'])], loadComponent: () => import('./cuotas/cuotas.component').then(m => m.CuotasComponent) },
 
     {
         path: 'asistencia',
