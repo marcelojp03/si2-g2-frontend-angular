@@ -15,6 +15,8 @@ import { ProgressSpinnerModule } from 'primeng/progressspinner';
 import { ConfirmDialogModule } from 'primeng/confirmdialog';
 import { InstitucionService } from '@/core/services/institucion.service';
 import { StorageService } from '@/core/services/storage.service';
+import { DimensionService } from '@/features/sia/gestiones/periodos/dimension.service';
+import { DimensionResponse } from '@/features/sia/gestiones/periodos/dimension.models';
 import { FileUploadComponent } from '@/shared/components/file-upload/file-upload.component';
 import { CanPermDirective } from '@/shared/directives/can-perm.directive';
 import {
@@ -35,6 +37,7 @@ import {
 export class ConfiguracionComponent implements OnInit {
     private institucionService  = inject(InstitucionService);
     private storageService      = inject(StorageService);
+    private dimensionService    = inject(DimensionService);
     private messageService      = inject(MessageService);
     private confirmationService = inject(ConfirmationService);
 
@@ -49,6 +52,9 @@ export class ConfiguracionComponent implements OnInit {
     logoUrl   = signal<string | null>(null);
     logoId    = signal<string | null>(null);
     logoLoading = false;
+
+    modeloEvaluacion = signal<DimensionResponse[]>([]);
+    guardandoModelo = false;
 
     // Usados solo en el dialog
     configSeleccionada: ConfiguracionParametroResponse | null = null;
@@ -74,6 +80,7 @@ export class ConfiguracionComponent implements OnInit {
                     this.institucionActual.set(r.data);
                     this.load();
                     this.loadLogo();
+                    this.loadModeloEvaluacion();
                     return;
                 }
                 this.loading = false;
@@ -105,6 +112,13 @@ export class ConfiguracionComponent implements OnInit {
                 }
             },
             error: () => { /* Sin logo previo — no es error */ }
+        });
+    }
+
+    loadModeloEvaluacion(): void {
+        this.dimensionService.listarModeloInstitucional().subscribe({
+            next: r => { if (r.codigo === 200) this.modeloEvaluacion.set(r.data ?? []); },
+            error: () => this.error('No se pudo cargar el modelo de evaluación')
         });
     }
 
@@ -199,6 +213,47 @@ export class ConfiguracionComponent implements OnInit {
                     error: (e) => this.error(e.error?.mensaje ?? 'No se pudo restablecer la configuración')
                 });
             }
+        });
+    }
+
+    agregarDimensionModelo(): void {
+        this.modeloEvaluacion.set([
+            ...this.modeloEvaluacion(),
+            { id: crypto.randomUUID(), nombre: '', descripcion: '', pesoDefault: 0, estado: 'ACTIVO', esGlobal: false }
+        ]);
+    }
+
+    quitarDimensionModelo(index: number): void {
+        this.modeloEvaluacion.set(this.modeloEvaluacion().filter((_, i) => i !== index));
+    }
+
+    sumaModeloEvaluacion(): number {
+        return this.modeloEvaluacion().reduce((sum, d) => sum + (Number(d.pesoDefault) || 0), 0);
+    }
+
+    guardarModeloEvaluacion(): void {
+        if (this.sumaModeloEvaluacion() !== 100) {
+            this.messageService.add({ severity: 'warn', summary: 'Atención', detail: 'Las ponderaciones activas deben sumar 100', life: 3000 });
+            return;
+        }
+        const invalid = this.modeloEvaluacion().some(d => !d.nombre?.trim());
+        if (invalid) {
+            this.messageService.add({ severity: 'warn', summary: 'Atención', detail: 'Todas las dimensiones deben tener nombre', life: 3000 });
+            return;
+        }
+
+        this.guardandoModelo = true;
+        this.dimensionService.actualizarModeloInstitucional(this.modeloEvaluacion().map(d => ({
+            nombre: d.nombre.trim().toUpperCase(),
+            descripcion: d.descripcion,
+            pesoDefault: Number(d.pesoDefault) || 0
+        }))).subscribe({
+            next: r => {
+                this.guardandoModelo = false;
+                if (r.codigo === 200) this.modeloEvaluacion.set(r.data ?? []);
+                this.messageService.add({ severity: 'success', summary: 'Guardado', detail: 'Modelo de evaluación actualizado', life: 3000 });
+            },
+            error: e => { this.guardandoModelo = false; this.error(e.error?.mensaje ?? 'No se pudo guardar el modelo de evaluación'); }
         });
     }
 

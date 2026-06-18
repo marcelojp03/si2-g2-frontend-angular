@@ -72,9 +72,7 @@ export class GestionesComponent implements OnInit {
             nombre: g.nombre,
             fechaInicio: g.fechaInicio,
             fechaFin: g.fechaFin,
-            activa: g.activa,
-            tipoPeriodo: g.tipoPeriodo ?? 'BIMESTRAL',
-            cantidadPeriodos: g.cantidadPeriodos ?? 4
+            activa: g.activa
         };
         this.selectedId = g.id;
         this.editMode = true;
@@ -82,18 +80,13 @@ export class GestionesComponent implements OnInit {
     }
 
     guardar(): void {
-        if (!this.form.nombre || !this.form.fechaInicio || !this.form.fechaFin || !this.form.tipoPeriodo || !this.form.cantidadPeriodos) {
+        if (!this.form.nombre || !this.form.fechaInicio || !this.form.fechaFin) {
             this.messageService.add({ severity: 'warn', summary: 'Atención', detail: 'Complete todos los campos requeridos', life: 3000 });
             return;
         }
 
         if (this.form.fechaFin <= this.form.fechaInicio) {
             this.messageService.add({ severity: 'warn', summary: 'Atención', detail: 'La fecha fin debe ser posterior a la fecha inicio', life: 3000 });
-            return;
-        }
-
-        if (this.form.cantidadPeriodos < 1 || this.form.cantidadPeriodos > 12) {
-            this.messageService.add({ severity: 'warn', summary: 'Atención', detail: 'La cantidad de periodos debe estar entre 1 y 12', life: 3000 });
             return;
         }
 
@@ -104,11 +97,6 @@ export class GestionesComponent implements OnInit {
             next: () => { this.dialogVisible = false; this.messageService.add({ severity: 'success', summary: 'Éxito', detail: this.editMode ? 'Gestión actualizada' : 'Gestión creada', life: 3000 }); this.load(); },
             error: (e) => this.error(e.error?.mensaje ?? 'Error al guardar la gestión')
         });
-    }
-
-    onTipoPeriodoChange(tipo: string): void {
-        const option = this.tipoPeriodoOptions.find(o => o.value === tipo);
-        if (option && tipo !== 'PERSONALIZADO') this.form.cantidadPeriodos = option.cantidad;
     }
 
     periodoLabel(tipo?: string): string {
@@ -128,6 +116,6 @@ export class GestionesComponent implements OnInit {
     }
 
     onGlobalFilter(t: Table, e: Event): void { t.filterGlobal((e.target as HTMLInputElement).value, 'contains'); }
-    private defaultForm(): GestionAcademicaRequest { return { nombre: '', fechaInicio: '', fechaFin: '', activa: false, tipoPeriodo: 'BIMESTRAL', cantidadPeriodos: 4 }; }
+    private defaultForm(): GestionAcademicaRequest { return { nombre: '', fechaInicio: '', fechaFin: '', activa: false }; }
     private error(msg: string): void { this.messageService.add({ severity: 'error', summary: 'Error', detail: msg, life: 4000 }); }
 }

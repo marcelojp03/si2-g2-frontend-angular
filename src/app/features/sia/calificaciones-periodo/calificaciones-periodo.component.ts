@@ -14,6 +14,8 @@ import { TextareaModule } from 'primeng/textarea';
 import { ToastModule } from 'primeng/toast';
 import { CalificacionService } from '@/features/sia/calificaciones/services/calificacion.service';
 import { SiaService } from '@/core/services/sia.service';
+import { DimensionService } from '@/features/sia/gestiones/periodos/dimension.service';
+import { PeriodoDimensionResponse } from '@/features/sia/gestiones/periodos/dimension.models';
 import {
     ActividadEvaluativaRequest,
     ActividadEvaluativaResponse,
@@ -62,7 +64,10 @@ interface EstudianteItem {
                 <div>
                     <h1 class="text-2xl font-semibold text-slate-800 dark:text-slate-100">Calificaciones por Periodo</h1>
                     <p class="text-sm text-slate-500 dark:text-slate-400">
-                        SER ({{ PESOS.SER }}pts) | SABER ({{ PESOS.SABER }}pts) | HACER ({{ PESOS.HACER }}pts) | AUTO ({{ PESOS.AUTO }}pts) | Mín. aprobación: 51
+                        @for (dim of periodoDimensiones(); track dim.idDimension) {
+                            <span class="mr-2">{{ dim.nombreDimension }} ({{ dim.ponderacion }}pts)</span>
+                        }
+                        <span>Mín. aprobación: 51</span>
                     </p>
                 </div>
             </div>
@@ -79,7 +84,8 @@ interface EstudianteItem {
                     <ng-template pTemplate="header"><span class="text-sm font-medium px-3 py-2 bg-slate-100 dark:bg-slate-800">Periodo</span></ng-template>
                     <div class="py-2">
                         <p-select [options]="periodos()" [(ngModel)]="selectedPeriodoId" (ngModelChange)="onPeriodoChange()" optionLabel="numeroPeriodo" optionValue="id" placeholder="Seleccionar" class="w-full">
-                            <ng-template let-p pTemplate="item">{{ p.numeroPeriodo }}° ({{ p.tipoPeriodo }})</ng-template>
+                            <ng-template let-p pTemplate="selectedItem">{{ periodoLabel(p) }}</ng-template>
+                            <ng-template let-p pTemplate="item">{{ periodoLabel(p) }}</ng-template>
                         </p-select>
                     </div>
                 </p-card>
@@ -120,7 +126,7 @@ interface EstudianteItem {
             <p-card *ngIf="seccionActiva === 'SABER' && selectedPeriodoId && selectedMateriaId">
                 <ng-template pTemplate="header">
                     <div class="flex justify-between items-center px-4 py-3">
-                        <span class="font-medium">Actividades SABER - Teoría (Puntaje: {{ PESOS.SABER }} pts)</span>
+                        <span class="font-medium">Actividades SABER - Teoría (Ponderación: {{ pesoDimension('SABER', PESOS.SABER) }} pts)</span>
                         <p-button label="Nueva Actividad" icon="pi pi-plus" size="small" (click)="openActividadDialog('SABER')" />
                     </div>
                 </ng-template>
@@ -151,7 +157,7 @@ interface EstudianteItem {
             <p-card *ngIf="seccionActiva === 'HACER' && selectedPeriodoId && selectedMateriaId">
                 <ng-template pTemplate="header">
                     <div class="flex justify-between items-center px-4 py-3">
-                        <span class="font-medium">Actividades HACER - Práctica (Puntaje: {{ PESOS.HACER }} pts)</span>
+                        <span class="font-medium">Actividades HACER - Práctica (Ponderación: {{ pesoDimension('HACER', PESOS.HACER) }} pts)</span>
                         <p-button label="Nueva Actividad" icon="pi pi-plus" size="small" (click)="openActividadDialog('HACER')" />
                     </div>
                 </ng-template>
@@ -181,7 +187,7 @@ interface EstudianteItem {
             <!-- SER Section -->
             <p-card *ngIf="seccionActiva === 'SER' && selectedPeriodoId && selectedMateriaId">
                 <ng-template pTemplate="header">
-                    <div class="px-4 py-3"><span class="font-medium">SER - Observación Global (Puntaje: {{ PESOS.SER }} pts)</span></div>
+                    <div class="px-4 py-3"><span class="font-medium">SER - Observación Global (Puntaje: {{ pesoDimension('SER', PESOS.SER) }} pts)</span></div>
                 </ng-template>
                 <div class="space-y-4">
                     <div class="bg-blue-50 dark:bg-blue-900/20 rounded p-4 text-sm text-blue-700 dark:text-blue-300">
@@ -193,8 +199,8 @@ interface EstudianteItem {
                             <p-select [options]="estudiantes()" [(ngModel)]="serForm.idEstudiante" optionLabel="nombreCompleto" optionValue="id" placeholder="Seleccionar" class="w-full" />
                         </div>
                         <div>
-                            <label class="block text-sm mb-1">Nota (0-{{ PESOS.SER }})</label>
-                            <p-inputNumber [(ngModel)]="serForm.notaSer" [min]="0" [max]="PESOS.SER" class="w-full" />
+                            <label class="block text-sm mb-1">Nota (0-{{ pesoDimension('SER', PESOS.SER) }})</label>
+                            <p-inputNumber [(ngModel)]="serForm.notaSer" [min]="0" [max]="pesoDimension('SER', PESOS.SER)" class="w-full" />
                         </div>
                         <div>
                             <label class="block text-sm mb-1">Observación</label>
@@ -214,7 +220,7 @@ interface EstudianteItem {
 <!-- AUTO Section -->
             <p-card *ngIf="seccionActiva === 'AUTO' && selectedPeriodoId && selectedMateriaId">
                 <ng-template pTemplate="header">
-                    <div class="px-4 py-3"><span class="font-medium">AUTOEVALUACIÓN - Estudiante (Puntaje: {{ PESOS.AUTO }} pts)</span></div>
+                    <div class="px-4 py-3"><span class="font-medium">AUTOEVALUACIÓN - Estudiante (Puntaje: {{ pesoDimension('AUTOEVALUACION', PESOS.AUTO) }} pts)</span></div>
                 </ng-template>
                 <div class="space-y-4">
                     <div class="bg-green-50 dark:bg-green-900/20 rounded p-4 text-sm text-green-700 dark:text-green-300">
@@ -226,8 +232,8 @@ interface EstudianteItem {
                             <p-select [options]="estudiantes()" [(ngModel)]="autoForm.idEstudiante" optionLabel="nombreCompleto" optionValue="id" placeholder="Seleccionar" class="w-full" />
                         </div>
                         <div>
-                            <label class="block text-sm mb-1">Nota (0-{{ PESOS.AUTO }})</label>
-                            <p-inputNumber [(ngModel)]="autoForm.notaAutoevaluacion" [min]="0" [max]="PESOS.AUTO" class="w-full" />
+                            <label class="block text-sm mb-1">Nota (0-{{ pesoDimension('AUTOEVALUACION', PESOS.AUTO) }})</label>
+                            <p-inputNumber [(ngModel)]="autoForm.notaAutoevaluacion" [min]="0" [max]="pesoDimension('AUTOEVALUACION', PESOS.AUTO)" class="w-full" />
                         </div>
                     </div>
                     <div>
@@ -336,6 +342,7 @@ interface EstudianteItem {
 export class CalificacionesPeriodoComponent implements OnInit {
     private readonly calSvc = inject(CalificacionService);
     private readonly siaSvc = inject(SiaService);
+    private readonly dimensionSvc = inject(DimensionService);
     private readonly msg = inject(MessageService);
 
     readonly PESOS = PESOS_FIJOS;
@@ -351,6 +358,7 @@ export class CalificacionesPeriodoComponent implements OnInit {
     serRegistrados = signal<CalificacionSerResponse[]>([]);
     autoRegistrados = signal<AutoevaluacionTrimestralResponse[]>([]);
     consolidado = signal<any[]>([]);
+    periodoDimensiones = signal<PeriodoDimensionResponse[]>([]);
 
     selectedGestionId = '';
     selectedPeriodoId = '';
@@ -400,13 +408,15 @@ export class CalificacionesPeriodoComponent implements OnInit {
         this.serRegistrados.set([]);
         this.autoRegistrados.set([]);
         this.consolidado.set([]);
+        this.periodoDimensiones.set([]);
         if (this.selectedGestionId) {
-            this.calSvc.listarPeriodosGestion(this.selectedGestionId).subscribe({ next: (r) => { if (r.codigo === 200) { this.periodos.set(r.data); if (r.data.length) { this.selectedPeriodoId = r.data[0].id; this.cargarCursos(); } } } });
+            this.calSvc.listarPeriodosGestion(this.selectedGestionId).subscribe({ next: (r) => { if (r.codigo === 200) { this.periodos.set(r.data); if (r.data.length) { this.selectedPeriodoId = r.data[0].id; this.cargarDimensionesPeriodo(); this.cargarCursos(); } } } });
         }
     }
 
     onPeriodoChange() {
         if (this.selectedPeriodoId) {
+            this.cargarDimensionesPeriodo();
             this.cargarCursos();
         }
     }
@@ -435,7 +445,15 @@ export class CalificacionesPeriodoComponent implements OnInit {
         this.siaSvc.listarMaterias().subscribe({ next: (r) => { if (r.codigo === 200) { this.materias.set(r.data); if (r.data.length) { this.selectedMateriaId = r.data[0].id; this.onLoadData(); } } } });
     }
 
-    onLoadData() { this.cargarActividades(); this.cargarConsolidado(); this.cargarEstudiantes(); }
+    onLoadData() { this.cargarDimensionesPeriodo(); this.cargarActividades(); this.cargarConsolidado(); this.cargarEstudiantes(); }
+
+    cargarDimensionesPeriodo() {
+        if (!this.selectedPeriodoId) return;
+        this.dimensionSvc.pesosPeriodo(this.selectedPeriodoId).subscribe({
+            next: (r) => { if (r.codigo === 200) this.periodoDimensiones.set(r.data ?? []); },
+            error: () => this.periodoDimensiones.set([])
+        });
+    }
 
     cargarActividades() {
         if (!this.selectedPeriodoId || !this.selectedMateriaId) return;
@@ -551,6 +569,24 @@ export class CalificacionesPeriodoComponent implements OnInit {
 
     editarAuto(a: AutoevaluacionTrimestralResponse) {
         this.autoForm = { idEstudiante: a.idEstudiante, idMateria: a.idMateria, notaAutoevaluacion: Number(a.notaAutoevaluacion), comentario: a.comentario || '' };
+    }
+
+    periodoLabel(periodo: PeriodoEvaluacionResponse): string {
+        const tipo = (periodo.tipoPeriodo || '').toUpperCase();
+        const nombre = tipo === 'BIMESTRAL' ? 'Bimestre'
+            : tipo === 'TRIMESTRAL' ? 'Trimestre'
+            : tipo === 'SEMESTRAL' ? 'Semestre'
+            : tipo === 'ANUAL' ? 'Anual'
+            : 'Periodo';
+        return `${periodo.numeroPeriodo}° ${nombre}`;
+    }
+
+    pesoDimension(nombre: string, fallback: number): number {
+        const buscado = nombre.toUpperCase();
+        return this.periodoDimensiones().find(d => {
+            const actual = d.nombreDimension.toUpperCase();
+            return actual === buscado || (buscado === 'AUTOEVALUACION' && actual === 'AUTO');
+        })?.ponderacion ?? fallback;
     }
 
     getSeverity(s: string): "success" | "info" | "warn" | "danger" | "secondary" | "contrast" | undefined { return s === 'PUBLICADA' ? 'success' : s === 'BORRADOR' ? 'warn' : 'info'; }

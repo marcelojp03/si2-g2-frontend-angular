@@ -14,6 +14,14 @@ export class DimensionService {
         return this.http.get<ApiResponse<DimensionResponse[]>>(this.base + '/dimensiones');
     }
 
+    listarModeloInstitucional(): Observable<ApiResponse<DimensionResponse[]>> {
+        return this.http.get<ApiResponse<DimensionResponse[]>>(this.base + '/dimensiones/modelo-institucional');
+    }
+
+    actualizarModeloInstitucional(body: DimensionRequest[]): Observable<ApiResponse<DimensionResponse[]>> {
+        return this.http.put<ApiResponse<DimensionResponse[]>>(this.base + '/dimensiones/modelo-institucional', body);
+    }
+
     crearInstitucional(body: DimensionRequest): Observable<ApiResponse<DimensionResponse>> {
         return this.http.post<ApiResponse<DimensionResponse>>(this.base + '/dimensiones/institucion', body);
     }

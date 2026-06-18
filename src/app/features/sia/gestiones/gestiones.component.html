@@ -84,38 +84,12 @@
 
     <div class="flex flex-col gap-4 pt-2">
         <div class="rounded-xl border border-blue-100 bg-blue-50 p-4 text-sm text-blue-900 dark:border-blue-900/40 dark:bg-blue-950/30 dark:text-blue-100">
-            Define la gestión escolar y el esquema de evaluación. Los periodos específicos y sus dimensiones se configurarán luego desde el módulo de periodos.
+            Define las fechas de la gestión escolar. El esquema de evaluación y la cantidad de periodos se heredan desde Configuración de la Institución.
         </div>
 
         <div class="flex flex-col gap-1">
             <label class="font-medium text-sm">Nombre <span class="text-red-500">*</span></label>
             <input pInputText [(ngModel)]="form.nombre" placeholder="Ej: 2025 - I" />
-        </div>
-
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div class="flex flex-col gap-1">
-                <label class="font-medium text-sm">Tipo de evaluación <span class="text-red-500">*</span></label>
-                <p-select
-                    [options]="tipoPeriodoOptions"
-                    [(ngModel)]="form.tipoPeriodo"
-                    optionLabel="label"
-                    optionValue="value"
-                    placeholder="Seleccionar tipo"
-                    appendTo="body"
-                    styleClass="w-full"
-                    (ngModelChange)="onTipoPeriodoChange($event)" />
-            </div>
-
-            <div class="flex flex-col gap-1">
-                <label class="font-medium text-sm">Cantidad de periodos <span class="text-red-500">*</span></label>
-                <p-inputnumber
-                    [(ngModel)]="form.cantidadPeriodos"
-                    [min]="1"
-                    [max]="12"
-                    [showButtons]="true"
-                    inputStyleClass="w-full"
-                    styleClass="w-full" />
-            </div>
         </div>
 
         <div class="grid grid-cols-2 gap-4">

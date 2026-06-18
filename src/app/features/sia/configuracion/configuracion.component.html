@@ -16,6 +16,63 @@
     </div>
 </div>
 
+<div class="card mb-4">
+    <div class="mb-4 flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
+        <div>
+            <h3 class="text-xl font-semibold text-surface-900 dark:text-surface-0 m-0">Modelo de Evaluación</h3>
+            <p class="text-surface-400 text-sm mt-1 mb-0">Define las dimensiones y ponderaciones base que se copiarán a los periodos abiertos.</p>
+        </div>
+        <div class="flex items-center gap-2">
+            <p-tag [value]="'Total: ' + sumaModeloEvaluacion() + '%'" [severity]="sumaModeloEvaluacion() === 100 ? 'success' : 'warn'" />
+            <ng-container *appCanPerm="['CONFIGURACION_WRITE']">
+                <p-button label="Agregar dimensión" icon="pi pi-plus" severity="secondary" [outlined]="true" (onClick)="agregarDimensionModelo()" />
+            </ng-container>
+        </div>
+    </div>
+
+    <p-table [value]="modeloEvaluacion()" responsiveLayout="scroll" styleClass="p-datatable-sm">
+        <ng-template #header>
+            <tr>
+                <th>Dimensión</th>
+                <th>Descripción</th>
+                <th class="w-40">Ponderación</th>
+                <th class="w-24">Origen</th>
+                <th class="w-20">Acciones</th>
+            </tr>
+        </ng-template>
+        <ng-template #body let-d let-i="rowIndex">
+            <tr>
+                <td>
+                    <input pInputText [(ngModel)]="d.nombre" class="w-full" [disabled]="d.esGlobal" />
+                </td>
+                <td>
+                    <input pInputText [(ngModel)]="d.descripcion" class="w-full" />
+                </td>
+                <td>
+                    <input pInputText type="number" min="0" max="100" [(ngModel)]="d.pesoDefault" class="w-full" />
+                </td>
+                <td>
+                    <p-tag [value]="d.esGlobal ? 'Base' : 'Institución'" [severity]="d.esGlobal ? 'info' : 'success'" />
+                </td>
+                <td>
+                    <ng-container *appCanPerm="['CONFIGURACION_WRITE']">
+                        <p-button icon="pi pi-trash" severity="danger" [text]="true" [disabled]="d.esGlobal" (onClick)="quitarDimensionModelo(i)" />
+                    </ng-container>
+                </td>
+            </tr>
+        </ng-template>
+        <ng-template #emptymessage>
+            <tr><td colspan="5" class="py-5 text-center text-surface-500">No hay dimensiones configuradas.</td></tr>
+        </ng-template>
+    </p-table>
+
+    <div class="mt-4 flex justify-end">
+        <ng-container *appCanPerm="['CONFIGURACION_WRITE']">
+            <p-button label="Guardar modelo" icon="pi pi-save" [loading]="guardandoModelo" [disabled]="sumaModeloEvaluacion() !== 100" (onClick)="guardarModeloEvaluacion()" />
+        </ng-container>
+    </div>
+</div>
+
 <div class="card">
     <div class="mb-6">
         <h3 class="text-xl font-semibold text-surface-900 dark:text-surface-0 m-0">Configuración de la Institución</h3>

@@ -339,7 +339,7 @@ export const TIPO_PERIODOS = ['BIMESTRAL', 'TRIMESTRAL', 'SEMESTRAL', 'ANUAL'] a
 export type TipoPeriodo = typeof TIPO_PERIODOS[number];
 
 export const DIMENSIONES = ['SABER', 'HACER'] as const;
-export type Dimension = typeof DIMENSIONES[number];
+export type Dimension = string;
 
 export const COMPORTAMIENTOS_SER = [
     'RESPETO',
