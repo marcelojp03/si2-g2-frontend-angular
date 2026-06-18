@@ -152,6 +152,7 @@ export class AsistenciaComponent implements OnInit {
         const detalles: AsistenciaDetalleRequest[] = plantilla.estudiantes.map((estudiante) => ({
             idInscripcion: estudiante.idInscripcion,
             estadoAsistencia: estudiante.estadoAsistencia,
+            justificacion: estudiante.justificacion || undefined,
         }));
 
         const body: AsistenciaRegistroRequest = {
@@ -205,6 +206,7 @@ export class AsistenciaComponent implements OnInit {
             estudiantes: plantilla.estudiantes.map((e) => ({
                 ...e,
                 estadoAsistencia: estado,
+                justificacion: estado !== 'JUSTIFICADO' ? null : e.justificacion,
             })),
         };
 
@@ -219,7 +221,23 @@ export class AsistenciaComponent implements OnInit {
             ...plantilla,
             estudiantes: plantilla.estudiantes.map((e) =>
                 e.idInscripcion === estudiante.idInscripcion
-                    ? { ...e, estadoAsistencia: estado }
+                    ? { ...e, estadoAsistencia: estado, justificacion: estado !== 'JUSTIFICADO' ? null : e.justificacion }
+                    : e
+            ),
+        };
+
+        this.plantilla.set(actualizada);
+    }
+
+    cambiarJustificacion(estudiante: AsistenciaEstudianteResponse, justificacion: string): void {
+        const plantilla = this.plantilla();
+        if (!plantilla) return;
+
+        const actualizada: AsistenciaPlantillaResponse = {
+            ...plantilla,
+            estudiantes: plantilla.estudiantes.map((e) =>
+                e.idInscripcion === estudiante.idInscripcion
+                    ? { ...e, justificacion }
                     : e
             ),
         };

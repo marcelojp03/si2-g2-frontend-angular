@@ -15,7 +15,6 @@ import { TagModule } from 'primeng/tag';
 import { ToastModule } from 'primeng/toast';
 import { TooltipModule } from 'primeng/tooltip';
 import { AuthService } from '@/core/services/auth.service';
-import { CanPermDirective } from '@/shared/directives/can-perm.directive';
 import { AulasService } from '@/features/sia/aulas/services/aulas.service';
 import { AulaRequest, AulaResponse } from '@/core/models/sia.models';
 
@@ -37,7 +36,6 @@ import { AulaRequest, AulaResponse } from '@/core/models/sia.models';
         ConfirmDialogModule,
         SelectModule,
         InputNumberModule,
-        CanPermDirective
     ],
     providers: [MessageService, ConfirmationService],
     templateUrl: './aulas.component.html'

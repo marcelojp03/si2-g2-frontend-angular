@@ -7,9 +7,9 @@
             <h3 class="m-0 text-xl font-semibold text-surface-900 dark:text-surface-0">Horarios de Clases</h3>
             <p class="mb-0 mt-1 text-sm text-surface-400">Gestión de horarios de clases por aula y asignación docente</p>
         </div>
-        <ng-container *appCanPerm="['GESTION_WRITE']">
+        @if (canWrite) {
             <p-button label="Nuevo Horario" icon="pi pi-plus" (onClick)="nuevo()" />
-        </ng-container>
+        }
     </div>
 
     <section class="mb-5 overflow-hidden rounded-xl border border-surface-200 bg-surface-0 shadow-sm dark:border-surface-700 dark:bg-surface-900">
@@ -38,16 +38,22 @@
                     <p-select class="w-full" [options]="aulasOptions" [(ngModel)]="filtros.aula" appendTo="body" placeholder="Selecciona un aula" />
                 </div>
 
-                <div class="flex flex-col gap-1 xl:col-span-4">
-                    <label class="text-xs font-semibold uppercase tracking-wide text-surface-500">Asignación docente</label>
-                    <p-select class="w-full" [options]="asignacionesOptions" [(ngModel)]="filtros.asignacion" appendTo="body" placeholder="Selecciona una asignación" />
-                </div>
+        <div class="flex flex-col gap-1 xl:col-span-4">
+            <label class="text-xs font-semibold uppercase tracking-wide text-surface-500">Curso / Paralelo</label>
+            <p-select class="w-full" [options]="grupoOptions" [(ngModel)]="filtros.grupo" appendTo="body" placeholder="Curso y paralelo" [filter]="true" filterPlaceholder="Buscar..." />
+        </div>
+
+        <div class="flex flex-col gap-1 xl:col-span-4">
+            <label class="text-xs font-semibold uppercase tracking-wide text-surface-500">Asignación docente</label>
+            <p-select class="w-full" [options]="asignacionesOptions" [(ngModel)]="filtros.asignacion" appendTo="body" placeholder="Selecciona una asignación" />
+        </div>
             </div>
         </div>
     </section>
 
     <section class="overflow-hidden rounded-xl border border-surface-200 bg-surface-0 shadow-sm dark:border-surface-700 dark:bg-surface-900">
-        <p-table [value]="horariosFiltered" [loading]="loading" [globalFilterFields]="['diaSemana', 'horaInicio']" responsiveLayout="scroll">
+        <p-table [value]="horariosFiltered" [loading]="loading" [globalFilterFields]="['diaSemana', 'horaInicio']" responsiveLayout="scroll"
+            [paginator]="true" [rows]="15" [rowsPerPageOptions]="[10,15,25,50]" dataKey="id">
             <ng-template pTemplate="header">
                 <tr>
                     <th pSortableColumn="diaSemana" class="px-4 py-3 text-left text-xs font-semibold uppercase text-surface-700 dark:text-surface-200">
@@ -130,9 +136,9 @@
     </div>
 
     <ng-template pTemplate="footer">
-        <ng-container *appCanPerm="['GESTION_WRITE']">
+        @if (canWrite) {
             <p-button label="Cancelar" severity="secondary" (onClick)="dialogVisible = false" />
             <p-button label="Guardar" (onClick)="guardar()" />
-        </ng-container>
+        }
     </ng-template>
 </p-dialog>

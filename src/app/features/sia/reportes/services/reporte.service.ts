@@ -60,6 +60,13 @@ export class ReporteService {
         return this.http.post(`${this.base}/nl/export/${formato.toLowerCase()}`, request, { responseType: 'blob' });
     }
 
+    consultaNatural(consulta: string, limite: number = 100): Observable<ApiResponse<{sqlGenerado: string; columnas: string[]; filas: string[][]; total: number; interpretacion?: string}>> {
+        return this.http.post<ApiResponse<{sqlGenerado: string; columnas: string[]; filas: string[][]; total: number; interpretacion?: string}>>(
+            `${environment.api.baseUrl}/ia/reporte/consulta-natural`,
+            { consulta, limite }
+        );
+    }
+
     catalogoQbe(): Observable<ApiResponse<QbeEntityDefinitionResponse[]>> {
         return this.http.get<ApiResponse<QbeEntityDefinitionResponse[]>>(`${this.base}/qbe/catalogo`);
     }

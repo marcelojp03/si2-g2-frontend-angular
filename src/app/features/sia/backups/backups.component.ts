@@ -16,15 +16,8 @@ import { AuthService } from '../../../core/services/auth.service';
   selector: 'app-backups',
   standalone: true,
   imports: [
-    CommonModule,
-    FormsModule,
-    ButtonModule,
-    TableModule,
-    TagModule,
-    DialogModule,
-    Textarea,
-    ToastModule,
-    ConfirmDialogModule
+    CommonModule, FormsModule, ButtonModule, TableModule,
+    TagModule, DialogModule, Textarea, ToastModule, ConfirmDialogModule
   ],
   providers: [MessageService, ConfirmationService],
   template: `
@@ -32,30 +25,19 @@ import { AuthService } from '../../../core/services/auth.service';
     <p-confirmDialog />
 
     <div class="flex flex-col gap-6 p-4">
-      <!-- ENCABEZADO -->
       <div class="flex items-center justify-between">
         <div>
-          <h2 class="text-2xl font-semibold text-surface-800 dark:text-surface-100">Gestión de Backups</h2>
-          <p class="text-surface-500 text-sm mt-1">Respaldos por institución exportados a S3</p>
+          <h2 class="text-2xl font-semibold text-surface-800 dark:text-surface-100">Gestion de Backups</h2>
+          <p class="text-surface-500 text-sm mt-1">Respaldos por institucion exportados a S3</p>
         </div>
-        <p-button
-          label="Iniciar Respaldo"
-          icon="pi pi-database"
-          [loading]="iniciandoRespaldo()"
-          (onClick)="iniciarRespaldo()"
-        />
+        <p-button label="Iniciar Respaldo" icon="pi pi-database"
+          [loading]="iniciandoRespaldo()" (onClick)="iniciarRespaldo()" />
       </div>
 
-      <!-- LISTA DE RESPALDOS -->
       <div class="card">
         <div class="font-semibold text-lg mb-3">Historial de Respaldos</div>
-        <p-table
-          [value]="respaldos()"
-          [loading]="cargandoRespaldos()"
-          [paginator]="true"
-          [rows]="10"
-          styleClass="p-datatable-sm"
-        >
+        <p-table [value]="respaldos()" [loading]="cargandoRespaldos()"
+          [paginator]="true" [rows]="10" styleClass="p-datatable-sm">
           <ng-template pTemplate="header">
             <tr>
               <th>Fecha Inicio</th>
@@ -69,21 +51,19 @@ import { AuthService } from '../../../core/services/auth.service';
           <ng-template pTemplate="body" let-r>
             <tr>
               <td>{{ r.fechaInicio | date:'dd/MM/yyyy HH:mm' }}</td>
-              <td>{{ r.tipoRespaldo }}</td>
               <td>
-                <p-tag [value]="r.estado" [severity]="estadoSeverity(r.estado)" />
+                {{ r.tipoRespaldo }}
+                @if (r.tipoRespaldo === 'SNAPSHOT') {
+                  <i class="pi pi-camera ml-1" style="font-size:0.8rem"></i>
+                }
               </td>
+              <td><p-tag [value]="r.estado" [severity]="estadoSeverity(r.estado)" /></td>
               <td>{{ r.tamanioBytes ? (r.tamanioBytes / 1024 | number:'1.1-1') + ' KB' : '-' }}</td>
               <td><small class="text-surface-400">{{ r.rutaAlmacenamiento ?? '-' }}</small></td>
               <td>
-                <p-button
-                  label="Solicitar restauración"
-                  icon="pi pi-refresh"
-                  size="small"
-                  severity="secondary"
-                  [disabled]="r.estado !== 'COMPLETADO'"
-                  (onClick)="abrirDialogoRestauracion(r)"
-                />
+                <p-button label="Restaurar" icon="pi pi-refresh" size="small" severity="secondary"
+                  [disabled]="r.estado !== 'COMPLETADO' || r.tipoRespaldo === 'SNAPSHOT'"
+                  (onClick)="abrirDialogoRestauracion(r)" />
               </td>
             </tr>
           </ng-template>
@@ -93,76 +73,64 @@ import { AuthService } from '../../../core/services/auth.service';
         </p-table>
       </div>
 
-      <!-- LISTA DE RESTAURACIONES (solo SUPER_ADMIN) -->
-      @if (esSuperAdmin()) {
-        <div class="card">
-          <div class="font-semibold text-lg mb-3">Solicitudes de Restauración</div>
-          <p-table
-            [value]="restauraciones()"
-            [loading]="cargandoRestauraciones()"
-            [paginator]="true"
-            [rows]="10"
-            styleClass="p-datatable-sm"
-          >
-            <ng-template pTemplate="header">
-              <tr>
-                <th>Fecha Solicitud</th>
-                <th>ID Respaldo</th>
-                <th>Motivo</th>
-                <th>Estado</th>
-                <th>Acciones</th>
-              </tr>
-            </ng-template>
-            <ng-template pTemplate="body" let-r>
-              <tr>
-                <td>{{ r.fechaSolicitud | date:'dd/MM/yyyy HH:mm' }}</td>
-                <td><small>{{ r.idRespaldo }}</small></td>
-                <td>{{ r.motivo }}</td>
-                <td>
-                  <p-tag [value]="r.estado" [severity]="estadoSeverity(r.estado)" />
-                </td>
-                <td>
-                  @if (r.estado === 'PENDIENTE') {
-                    <p-button
-                      label="Aprobar"
-                      icon="pi pi-check"
-                      size="small"
-                      severity="success"
-                      (onClick)="aprobarRestauracion(r.id)"
-                    />
-                  }
-                </td>
-              </tr>
-            </ng-template>
-            <ng-template pTemplate="emptymessage">
-              <tr><td colspan="5" class="text-center text-surface-400 py-4">No hay solicitudes de restauración</td></tr>
-            </ng-template>
-          </p-table>
-        </div>
-      }
+      <div class="card">
+        <div class="font-semibold text-lg mb-3">Restauraciones</div>
+        <p-table [value]="restauraciones()" [loading]="cargandoRestauraciones()"
+          [paginator]="true" [rows]="10" styleClass="p-datatable-sm">
+          <ng-template pTemplate="header">
+            <tr>
+              <th>Fecha Solicitud</th>
+              <th>Motivo</th>
+              <th>Estado</th>
+              <th>Resultado</th>
+              <th>Acciones</th>
+            </tr>
+          </ng-template>
+          <ng-template pTemplate="body" let-r>
+            <tr>
+              <td>{{ r.fechaSolicitud | date:'dd/MM/yyyy HH:mm' }}</td>
+              <td>{{ r.motivo }}</td>
+              <td><p-tag [value]="r.estado" [severity]="estadoSeverity(r.estado)" /></td>
+              <td>
+                @if (r.resultado) {
+                  <span class="text-xs">{{ r.resultado }}</span>
+                } @else {
+                  <span class="text-surface-400 text-xs">-</span>
+                }
+              </td>
+              <td>
+                @if (r.estado === 'PENDIENTE' && esSuperAdmin) {
+                  <p-button label="Aprobar" icon="pi pi-check" size="small" severity="success"
+                    (onClick)="aprobarRestauracion(r.id)" />
+                }
+              </td>
+            </tr>
+          </ng-template>
+          <ng-template pTemplate="emptymessage">
+            <tr><td colspan="5" class="text-center text-surface-400 py-4">No hay restauraciones registradas</td></tr>
+          </ng-template>
+        </p-table>
+      </div>
     </div>
 
-    <!-- DIÁLOGO SOLICITAR RESTAURACIÓN -->
-    <p-dialog
-      header="Solicitar Restauración"
-      [(visible)]="mostrarDialogo"
-      [modal]="true"
-      [style]="{width: '450px'}"
-    >
+    <p-dialog header="Solicitar Restauracion" [(visible)]="mostrarDialogo"
+      [modal]="true" [style]="{width: '450px'}">
       <div class="flex flex-col gap-3 pt-2">
-        <label class="text-sm font-medium">Motivo de la restauración *</label>
+        <label class="text-sm font-medium">Motivo de la restauracion *</label>
         <textarea pTextarea [(ngModel)]="motivoRestauracion" rows="4"
-          placeholder="Describa el motivo por el cual necesita restaurar este backup..."
-          class="w-full"></textarea>
+          placeholder="Describa el motivo..." class="w-full"></textarea>
+        <p class="text-xs text-surface-500">
+          Se creara un snapshot automatico del estado actual antes de restaurar.
+          @if (!esSuperAdmin) {
+            La restauracion se ejecutara automaticamente al solicitarla.
+          }
+        </p>
       </div>
       <ng-template pTemplate="footer">
         <p-button label="Cancelar" severity="secondary" (onClick)="mostrarDialogo = false" />
-        <p-button
-          label="Solicitar"
-          icon="pi pi-send"
+        <p-button label="Solicitar y Restaurar" icon="pi pi-send"
           [disabled]="!motivoRestauracion.trim()"
-          (onClick)="confirmarSolicitudRestauracion()"
-        />
+          (onClick)="confirmarSolicitudRestauracion()" />
       </ng-template>
     </p-dialog>
   `
@@ -182,23 +150,19 @@ export class BackupsComponent implements OnInit {
   motivoRestauracion = '';
   private respaldoSeleccionado: RegistroRespaldo | null = null;
 
-  esSuperAdmin(): boolean {
+  get esSuperAdmin(): boolean {
     return this.authSvc.hasRole('SUPER_ADMIN');
   }
 
   ngOnInit(): void {
     this.cargarRespaldos();
-    if (this.esSuperAdmin()) {
-      this.cargarRestauraciones();
-    }
+    this.cargarRestauraciones();
   }
 
   cargarRespaldos(): void {
     this.cargandoRespaldos.set(true);
     this.respaldoSvc.listarRespaldos().subscribe({
-      next: res => {
-        if (res?.codigo === 200) this.respaldos.set(res.data ?? []);
-      },
+      next: res => { if (res?.codigo === 200) this.respaldos.set(res.data ?? []); },
       error: () => this.toast.add({ severity: 'error', summary: 'Error', detail: 'No se pudo cargar los respaldos' }),
       complete: () => this.cargandoRespaldos.set(false)
     });
@@ -207,10 +171,8 @@ export class BackupsComponent implements OnInit {
   cargarRestauraciones(): void {
     this.cargandoRestauraciones.set(true);
     this.respaldoSvc.listarRestauraciones().subscribe({
-      next: res => {
-        if (res?.codigo === 200) this.restauraciones.set(res.data ?? []);
-      },
-      error: () => this.toast.add({ severity: 'error', summary: 'Error', detail: 'No se pudo cargar las solicitudes' }),
+      next: res => { if (res?.codigo === 200) this.restauraciones.set(res.data ?? []); },
+      error: () => this.toast.add({ severity: 'error', summary: 'Error', detail: 'No se pudo cargar las restauraciones' }),
       complete: () => this.cargandoRestauraciones.set(false)
     });
   }
@@ -240,9 +202,15 @@ export class BackupsComponent implements OnInit {
     this.respaldoSvc.solicitarRestauracion(this.respaldoSeleccionado.id, this.motivoRestauracion).subscribe({
       next: res => {
         if (res?.codigo === 200) {
-          this.toast.add({ severity: 'success', summary: 'Solicitud creada', detail: 'Pendiente de aprobación por SUPER_ADMIN' });
+          this.toast.add({
+            severity: res.data?.estado === 'APROBADO' ? 'success' : 'info',
+            summary: res.data?.estado === 'APROBADO' ? 'Restauracion completada' : 'Solicitud creada',
+            detail: res.data?.resultado ?? (res.data?.estado === 'APROBADO' ? 'Datos restaurados' : 'Pendiente de aprobacion'),
+            life: 6000
+          });
           this.mostrarDialogo = false;
-          if (this.esSuperAdmin()) this.cargarRestauraciones();
+          this.cargarRespaldos();
+          this.cargarRestauraciones();
         }
       },
       error: () => this.toast.add({ severity: 'error', summary: 'Error', detail: 'No se pudo crear la solicitud' })
@@ -253,22 +221,21 @@ export class BackupsComponent implements OnInit {
     this.respaldoSvc.aprobarRestauracion(id).subscribe({
       next: res => {
         if (res?.codigo === 200) {
-          this.toast.add({ severity: 'success', summary: 'Aprobado', detail: 'Restauración aprobada' });
+          this.toast.add({ severity: 'success', summary: 'Restauracion aprobada', detail: res.data?.resultado ?? '' });
           this.cargarRestauraciones();
+          this.cargarRespaldos();
         }
       },
-      error: () => this.toast.add({ severity: 'error', summary: 'Error', detail: 'No se pudo aprobar la restauración' })
+      error: () => this.toast.add({ severity: 'error', summary: 'Error', detail: 'No se pudo aprobar la restauracion' })
     });
   }
 
   estadoSeverity(estado: string): 'success' | 'warn' | 'danger' | 'info' | 'secondary' {
     const map: Record<string, 'success' | 'warn' | 'danger' | 'info' | 'secondary'> = {
-      COMPLETADO: 'success',
-      APROBADO: 'success',
-      EN_PROGRESO: 'info',
-      PENDIENTE: 'warn',
-      FALLIDO: 'danger',
-      RECHAZADO: 'danger'
+      COMPLETADO: 'success', APROBADO: 'success',
+      EN_PROGRESO: 'info', PENDIENTE: 'warn',
+      FALLIDO: 'danger', RECHAZADO: 'danger',
+      SNAPSHOT: 'info'
     };
     return map[estado] ?? 'secondary';
   }

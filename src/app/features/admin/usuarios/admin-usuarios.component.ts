@@ -21,6 +21,7 @@ import { InstitucionService } from '@/core/services/institucion.service';
 import { AuthService } from '@/core/services/auth.service';
 import { RoleService } from '@/core/services/role.service';
 import { CanPermDirective } from '@/shared/directives/can-perm.directive';
+import { TableLazyLoadEvent } from 'primeng/table';
 import {
     UsuarioResponse, CrearUsuarioRequest, ActualizarUsuarioRequest,
     AsignarRolRequest, InstitucionResponse, RolResponse
@@ -51,6 +52,7 @@ export class AdminUsuariosComponent implements OnInit {
     instituciones = signal<InstitucionResponse[]>([]);
     rolesDisponibles = signal<RolResponse[]>([]);
     loading = true;
+    totalRegistros = 0;
 
     dialogVisible = false;
     selectedId = '';
@@ -66,10 +68,15 @@ export class AdminUsuariosComponent implements OnInit {
 
     @ViewChild('dt') dt!: Table;
 
-    ngOnInit(): void { this.load(); }
+    private currentSearch = '';
+    private currentSortField: string = 'apellidos';
+    private currentSortDir = 'asc';
 
-    load(): void {
-        this.loading = true;
+    ngOnInit(): void {
+        this.cargarCatalogos();
+    }
+
+    cargarCatalogos(): void {
         const user = this.authService.getCurrentUser();
         const instituciones$ = this.isSuperAdmin
             ? this.institucionService.listar().pipe(map(r => r.data ?? []))
@@ -78,18 +85,53 @@ export class AdminUsuariosComponent implements OnInit {
                 : of([]);
 
         forkJoin({
-            usuarios: this.usuarioService.listar(),
             instituciones: instituciones$,
             roles: this.roleService.listarRolesAsignables()
         }).subscribe({
-            next: ({ usuarios, instituciones, roles }) => {
-                this.loading = false;
-                if (usuarios.codigo === 200) this.usuarios.set(usuarios.data ?? []);
+            next: ({ instituciones, roles }) => {
                 this.instituciones.set(instituciones);
                 if (roles.codigo === 200) this.rolesDisponibles.set(roles.data ?? []);
             },
-            error: () => { this.loading = false; this.error('No se pudo cargar la informacion'); }
+            error: () => this.error('No se pudo cargar la informacion')
         });
+    }
+
+    loadLazy(event: TableLazyLoadEvent): void {
+        this.loading = true;
+        const first = event.first ?? 0;
+        const rows = event.rows ?? 25;
+        const page = Math.floor(first / rows);
+        const size = rows;
+        const sortField = typeof event.sortField === 'string' ? event.sortField : undefined;
+        const sortOrder = event.sortOrder ?? 1;
+        const sortDir = sortOrder === -1 ? 'desc' : 'asc';
+        if (sortField) this.currentSortField = sortField;
+        this.currentSortDir = sortDir;
+
+        this.usuarioService.listarPaginado({
+            search: this.currentSearch,
+            page,
+            size,
+            sortField: this.currentSortField,
+            sortDir
+        }).subscribe({
+            next: (resp) => {
+                this.loading = false;
+                if (resp.codigo === 200 && resp.data) {
+                    this.usuarios.set(resp.data.usuarios);
+                    this.totalRegistros = resp.data.total;
+                }
+            },
+            error: () => {
+                this.loading = false;
+                this.error('No se pudieron cargar los usuarios');
+            }
+        });
+    }
+
+    onSearch(query: string): void {
+        this.currentSearch = query;
+        this.dt.reset();
     }
 
     nuevo(): void {
@@ -128,7 +170,7 @@ export class AdminUsuariosComponent implements OnInit {
             next: () => {
                 this.dialogVisible = false;
                 this.messageService.add({ severity: 'success', summary: 'Exito', detail: 'Usuario creado correctamente', life: 3000 });
-                this.load();
+                this.dt.reset();
             },
             error: (e: any) => this.error(e.error?.mensaje ?? 'Error al crear el usuario')
         });
@@ -140,7 +182,7 @@ export class AdminUsuariosComponent implements OnInit {
             header: 'Confirmar eliminacion',
             icon: 'pi pi-exclamation-triangle',
             accept: () => this.usuarioService.eliminar(u.id).subscribe({
-                next: () => { this.messageService.add({ severity: 'success', summary: 'Eliminado', detail: 'Usuario eliminado', life: 3000 }); this.load(); },
+                next: () => { this.messageService.add({ severity: 'success', summary: 'Eliminado', detail: 'Usuario eliminado', life: 3000 }); this.dt.reset(); },
                 error: () => this.error('No se pudo eliminar el usuario')
             })
         });
@@ -167,7 +209,7 @@ export class AdminUsuariosComponent implements OnInit {
             next: () => {
                 this.editarVisible = false;
                 this.messageService.add({ severity: 'success', summary: 'Éxito', detail: 'Usuario actualizado correctamente', life: 3000 });
-                this.load();
+                this.dt.reset();
             },
             error: (e: any) => this.error(e.error?.mensaje ?? 'Error al actualizar el usuario')
         });
@@ -188,7 +230,7 @@ export class AdminUsuariosComponent implements OnInit {
             next: () => {
                 this.rolesVisible = false;
                 this.messageService.add({ severity: 'success', summary: 'Exito', detail: 'Rol asignado correctamente', life: 3000 });
-                this.load();
+                this.dt.reset();
             },
             error: (e: any) => this.error(e.error?.mensaje ?? 'Error al asignar rol')
         });
@@ -220,6 +262,10 @@ export class AdminUsuariosComponent implements OnInit {
         }
     }
 
-    onGlobalFilter(t: Table, e: Event): void { t.filterGlobal((e.target as HTMLInputElement).value, 'contains'); }
+    onGlobalFilter(t: Table, e: Event): void {
+        const value = (e.target as HTMLInputElement).value;
+        this.onSearch(value);
+    }
+
     private error(msg: string): void { this.messageService.add({ severity: 'error', summary: 'Error', detail: msg, life: 4000 }); }
 }

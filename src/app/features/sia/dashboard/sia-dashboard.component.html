@@ -1,78 +1,75 @@
-<div class="grid grid-cols-12 gap-6">
-    <div class="col-span-12 flex items-center justify-between gap-3">
+<div class="space-y-6 p-4">
+    <!-- Header -->
+    <div class="flex items-center justify-between">
         <div>
-            <h2 class="text-2xl font-semibold m-0 text-surface-900 dark:text-surface-0">Panel institucional</h2>
-            <p class="text-surface-500 text-sm mt-1 mb-0">Vista operativa para {{ roleLabel }}.</p>
+            <h2 class="text-2xl font-semibold text-surface-900 dark:text-surface-0">Inicio</h2>
+            <p class="text-surface-500 text-sm mt-1">Bienvenido{{ roleLabel ? ', ' + roleLabel : '' }}</p>
         </div>
         <p-button icon="pi pi-refresh" [rounded]="true" [text]="true" (onClick)="cargarDashboard()" />
     </div>
 
-    @if (dashboard(); as data) {
-        <div class="col-span-12">
-            <app-dashboard-setup-status [institucion]="data.institucion" [gestionActiva]="data.gestionActiva || null" />
-        </div>
-    }
-
-    <div class="col-span-12">
-        <app-dashboard-filters [catalogo]="catalogo()" [filters]="filters()" (filtersChange)="onFiltersChange($event)" />
-    </div>
-
     @if (loading()) {
-        @for (_ of [1,2,3,4,5,6,7,8]; track $index) {
-            <div class="col-span-12 md:col-span-6 xl:col-span-3">
-                <p-skeleton height="8rem" borderRadius="12px"></p-skeleton>
-            </div>
-        }
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+            @for (_ of [1,2,3,4]; track $index) {
+                <p-skeleton height="8rem" borderRadius="12px" />
+            }
+        </div>
     } @else if (error()) {
-        <div class="col-span-12 rounded-lg border border-rose-200 bg-rose-50 text-rose-700 p-4">
-            <div class="font-medium">No pudimos cargar el dashboard institucional.</div>
-            <div class="text-sm mt-1">{{ error() }}</div>
+        <div class="rounded-lg border border-rose-200 bg-rose-50 p-4 text-rose-700">
+            <p class="font-medium">No se pudo cargar el dashboard.</p>
+            <p class="text-sm mt-1">{{ error() }}</p>
         </div>
     } @else if (dashboard(); as data) {
-        @for (kpi of data.kpis; track kpi.codigo) {
-            <div class="col-span-12 md:col-span-6 xl:col-span-3">
-                <app-dashboard-kpi-card [kpi]="kpi" />
+        <!-- KPIs principales -->
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+            @for (kpi of data.kpis; track kpi.codigo) {
+                <div class="rounded-xl border border-surface-200 bg-surface-0 p-4 dark:border-surface-700 dark:bg-surface-900">
+                    <p class="text-xs font-medium uppercase tracking-wide text-surface-400">{{ kpi.titulo }}</p>
+                    <p class="mt-1 text-3xl font-bold text-surface-900 dark:text-surface-0">{{ kpi.valor ?? '-' }}</p>
+                    <p class="mt-1 text-xs text-surface-400">{{ kpi.subtitulo }}</p>
+                </div>
+            }
+        </div>
+
+        <!-- Alertas de riesgo IA -->
+        @if (data.alertas?.length) {
+            <div class="rounded-xl border border-amber-200 bg-amber-50 p-4 dark:border-amber-800 dark:bg-amber-900/20">
+                <div class="flex items-center gap-2 mb-3">
+                    <i class="pi pi-exclamation-triangle text-amber-600" style="font-size:1.2rem"></i>
+                    <h3 class="text-sm font-semibold text-amber-800 dark:text-amber-200 m-0">Alertas de riesgo</h3>
+                    <a routerLink="/alertas" class="ml-auto text-xs text-amber-700 underline dark:text-amber-300">Ver todas</a>
+                </div>
+                <div class="space-y-2">
+                    @for (alerta of data.alertas.slice(0, 5); track alerta.titulo) {
+                        <div class="flex items-center justify-between text-sm">
+                            <span class="text-amber-800 dark:text-amber-200">{{ alerta.titulo }}</span>
+                            <span class="rounded-full px-2 py-0.5 text-xs font-medium"
+                                [class.bg-red-100]="alerta.severidad === 'ALTA'"
+                                [class.bg-amber-100]="alerta.severidad === 'MEDIA'"
+                                [class.bg-blue-100]="alerta.severidad === 'BAJA'"
+                            >{{ alerta.severidad }}</span>
+                        </div>
+                    }
+                </div>
             </div>
         }
 
-        <div class="col-span-12 xl:col-span-4">
-            <app-dashboard-alert-list
-                [alerts]="data.alertas"
-                title="Alertas institucionales"
-                subtitle="Incidencias y recordatorios del dia"
-            />
-        </div>
-        <div class="col-span-12 xl:col-span-8">
-            <app-dashboard-quick-actions
-                [actions]="data.accesosRapidos"
-                title="Accesos rapidos por rol"
-                subtitle="La navegacion se adapta a permisos y responsabilidades"
-            />
+        <!-- Graficos -->
+        <div class="grid grid-cols-1 xl:grid-cols-2 gap-4">
+            @for (chart of data.graficos; track chart.codigo) {
+                <app-dashboard-chart-panel [chart]="chart" />
+            }
         </div>
 
-        <div class="col-span-12 xl:col-span-6">
-            <app-dashboard-quick-actions
-                [actions]="data.tareasPendientes"
-                title="Tareas pendientes"
-                subtitle="Siguientes pasos sugeridos para mantener la operacion ordenada"
-            />
-        </div>
-        <div class="col-span-12 xl:col-span-6 rounded-lg border border-surface-200 bg-white dark:bg-surface-900 p-4">
-            <div>
-                <h3 class="text-base font-semibold m-0 text-surface-900 dark:text-surface-0">Modulos visibles</h3>
-                <p class="text-xs text-surface-500 mt-1 mb-4">El dashboard se adapta a lo configurado hoy en la institucion.</p>
-            </div>
+        <!-- Modulos activos -->
+        <div class="rounded-xl border border-surface-200 bg-surface-0 p-4 dark:border-surface-700 dark:bg-surface-900">
+            <h3 class="text-sm font-semibold text-surface-700 dark:text-surface-200 mb-1">Modulos academicos activos</h3>
+            <p class="text-xs text-surface-400 mb-3">Modulos disponibles segun el plan de suscripcion</p>
             <div class="flex flex-wrap gap-2">
                 @for (modulo of data.modulosDisponibles; track modulo) {
-                    <span class="px-3 py-2 rounded-full text-sm bg-surface-100 text-surface-700 dark:bg-surface-800 dark:text-surface-100">{{ modulo }}</span>
+                    <span class="rounded-full bg-surface-100 px-3 py-1.5 text-sm text-surface-700 dark:bg-surface-800 dark:text-surface-200">{{ modulo }}</span>
                 }
             </div>
         </div>
-
-        @for (chart of data.graficos; track chart.codigo) {
-            <div class="col-span-12 xl:col-span-6">
-                <app-dashboard-chart-panel [chart]="chart" />
-            </div>
-        }
     }
 </div>

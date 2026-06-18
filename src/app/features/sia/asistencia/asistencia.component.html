@@ -148,7 +148,8 @@
                     <th>Estudiante</th>
                     <th style="width: 140px">Documento</th>
                     <th style="width: 180px">Estado</th>
-                    <th style="width: 150px">Vista rápida</th>
+                    <th style="width: 200px">Justificacion</th>
+                    <th style="width: 120px">Vista rápida</th>
                 </tr>
             </ng-template>
 
@@ -173,6 +174,19 @@
                         />
                     </td>
                     <td>
+                        @if (estudiante.estadoAsistencia === 'JUSTIFICADO') {
+                            <input pInputText
+                                [ngModel]="estudiante.justificacion"
+                                placeholder="Motivo de justificacion"
+                                class="w-full"
+                                [disabled]="!puedeEditar()"
+                                (ngModelChange)="cambiarJustificacion(estudiante, $event)"
+                            />
+                        } @else {
+                            <span class="text-surface-400 text-sm">-</span>
+                        }
+                    </td>
+                    <td>
                         <p-tag
                             [value]="estadoLabel(estudiante.estadoAsistencia)"
                             [severity]="estadoSeverity(estudiante.estadoAsistencia)"
@@ -183,7 +197,7 @@
 
             <ng-template #emptymessage>
                 <tr>
-                    <td colspan="5" class="text-center py-8 text-surface-400">
+                    <td colspan="6" class="text-center py-8 text-surface-400">
                         No hay estudiantes inscritos activos para esta asignación.
                     </td>
                 </tr>

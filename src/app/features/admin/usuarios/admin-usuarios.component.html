@@ -13,15 +13,17 @@
     </div>
 
     <p-table #dt [value]="usuarios()" [loading]="loading" dataKey="id"
-        [globalFilterFields]="['nombres','apellidos','correo','estado']"
-        [paginator]="true" [rows]="10" [rowsPerPageOptions]="[10,25,50]"
+        [paginator]="true" [rows]="25" [rowsPerPageOptions]="[10,25,50,100]"
+        [totalRecords]="totalRegistros" [lazy]="true" (onLazyLoad)="loadLazy($event)"
+        [globalFilterFields]="[]"
         sortField="apellidos" [sortOrder]="1"
         styleClass="p-datatable-striped">
 
         <ng-template #caption>
             <p-iconfield>
                 <p-inputicon class="pi pi-search" />
-                <input pInputText type="text" placeholder="Buscar usuario..." (input)="onGlobalFilter(dt, $event)" />
+                <input pInputText type="text" placeholder="Buscar por nombre o correo..."
+                    (input)="onSearch($any($event.target).value)" />
             </p-iconfield>
         </ng-template>
 

@@ -7,7 +7,7 @@
             <h3 class="text-xl font-semibold text-surface-900 dark:text-surface-0 m-0">Cursos</h3>
             <p class="text-surface-400 text-sm mt-1 mb-0">Gestiona los cursos y niveles de la institución</p>
         </div>
-        <ng-container *appCanPerm="['GESTION_WRITE']">
+        <ng-container *appCanPerm="['CURSOS_WRITE']">
             <p-button label="Nuevo Curso" icon="pi pi-plus" (onClick)="nuevo()" />
         </ng-container>
     </div>
@@ -45,7 +45,7 @@
                         [severity]="c.estado === 'ACTIVO' ? 'success' : 'danger'" />
                 </td>
                 <td>
-                    <ng-container *appCanPerm="['GESTION_WRITE']">
+                    <ng-container *appCanPerm="['CURSOS_WRITE']">
                         <div class="flex gap-2">
                             <p-button icon="pi pi-pencil" [rounded]="true" [text]="true" severity="info"
                                 pTooltip="Editar" tooltipPosition="top" (onClick)="editar(c)" />
@@ -84,7 +84,7 @@
     </div>
 
     <ng-template #footer>
-        <ng-container *appCanPerm="['GESTION_WRITE']">
+        <ng-container *appCanPerm="['CURSOS_WRITE']">
             <p-button label="Cancelar" icon="pi pi-times" [text]="true" severity="secondary" (onClick)="dialogVisible = false" />
             <p-button [label]="editMode ? 'Actualizar' : 'Guardar'" icon="pi pi-check" (onClick)="guardar()" />
         </ng-container>

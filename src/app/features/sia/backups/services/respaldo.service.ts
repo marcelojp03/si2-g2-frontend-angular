@@ -31,6 +31,7 @@ export interface RegistroRestauracion {
   estado: string;
   motivo: string;
   observacion: string | null;
+  resultado: string | null;
   simulado: boolean;
 }
 

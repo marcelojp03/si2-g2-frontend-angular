@@ -14,7 +14,6 @@ import { TagModule } from 'primeng/tag';
 import { ToastModule } from 'primeng/toast';
 import { TooltipModule } from 'primeng/tooltip';
 import { AuthService } from '@/core/services/auth.service';
-import { CanPermDirective } from '@/shared/directives/can-perm.directive';
 import { HorarioService } from '@/features/sia/horarios/services/horario.service';
 import { AsignacionesService } from '@/features/sia/asignaciones/services/asignaciones.service';
 import { AulasService } from '@/features/sia/aulas/services/aulas.service';
@@ -44,7 +43,6 @@ import {
         TooltipModule,
         ConfirmDialogModule,
         SelectModule,
-        CanPermDirective,
     ],
     providers: [MessageService, ConfirmationService],
     templateUrl: './gestion-horarios.component.html'
@@ -84,7 +82,8 @@ export class GestionHorariosComponent implements OnInit {
     filtros = {
         dia: '',
         aula: '',
-        asignacion: ''
+        asignacion: '',
+        grupo: ''
     };
 
     form: HorarioClaseRequest = this.emptyForm();
@@ -106,11 +105,22 @@ export class GestionHorariosComponent implements OnInit {
             this.auth.hasRole('SUPER_ADMIN');
     }
 
+    get grupoOptions() {
+        return this.asignaciones().map(a => {
+            const materia = this.materias().find(m => m.id === a.idMateria);
+            const paralelo = this.paralelos().find(p => p.id === a.idParalelo);
+            const curso = paralelo ? this.cursos().find(c => c.id === paralelo.idCurso) : null;
+            const label = `${materia?.nombre ?? '?'} - ${curso?.nombre ?? '?'} ${paralelo?.nombre ?? '?'}`;
+            return { label, value: a.id };
+        }).filter((v, i, a) => a.findIndex(x => x.label === v.label) === i);
+    }
+
     get horariosFiltered(): HorarioClaseResponse[] {
         return this.horarios().filter(h => {
             if (this.filtros.dia && h.diaSemana !== this.filtros.dia) return false;
             if (this.filtros.aula && h.idAula !== this.filtros.aula) return false;
             if (this.filtros.asignacion && h.idAsignacionDocente !== this.filtros.asignacion) return false;
+            if (this.filtros.grupo && h.idAsignacionDocente !== this.filtros.grupo) return false;
             return true;
         });
     }
@@ -265,7 +275,7 @@ export class GestionHorariosComponent implements OnInit {
     }
 
     limpiarFiltros(): void {
-        this.filtros = { dia: '', aula: '', asignacion: '' };
+        this.filtros = { dia: '', aula: '', asignacion: '', grupo: '' };
     }
 
     private validarFormulario(): boolean {

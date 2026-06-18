@@ -1,168 +1,87 @@
-<p-toast></p-toast>
+<p-toast />
 
-<div class="space-y-4 p-4">
+<div class="space-y-6 p-4">
+    <!-- ENCABEZADO -->
     <div>
         <h2 class="text-2xl font-semibold text-surface-800 dark:text-surface-100">Reportes</h2>
-        <p class="text-surface-500 text-sm mt-1">Módulo combinado: reportes gerenciales heredados y reportes avanzados con filtros, lenguaje natural y QBE.</p>
+        <p class="text-surface-500 text-sm mt-1">Consulta cualquier dato de tu institución en lenguaje natural.</p>
     </div>
 
-    <p-tabs value="gerenciales">
-        <p-tablist>
-            <p-tab value="gerenciales">Gerenciales</p-tab>
-            <p-tab value="avanzados">Avanzados</p-tab>
-        </p-tablist>
-        <p-tabpanels>
-            <p-tabpanel value="gerenciales">
-                <div class="card mb-4">
-                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                        <div class="flex flex-col gap-1">
-                            <label class="text-sm font-medium">Gestión *</label>
-                            <p-select [options]="gestiones()" [(ngModel)]="idGestionSel" optionLabel="nombre" optionValue="id" placeholder="Seleccione gestión" styleClass="w-full" />
-                        </div>
-                        <div class="flex flex-col gap-1">
-                            <label class="text-sm font-medium">Paralelo (opcional)</label>
-                            <p-select [options]="paralelos()" [(ngModel)]="idParaleloSel" optionLabel="nombre" optionValue="id" placeholder="Todos los paralelos" [showClear]="true" styleClass="w-full" />
-                        </div>
-                        <div class="flex flex-col gap-1">
-                            <label class="text-sm font-medium">Curso (para inscripciones)</label>
-                            <p-select [options]="cursos()" [(ngModel)]="idCursoSel" optionLabel="nombre" optionValue="id" placeholder="Todos los cursos" [showClear]="true" styleClass="w-full" />
+    <!-- CONSULTA EN LENGUAJE NATURAL -->
+    <p-card>
+        <div class="flex flex-col gap-4">
+            <label class="text-base font-semibold">¿Qué quieres consultar?</label>
+            <textarea pTextarea [(ngModel)]="consultaNatural" rows="3" class="w-full"
+                placeholder="Ej: Muéstrame los 10 alumnos con mejor promedio en matemáticas del segundo trimestre"></textarea>
+
+            <div class="flex flex-wrap gap-2 text-sm text-surface-500">
+                @for (example of nlExamples; track example) {
+                    <button type="button" class="rounded-full border border-surface-300 px-3 py-1 text-xs transition-colors hover:border-primary-300 hover:text-primary-600 dark:border-surface-600 dark:hover:border-primary-500"
+                        (click)="useNlExample(example)">{{ example }}</button>
+                }
+            </div>
+
+            @if (nlHistory().length) {
+                <div>
+                    <p class="mb-2 text-xs font-medium text-surface-500 uppercase tracking-wide">Consultas recientes</p>
+                    <div class="flex flex-wrap gap-2">
+                        @for (item of nlHistory(); track item) {
+                            <p-button [label]="item" size="small" severity="contrast" [outlined]="true" (onClick)="useNlExample(item)" />
+                        }
+                    </div>
+                </div>
+            }
+
+            <div class="flex items-center gap-3">
+                <p-button label="Consultar" icon="pi pi-sparkles" [loading]="loadingPreview" (onClick)="generarConsultaNaturalIA()" />
+                @if (preview()?.filas?.length) {
+                    <p-button label="Excel" icon="pi pi-file-excel" severity="success" (onClick)="exportarExcel()" />
+                    <p-button label="PDF" icon="pi pi-file-pdf" severity="danger" (onClick)="exportarPDF()" />
+                }
+            </div>
+        </div>
+    </p-card>
+
+    <!-- RESULTADOS -->
+    @if (preview(); as result) {
+        <p-card>
+            <div class="mb-4 flex items-start justify-between">
+                <div>
+                    <h3 class="text-lg font-semibold">{{ result.encabezado.nombreReporte }}</h3>
+                    <p class="text-xs text-surface-500">{{ result.encabezado.generadoEn | date:'dd/MM/yyyy HH:mm' }} &middot; {{ result.totalRegistros }} registros</p>
+                    @for (note of result.encabezado.filtrosAplicados; track note) {
+                        <p class="text-xs text-surface-400 mt-1 font-mono">{{ note }}</p>
+                    }
+                </div>
+                <p-tag [value]="result.totalRegistros + ' registros'" severity="info" />
+            </div>
+
+            <p-table [value]="result.filas" [columns]="result.columnas" [lazy]="true"
+                [paginator]="true" [rows]="result.size" [first]="result.page * result.size"
+                [totalRecords]="result.totalRegistros" [loading]="loadingPreview"
+                [rowsPerPageOptions]="[10, 25, 50, 100]" styleClass="p-datatable-sm"
+                (onLazyLoad)="onLazyLoad($event)">
+                <ng-template pTemplate="header" let-columns>
+                    <tr>@for (col of columns; track col.field) { <th>{{ col.header }}</th> }</tr>
+                </ng-template>
+                <ng-template pTemplate="body" let-row let-columns="columns">
+                    <tr>@for (col of columns; track col.field) { <td>{{ value(row, col.field) }}</td> }</tr>
+                </ng-template>
+            </p-table>
+
+            @if (interpretacion(); as texto) {
+                <div class="mt-4 rounded-xl bg-primary-50 p-4 dark:bg-primary-900/20 border border-primary-200 dark:border-primary-800">
+                    <div class="flex gap-2">
+                        <i class="pi pi-comment text-primary-500 mt-0.5" style="font-size:1.1rem"></i>
+                        <div>
+                            <p class="text-sm font-medium text-primary-700 dark:text-primary-200">Interpretación</p>
+                            <p class="text-sm text-primary-600 dark:text-primary-300 mt-1">{{ texto }}</p>
                         </div>
                     </div>
                 </div>
+            }
+        </p-card>
+    }
 
-                <p-tabs value="asistencia">
-                    <p-tablist>
-                        <p-tab value="asistencia">Asistencia</p-tab>
-                        <p-tab value="calificaciones">Calificaciones</p-tab>
-                        <p-tab value="inscripciones">Inscripciones</p-tab>
-                        <p-tab value="gerencial">Gerencial</p-tab>
-                    </p-tablist>
-                    <p-tabpanels>
-                        <p-tabpanel value="asistencia">
-                            <div class="flex justify-end mb-3"><p-button label="Generar" icon="pi pi-play" [disabled]="!idGestionSel" [loading]="cargandoAsistencia()" (onClick)="generarAsistencia()" /></div>
-                            <p-table [value]="datosAsistencia()" [paginator]="true" [rows]="15" styleClass="p-datatable-sm" [loading]="cargandoAsistencia()">
-                                <ng-template pTemplate="header"><tr><th>Código</th><th>Estudiante</th><th>Materia</th><th>Paralelo</th><th>Total Sesiones</th><th>Presentes</th><th>Tardanzas</th><th>Ausentes</th><th>% Asistencia</th></tr></ng-template>
-                                <ng-template pTemplate="body" let-r><tr><td>{{ r['codigo_estudiante'] }}</td><td>{{ r['nombre'] }} {{ r['apellido'] }}</td><td>{{ r['materia'] }}</td><td>{{ r['paralelo'] }}</td><td>{{ r['total_registros'] }}</td><td>{{ r['presentes'] }}</td><td>{{ r['tardanzas'] }}</td><td>{{ r['ausentes'] }}</td><td><span [class]="pctClass(r['porcentaje_asistencia'])">{{ r['porcentaje_asistencia'] }}%</span></td></tr></ng-template>
-                            </p-table>
-                        </p-tabpanel>
-                        <p-tabpanel value="calificaciones">
-                            <div class="flex justify-end mb-3"><p-button label="Generar" icon="pi pi-play" [disabled]="!idGestionSel" [loading]="cargandoCalificaciones()" (onClick)="generarCalificaciones()" /></div>
-                            <p-table [value]="datosCalificaciones()" [paginator]="true" [rows]="15" styleClass="p-datatable-sm" [loading]="cargandoCalificaciones()">
-                                <ng-template pTemplate="header"><tr><th>Código</th><th>Estudiante</th><th>Materia</th><th>Paralelo</th><th>Tipo Evaluación</th><th>Evaluación</th><th>Nota Máx.</th><th>Nota</th><th>Resultado</th></tr></ng-template>
-                                <ng-template pTemplate="body" let-r><tr><td>{{ r['codigo_estudiante'] }}</td><td>{{ r['nombre'] }} {{ r['apellido'] }}</td><td>{{ r['materia'] }}</td><td>{{ r['paralelo'] }}</td><td>{{ r['tipo_evaluacion'] }}</td><td>{{ r['evaluacion'] }}</td><td>{{ r['nota_maxima'] }}</td><td>{{ r['nota_obtenida'] }}</td><td><span [class]="r['resultado'] === 'Aprobado' ? 'text-green-600 font-medium' : 'text-red-500 font-medium'">{{ r['resultado'] }}</span></td></tr></ng-template>
-                            </p-table>
-                        </p-tabpanel>
-                        <p-tabpanel value="inscripciones">
-                            <div class="flex justify-end mb-3"><p-button label="Generar" icon="pi pi-play" [disabled]="!idGestionSel" [loading]="cargandoInscripciones()" (onClick)="generarInscripciones()" /></div>
-                            <p-table [value]="datosInscripciones()" [paginator]="true" [rows]="15" styleClass="p-datatable-sm" [loading]="cargandoInscripciones()">
-                                <ng-template pTemplate="header"><tr><th>Código</th><th>Estudiante</th><th>Curso</th><th>Paralelo</th><th>Gestión</th><th>Estado</th><th>Fecha Inscripción</th></tr></ng-template>
-                                <ng-template pTemplate="body" let-r><tr><td>{{ r['codigo_estudiante'] }}</td><td>{{ r['nombre'] }} {{ r['apellido'] }}</td><td>{{ r['curso'] }}</td><td>{{ r['paralelo'] }}</td><td>{{ r['gestion'] }}</td><td>{{ r['estado_inscripcion'] }}</td><td>{{ r['fecha_inscripcion'] | date:'dd/MM/yyyy' }}</td></tr></ng-template>
-                            </p-table>
-                        </p-tabpanel>
-                        <p-tabpanel value="gerencial">
-                            <div class="flex justify-end mb-3"><p-button label="Generar" icon="pi pi-play" [disabled]="!idGestionSel" [loading]="cargandoGerencial()" (onClick)="generarGerencial()" /></div>
-                            @if (resumenGerencial()) {
-                                <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mt-2">
-                                    <p-card><div class="text-center"><div class="text-3xl font-bold text-primary">{{ resumenGerencial()!['totalEstudiantes'] }}</div><div class="text-surface-500 text-sm mt-1">Estudiantes inscritos</div></div></p-card>
-                                    <p-card><div class="text-center"><div class="text-3xl font-bold text-primary">{{ resumenGerencial()!['totalDocentes'] }}</div><div class="text-surface-500 text-sm mt-1">Docentes asignados</div></div></p-card>
-                                    <p-card><div class="text-center"><div class="text-3xl font-bold text-primary">{{ resumenGerencial()!['totalSesiones'] }}</div><div class="text-surface-500 text-sm mt-1">Sesiones de clase</div></div></p-card>
-                                    <p-card><div class="text-center"><div class="text-3xl font-bold" [class]="(+resumenGerencial()!['promedioAsistencia']! >= 75) ? 'text-green-600' : 'text-red-500'">{{ resumenGerencial()!['promedioAsistencia'] }}%</div><div class="text-surface-500 text-sm mt-1">Prom. asistencia</div></div></p-card>
-                                </div>
-                            }
-                        </p-tabpanel>
-                    </p-tabpanels>
-                </p-tabs>
-            </p-tabpanel>
 
-            <p-tabpanel value="avanzados">
-                <p-card>
-                    <div class="mb-4 flex flex-wrap gap-2">
-                        @for (option of modeOptions; track option.value) {
-                            <p-button [label]="option.label" [severity]="mode() === option.value ? 'primary' : 'secondary'" [outlined]="mode() !== option.value" (onClick)="setMode(option.value)"></p-button>
-                        }
-                    </div>
-
-                    @if (mode() === 'predefinido') {
-                        <div class="space-y-4">
-                            <div class="grid grid-cols-1 gap-4 lg:grid-cols-3">
-                                <div class="lg:col-span-2">
-                                    <label class="mb-2 block text-sm font-medium">Reporte</label>
-                                    <p-select [options]="reportOptions()" [ngModel]="selectedCodigo()" (ngModelChange)="selectedCodigo.set($event); onReporteChange()" optionLabel="label" optionValue="value" placeholder="Seleccione un reporte" class="w-full"></p-select>
-                                </div>
-                                @if (selectedReporte(); as reporte) { <div class="flex items-end"><p-tag [value]="reporte.tipo" severity="info"></p-tag></div> }
-                            </div>
-                            @if (selectedReporte(); as reporte) {
-                                <div class="rounded-xl border border-surface-200 p-4 dark:border-surface-700">
-                                    <div class="mb-3"><h2 class="text-lg font-semibold">{{ reporte.nombre }}</h2><p class="text-sm text-surface-500">{{ reporte.descripcion }}</p></div>
-                                    <div class="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-4">
-                                        @for (filter of reporte.filtros; track filter.field) {
-                                            <div><label class="mb-2 block text-sm font-medium">{{ filter.label }}</label>@if (filter.type === 'number') { <p-inputNumber [(ngModel)]="filtros[filter.field]" class="w-full" inputStyleClass="w-full"></p-inputNumber> } @else { <input pInputText [(ngModel)]="filtros[filter.field]" class="w-full" [placeholder]="filter.type === 'uuid' ? 'UUID opcional' : filter.label" /> }</div>
-                                        }
-                                    </div>
-                                </div>
-                            }
-                        </div>
-                    }
-
-                    @if (mode() === 'nl') {
-                        <div class="rounded-xl border border-surface-200 p-4 dark:border-surface-700">
-                            <label class="mb-2 block text-sm font-medium">Consulta en lenguaje natural</label>
-                            <textarea pTextarea [(ngModel)]="consultaNatural" rows="4" class="w-full" placeholder="Ejemplo: Muéstrame los 10 alumnos con mejor promedio en matemáticas del segundo trimestre"></textarea>
-                            <div class="mt-3 text-sm text-surface-500"><p>Sugerencias: “Asistencia por curso en marzo”, “Docentes agrupados por materia”, “Muéstrame los tutores”.</p><p>Restricción: el backend siempre fuerza el UUID de tu institución.</p></div>
-                            <div class="mt-4 flex flex-wrap gap-2">@for (example of nlExamples; track example) { <p-button [label]="example" size="small" severity="secondary" [text]="true" (onClick)="useNlExample(example)"></p-button> }</div>
-                            @if (nlHistory().length) { <div class="mt-4"><p class="mb-2 text-sm font-medium text-surface-700 dark:text-surface-200">Consultas recientes</p><div class="flex flex-wrap gap-2">@for (item of nlHistory(); track item) { <p-button [label]="item" size="small" severity="contrast" [outlined]="true" (onClick)="useNlExample(item)"></p-button> }</div></div> }
-                        </div>
-                    }
-
-                    @if (mode() === 'qbe') {
-                        <div class="space-y-4">
-                            <div class="grid grid-cols-1 gap-4 lg:grid-cols-2">
-                                <div><label class="mb-2 block text-sm font-medium">Entidad</label><p-select [options]="qbeEntityOptions()" [ngModel]="selectedQbeEntity()" (ngModelChange)="selectedQbeEntity.set($event); onQbeEntityChange()" optionLabel="label" optionValue="value" placeholder="Seleccione una entidad" class="w-full"></p-select></div>
-                                @if (selectedQbeDefinition(); as entity) {
-                                    <div><label class="mb-2 block text-sm font-medium">Campos a mostrar</label><div class="max-h-40 overflow-auto rounded-lg border border-surface-200 p-3 dark:border-surface-700">@for (field of entity.fields; track field.field) { <label class="mb-2 flex items-center gap-2 text-sm"><input type="checkbox" [checked]="qbeSelectedColumns.includes(field.field)" (change)="toggleColumn(field.field, $any($event.target).checked)" /><span>{{ field.label }}</span></label> }</div></div>
-                                }
-                            </div>
-                            @if (selectedQbeDefinition(); as entity) {
-                                <div class="rounded-xl border border-surface-200 p-4 dark:border-surface-700">
-                                    <div class="mb-3 flex items-center justify-between gap-2"><div><h2 class="text-lg font-semibold">QBE de {{ entity.label }}</h2><p class="text-sm text-surface-500">Operadores seguros con filtro tenant automático.</p></div><ng-container *appCanPerm="['REPORTES_WRITE']"><p-button label="Agregar condición" icon="pi pi-plus" size="small" (onClick)="addQbeCondition()"></p-button></ng-container></div>
-                                    <div class="space-y-3">
-                                        @for (condition of qbeConditions; track $index) {
-                                            <div class="grid grid-cols-1 gap-3 rounded-lg border border-surface-200 p-3 md:grid-cols-4 dark:border-surface-700">
-                                                <div><label class="mb-2 block text-sm font-medium">Campo</label><p-select [options]="qbeFieldOptions()" [(ngModel)]="condition.campo" (ngModelChange)="onQbeFieldChange($index)" optionLabel="label" optionValue="value" class="w-full"></p-select></div>
-                                                <div><label class="mb-2 block text-sm font-medium">Operador</label><p-select [options]="qbeOperatorOptions($index)" [(ngModel)]="condition.operador" optionLabel="label" optionValue="value" class="w-full"></p-select></div>
-                                                <div><label class="mb-2 block text-sm font-medium">Valor</label><input pInputText [(ngModel)]="condition.valor" class="w-full" /></div>
-                                                <div class="flex items-end gap-2">@if (needsSecondValue(condition.operador)) { <div class="flex-1"><label class="mb-2 block text-sm font-medium">Hasta</label><input pInputText [(ngModel)]="condition.valorHasta" class="w-full" /></div> }<ng-container *appCanPerm="['REPORTES_WRITE']"><p-button icon="pi pi-trash" severity="danger" [text]="true" (onClick)="removeQbeCondition($index)"></p-button></ng-container></div>
-                                            </div>
-                                        }
-                                    </div>
-                                </div>
-                            }
-                        </div>
-                    }
-
-                    <div class="mt-4 flex flex-wrap gap-2">
-                        <p-button label="Generar reporte" icon="pi pi-play" [loading]="loadingPreview" (onClick)="page = 0; generar()"></p-button>
-                        <ng-container *appCanPerm="['REPORTES_EXPORT']">
-                            <p-button label="PDF" icon="pi pi-file-pdf" severity="danger" [disabled]="!preview()" [loading]="exporting === 'PDF'" (onClick)="exportar('PDF')"></p-button>
-                            <p-button label="Excel" icon="pi pi-file-excel" severity="success" [disabled]="!preview()" [loading]="exporting === 'XLSX'" (onClick)="exportar('XLSX')"></p-button>
-                            <p-button label="CSV" icon="pi pi-download" severity="secondary" [disabled]="!preview()" [loading]="exporting === 'CSV'" (onClick)="exportar('CSV')"></p-button>
-                        </ng-container>
-                    </div>
-                </p-card>
-
-                @if (preview(); as result) {
-                    <p-card class="mt-4">
-                        <div class="mb-4 flex flex-col gap-2 md:flex-row md:items-start md:justify-between">
-                            <div><h2 class="text-xl font-semibold">{{ result.encabezado.nombreReporte }}</h2><p class="text-sm text-surface-500">Generado por {{ result.encabezado.usuario }} en {{ result.encabezado.generadoEn | date:'short' }}</p>@for (filter of result.encabezado.filtrosAplicados; track filter) { <p class="text-xs text-surface-500">{{ filter }}</p> }</div>
-                            <p-tag [value]="result.totalRegistros + ' registros'" severity="success"></p-tag>
-                        </div>
-                        <p-table [value]="result.filas" [columns]="result.columnas" [lazy]="true" [paginator]="true" [rows]="result.size" [first]="result.page * result.size" [totalRecords]="result.totalRegistros" [loading]="loadingPreview" [rowsPerPageOptions]="[10, 25, 50, 100]" styleClass="p-datatable-sm" (onLazyLoad)="onLazyLoad($event)">
-                            <ng-template pTemplate="header" let-columns><tr>@for (col of columns; track col.field) { <th>{{ col.header }}</th> }</tr></ng-template>
-                            <ng-template pTemplate="body" let-row let-columns="columns"><tr>@for (col of columns; track col.field) { <td>{{ value(row, col.field) }}</td> }</tr></ng-template>
-                        </p-table>
-                    </p-card>
-                }
-            </p-tabpanel>
-        </p-tabpanels>
-    </p-tabs>
 </div>

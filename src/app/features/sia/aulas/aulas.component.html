@@ -7,9 +7,9 @@
             <h3 class="m-0 text-xl font-semibold text-surface-900 dark:text-surface-0">Aulas</h3>
             <p class="mb-0 mt-1 text-sm text-surface-400">Espacios fisicos disponibles para planificacion academica</p>
         </div>
-        <ng-container *appCanPerm="['GESTION_WRITE']">
+        @if (canWrite) {
             <p-button label="Nueva Aula" icon="pi pi-plus" (onClick)="nuevo()" />
-        </ng-container>
+        }
     </div>
 
     <section class="mb-5 overflow-hidden rounded-xl border border-surface-200 bg-surface-0 shadow-sm dark:border-surface-700 dark:bg-surface-900">
@@ -202,9 +202,9 @@
     </div>
 
     <ng-template #footer>
-        <ng-container *appCanPerm="['GESTION_WRITE']">
+        @if (canWrite) {
             <p-button label="Cancelar" icon="pi pi-times" [text]="true" severity="secondary" (onClick)="dialogVisible = false" />
             <p-button [label]="editMode ? 'Actualizar' : 'Crear'" icon="pi pi-check" (onClick)="guardar()" />
-        </ng-container>
+        }
     </ng-template>
 </p-dialog>

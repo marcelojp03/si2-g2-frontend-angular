@@ -18,7 +18,7 @@
                 (onChange)="seleccionarCurso()" appendTo="body" />
         </div>
         @if (cursoSeleccionado) {
-            <ng-container *appCanPerm="['GESTION_WRITE']">
+            <ng-container *appCanPerm="['MATERIAS_WRITE']">
                 <p-button label="Asignar Materia" icon="pi pi-plus"
                     [disabled]="materiasDisponibles.length === 0"
                     (onClick)="dialogVisible = true" />
@@ -52,7 +52,7 @@
                         <p-tag [value]="mc.estado" [severity]="mc.estado === 'ACTIVO' ? 'success' : 'danger'" />
                     </td>
                     <td>
-                        <ng-container *appCanPerm="['GESTION_WRITE']">
+                        <ng-container *appCanPerm="['MATERIAS_WRITE']">
                             <p-button icon="pi pi-minus" [rounded]="true" [text]="true" severity="danger"
                                 pTooltip="Quitar materia" tooltipPosition="top"
                                 (onClick)="confirmarDesasignar(mc)" />
@@ -89,7 +89,7 @@
     </div>
 
     <ng-template #footer>
-        <ng-container *appCanPerm="['GESTION_WRITE']">
+        <ng-container *appCanPerm="['MATERIAS_WRITE']">
             <p-button label="Cancelar" icon="pi pi-times" [text]="true" severity="secondary"
                 (onClick)="dialogVisible = false; idMateriaAgregar = ''" />
             <p-button label="Asignar" icon="pi pi-check"

@@ -5,6 +5,7 @@ export type EstadoRegistroAsistencia = 'NO_REGISTRADA' | 'REGISTRADA' | 'MODIFIC
 export interface AsistenciaDetalleRequest {
     idInscripcion: string;
     estadoAsistencia: EstadoAsistencia;
+    justificacion?: string;
 }
 
 export interface AsistenciaRegistroRequest {
@@ -48,6 +49,7 @@ export interface AsistenciaEstudianteResponse {
     nombreCompleto: string;
 
     estadoAsistencia: EstadoAsistencia;
+    justificacion?: string | null;
     registrado: boolean;
 }
 

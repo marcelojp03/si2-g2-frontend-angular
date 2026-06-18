@@ -16,7 +16,6 @@ import { TextareaModule } from 'primeng/textarea';
 import { ToastModule } from 'primeng/toast';
 import { TooltipModule } from 'primeng/tooltip';
 import { AuthService } from '@/core/services/auth.service';
-import { CanPermDirective } from '@/shared/directives/can-perm.directive';
 import { ComunicadosService } from '@/features/sia/comunicados/services/comunicados.service';
 import { ComunicadoRequest, ComunicadoResponse } from '@/features/sia/comunicados/models/comunicado.models';
 
@@ -26,7 +25,7 @@ import { ComunicadoRequest, ComunicadoResponse } from '@/features/sia/comunicado
     imports: [
         CommonModule, FormsModule, TableModule, ButtonModule, ToastModule, TagModule,
         InputTextModule, TextareaModule, InputIconModule, IconFieldModule,
-        DialogModule, TooltipModule, ConfirmDialogModule, SelectModule, CanPermDirective
+        DialogModule, TooltipModule, ConfirmDialogModule, SelectModule
     ],
     providers: [MessageService, ConfirmationService],
     templateUrl: './comunicados.component.html'
